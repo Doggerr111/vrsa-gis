@@ -1,0 +1,1232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1076</width>
+    <height>654</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QLabel{
+	color: rgb(242,242,242);
+}
+
+QTreeWidget{
+	color: rgb(242,242,242);
+}
+QMenuBar{
+	color: rgb(242,242,242);
+}
+QLineEdit {
+color: rgb(242,242,242);
+}
+QComboBox{
+color: rgb(242,242,242);
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QFrame {
+	border:0px solid black
+}</string>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="header_frame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>75</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QFrame#header_frame {
+background-color: rgb(68,68,68);
+border-bottom: 3px solid black
+};</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item alignment="Qt::AlignLeft">
+        <widget class="QFrame" name="frame_7">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QFrame{
+border: 0px solid black
+}
+
+QPushButton:hover {
+	border: 1px solid;
+    border-color: #333; /* Цвет рамки при наведении */
+}</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>9</number>
+          </property>
+          <property name="topMargin">
+           <number>9</number>
+          </property>
+          <property name="rightMargin">
+           <number>9</number>
+          </property>
+          <property name="bottomMargin">
+           <number>9</number>
+          </property>
+          <item alignment="Qt::AlignVCenter">
+           <widget class="QPushButton" name="pushButton_addFeature">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+border:none;
+}
+QPushButton:checked { 
+background-color: gray;
+border: 1px solid
+}
+
+QPushButton:hover {
+	border: 1px solid;
+    border-color: #333; /* Цвет рамки при наведении */
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/addPointFeature2.png</normaloff>:/images/icons/addPointFeature2.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>60</width>
+              <height>60</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="autoRepeatDelay">
+             <number>300</number>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
+           <widget class="QPushButton" name="pushButtonSelectFeature">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+border:none;
+}
+QPushButton:checked { 
+background-color: gray;
+border: 1px solid
+}
+
+QPushButton:hover {
+	border: 1px solid;
+    border-color: #333; /* Цвет рамки при наведении */
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/selectFeature2.png</normaloff>:/images/icons/selectFeature2.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>35</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="autoRepeatDelay">
+             <number>300</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonShowAttributeTable">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>50</height>
+             </size>
+            </property>
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+border:none;
+}
+QPushButton:pressed { 
+background-color: gray;
+border: 1px solid
+}
+
+QPushButton:hover {
+	border: 1px solid;
+    border-color: #333; /* Цвет рамки при наведении */
+}</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/metaData.png</normaloff>:/images/icons/metaData.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>45</width>
+              <height>45</height>
+             </size>
+            </property>
+            <property name="autoRepeatDelay">
+             <number>300</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignRight">
+        <widget class="QFrame" name="frameMainToolBar">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+border:none;
+}
+QPushButton:checked { 
+background-color: gray;
+border: 1px solid
+}
+
+QPushButton:hover {
+	border: 1px solid;
+    border-color: #333; /* Цвет рамки при наведении */
+}</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_8"/>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="central_frame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>1677215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item alignment="Qt::AlignLeft">
+        <widget class="LIPFrame" name="left_menu_frame">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>274</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QFrame{
+background-color: rgb(68,68,68)
+};</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QFrame" name="frame_9">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_10">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Слои проекта</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="frameLayerTree">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
+border:none;
+}
+QPushButton:pressed { 
+background-color: gray;
+border: 1px solid
+}
+
+QPushButton:hover {
+	border: 1px solid;
+    border-color: #333; /* Цвет рамки при наведении */
+}</string>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Raised</enum>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_9">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="pushButtonDeleteLayer">
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../icons.qrc">
+                 <normaloff>:/images/icons/removeLayer.png</normaloff>:/images/icons/removeLayer.png</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>20</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonMoveLayerUp">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../icons.qrc">
+                 <normaloff>:/images/icons/moveUp.png</normaloff>:/images/icons/moveUp.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonMoveLayerDown">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../icons.qrc">
+                 <normaloff>:/images/icons/moveDown.png</normaloff>:/images/icons/moveDown.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonZoomToLayer">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../icons.qrc">
+                 <normaloff>:/images/icons/zoomToLayer.png</normaloff>:/images/icons/zoomToLayer.png</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="LIPTreeWidget" name="LayerTree">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QTreeWidget{
+border:3px solid black;
+border-radius: 14px;
+
+};
+
+</string>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+            </property>
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropOverwriteMode">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::DragDrop</enum>
+            </property>
+            <property name="defaultDropAction">
+             <enum>Qt::MoveAction</enum>
+            </property>
+            <attribute name="headerVisible">
+             <bool>false</bool>
+            </attribute>
+            <column>
+             <property name="text">
+              <string notr="true">1</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="LIPMapHolder" name="graphicsView">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border: 3px solid black;
+border-top: 0px solid black</string>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustIgnored</enum>
+            </property>
+            <property name="sceneRect">
+             <rectf>
+              <x>0.000000000000000</x>
+              <y>0.000000000000000</y>
+              <width>0.000000000000000</width>
+              <height>0.000000000000000</height>
+             </rectf>
+            </property>
+            <property name="dragMode">
+             <enum>QGraphicsView::NoDrag</enum>
+            </property>
+            <property name="viewportUpdateMode">
+             <enum>QGraphicsView::MinimalViewportUpdate</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="LIPFrame" name="right_menu_frame">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>183</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QFrame{
+background-color: rgb(68,68,68)
+};</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item alignment="Qt::AlignHCenter|Qt::AlignTop">
+           <widget class="QLabel" name="label_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Слои базы данных</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="LIPTreeWidget" name="DBLayerTree">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">
+QTreeWidget{
+border:3px solid black;
+border-radius: 14px;
+
+
+};</string>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAsNeeded</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAsNeeded</enum>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+            </property>
+            <property name="dragEnabled">
+             <bool>false</bool>
+            </property>
+            <property name="dragDropOverwriteMode">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::NoDragDrop</enum>
+            </property>
+            <property name="defaultDropAction">
+             <enum>Qt::MoveAction</enum>
+            </property>
+            <attribute name="headerVisible">
+             <bool>false</bool>
+            </attribute>
+            <column>
+             <property name="text">
+              <string notr="true">1</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="frame_3">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>50</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QFrame{
+background-color: rgb(68,68,68)
+};</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item alignment="Qt::AlignLeft">
+        <widget class="QFrame" name="frame_4">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>279</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_7"/>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignLeft">
+        <widget class="QFrame" name="frame_5">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item alignment="Qt::AlignHCenter">
+           <widget class="QLineEdit" name="lineEditCoordinates">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(135, 134, 131)</string>
+            </property>
+           </widget>
+          </item>
+          <item alignment="Qt::AlignHCenter">
+           <widget class="QLineEdit" name="lineEditScale">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(135, 134, 131)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="LIPCRSComboBox" name="crsComboBox">
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(135, 134, 131)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_6">
+         <property name="maximumSize">
+          <size>
+           <width>186</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_11"/>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1076</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(135, 134, 131)</string>
+   </property>
+   <widget class="QMenu" name="menuf">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="actionSaveProject"/>
+    <addaction name="action"/>
+    <addaction name="actionSettings"/>
+   </widget>
+   <widget class="QMenu" name="menuf_2">
+    <property name="title">
+     <string>Вектор</string>
+    </property>
+    <addaction name="actionNew_point_layer"/>
+    <addaction name="actionNew_line_layer"/>
+    <addaction name="actionNew_polygon_layer"/>
+    <addaction name="actionLoad_vector_layer"/>
+   </widget>
+   <widget class="QMenu" name="menuDatabase">
+    <property name="title">
+     <string>База данных</string>
+    </property>
+    <addaction name="actionConnect_to_PostGIS"/>
+   </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Геообработка</string>
+    </property>
+    <addaction name="actionGeosTriangulation"/>
+    <addaction name="actionVoronoiDiagram"/>
+    <addaction name="actionIntersection"/>
+    <addaction name="actionUnion"/>
+    <addaction name="actionVectorReproject"/>
+    <addaction name="actionAssignVectorProjection"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Растр</string>
+    </property>
+    <addaction name="actionOpenRasterLayer"/>
+    <addaction name="actionXYZService"/>
+   </widget>
+   <widget class="QMenu" name="menu_3">
+    <property name="title">
+     <string>Анализ растров</string>
+    </property>
+    <addaction name="actionCutRasterByVectorMask"/>
+    <addaction name="actionRasterReproject"/>
+    <addaction name="actionRasterContours"/>
+   </widget>
+   <widget class="QMenu" name="menu_4">
+    <property name="title">
+     <string>Карта</string>
+    </property>
+    <addaction name="actionRenderMap"/>
+   </widget>
+   <addaction name="menuf"/>
+   <addaction name="menuf_2"/>
+   <addaction name="menu"/>
+   <addaction name="menu_2"/>
+   <addaction name="menu_3"/>
+   <addaction name="menuDatabase"/>
+   <addaction name="menu_4"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(135, 134, 131)</string>
+   </property>
+  </widget>
+  <action name="actionNew_point_layer">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/pointLayer.png</normaloff>:/images/icons/pointLayer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Новый точечный слой</string>
+   </property>
+  </action>
+  <action name="actionNew_line_layer">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/lineLayer.png</normaloff>:/images/icons/lineLayer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Новый линейный слой</string>
+   </property>
+  </action>
+  <action name="actionNew_polygon_layer">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/polygonLayer.png</normaloff>:/images/icons/polygonLayer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Новый полигональный слой</string>
+   </property>
+  </action>
+  <action name="actionLoad_vector_layer">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/addLayer.png</normaloff>:/images/icons/addLayer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Зазгрузить векторный слой</string>
+   </property>
+  </action>
+  <action name="actionConnect_to_PostGIS">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/postgis.png</normaloff>:/images/icons/postgis.png</iconset>
+   </property>
+   <property name="text">
+    <string>Подключиться к PostGIS</string>
+   </property>
+  </action>
+  <action name="actionGeosTriangulation">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/triangulate.png</normaloff>:/images/icons/triangulate.png</iconset>
+   </property>
+   <property name="text">
+    <string>Триангуляция</string>
+   </property>
+  </action>
+  <action name="actionIntersection">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/intersection.png</normaloff>:/images/icons/intersection.png</iconset>
+   </property>
+   <property name="text">
+    <string>Пересечение</string>
+   </property>
+  </action>
+  <action name="actionVoronoiDiagram">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/voronoiDiagram.png</normaloff>:/images/icons/voronoiDiagram.png</iconset>
+   </property>
+   <property name="text">
+    <string>Полигоны вороного</string>
+   </property>
+  </action>
+  <action name="actionUnion">
+   <property name="icon">
+    <iconset>
+     <normalon>:/images/icons/union.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Объединение</string>
+   </property>
+  </action>
+  <action name="actionRenderMap">
+   <property name="icon">
+    <iconset>
+     <normalon>:/images/icons/map.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Рендер текущего экстента</string>
+   </property>
+  </action>
+  <action name="actionSaveProject">
+   <property name="icon">
+    <iconset>
+     <normalon>:/images/icons/diskette.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить проект</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/folder.png</normaloff>:/images/icons/folder.png</iconset>
+   </property>
+   <property name="text">
+    <string>Открыть проект</string>
+   </property>
+  </action>
+  <action name="actionVectorReproject">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/world.png</normaloff>:/images/icons/world.png</iconset>
+   </property>
+   <property name="text">
+    <string>Перепроецировать векторный слой</string>
+   </property>
+  </action>
+  <action name="actionAssignVectorProjection">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/assign.png</normaloff>:/images/icons/assign.png</iconset>
+   </property>
+   <property name="text">
+    <string>Назначить проекцию векторного слоя</string>
+   </property>
+  </action>
+  <action name="actionCutRasterByVectorMask">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/imageCut.png</normaloff>:/images/icons/imageCut.png</iconset>
+   </property>
+   <property name="text">
+    <string>Обрезать по маске слоя</string>
+   </property>
+  </action>
+  <action name="actionRasterReproject">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/transform.png</normaloff>:/images/icons/transform.png</iconset>
+   </property>
+   <property name="text">
+    <string>Перепроецировать</string>
+   </property>
+  </action>
+  <action name="actionRasterContours">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/contour.png</normaloff>:/images/icons/contour.png</iconset>
+   </property>
+   <property name="text">
+    <string>Создать изолинии</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/setting.png</normaloff>:/images/icons/setting.png</iconset>
+   </property>
+   <property name="text">
+    <string>Настройки</string>
+   </property>
+  </action>
+  <action name="actionOpenRasterLayer">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/rasterTreeItem.png</normaloff>:/images/icons/rasterTreeItem.png</iconset>
+   </property>
+   <property name="text">
+    <string>Открыть растровый слой</string>
+   </property>
+  </action>
+  <action name="actionXYZService">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/tiles.png</normaloff>:/images/icons/tiles.png</iconset>
+   </property>
+   <property name="text">
+    <string>Подключиться к XYZ сервису</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>LIPCRSComboBox</class>
+   <extends>QComboBox</extends>
+   <header>customWidgets/lipcrscombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LIPMapHolder</class>
+   <extends>QGraphicsView</extends>
+   <header>customWidgets/lipmapholder.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LIPTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header location="global">customWidgets/liptreewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LIPFrame</class>
+   <extends>QFrame</extends>
+   <header location="global">customWidgets/lipframe.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../icons.qrc"/>
+ </resources>
+ <connections/>
+</ui>
