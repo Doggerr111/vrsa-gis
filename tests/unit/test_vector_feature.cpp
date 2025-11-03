@@ -6,7 +6,7 @@
 TEST(VectorFeatureTest, DefaultConstruction) {
     //vrsa::vector::VectorFeature feature;
 
-    EXPECT_TRUE(true);
+    //EXPECT_TRUE(true);
 //    EXPECT_TRUE(feature.isVisible());
 //    EXPECT_EQ(feature.geometry(), nullptr);
 }

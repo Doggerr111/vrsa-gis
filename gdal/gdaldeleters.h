@@ -14,14 +14,6 @@ namespace gdalwrapper {
 // Основные удалители для GDAL объектов
 // ============================================================================
 
-/**
- * @english
- * @brief Deleter for GDALDataset - calls GDALClose()
- * @endenglish
- * @russian
- * @brief Удалитель для GDALDataset - вызывает GDALClose()
- * @endrussian
- */
 struct GdalDatasetDeleter {
     void operator()(GDALDataset* dataset) const {
         if (dataset) {
@@ -146,19 +138,19 @@ struct GdalDriverDeleter {
     }
 };
 
-/**
- * @english
- * @brief Deleter for GDALRasterBand - no explicit deletion needed (owned by dataset)
- * @endenglish
- * @russian
- * @brief Удалитель для GDALRasterBand - явное удаление не требуется (владеется dataset)
- * @endrussian
- */
-struct GdalRasterBandDeleter {
-    void operator()(GDALRasterBand* band) const {
-        // Band уничтожается вместе с dataset
-    }
-};
+///**
+// * @english
+// * @brief Deleter for GDALRasterBand - no explicit deletion needed (owned by dataset)
+// * @endenglish
+// * @russian
+// * @brief Удалитель для GDALRasterBand - явное удаление не требуется (владеется dataset)
+// * @endrussian
+// */
+//struct GdalRasterBandDeleter {
+//    void operator()(GDALRasterBand* band) const {
+//        // Band уничтожается вместе с dataset
+//    }
+//};
 
 // ============================================================================
 // Удалители для CPL (Common Portability Library) объектов
