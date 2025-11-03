@@ -26,10 +26,24 @@ namespace common
  */
 
 enum class GeometryType{
-    Point,
-    LineString,
-    Polygon,
-    Unknown
+    Unknown = 0,          // Неизвестный тип
+    Point = 1,            // Точка
+    LineString = 2,       // Линия
+    Polygon = 3,          // Полигон
+    MultiPoint = 4,       // Мультиточка
+    MultiLineString = 5,  // Мультилиния
+    MultiPolygon = 6,     // Мультиполигон
+    GeometryCollection = 7, // Коллекция геометрий
+    CircularString = 8,   // Круговая строка (CircularString)
+    CompoundCurve = 9,    // Составная кривая
+    CurvePolygon = 10,    // Криволинейный полигон
+    MultiCurve = 11,      // Мультикривая
+    MultiSurface = 12,    // Мультиповерхность
+    Curve = 13,           // Кривая
+    Surface = 14,         // Поверхность
+    PolyhedralSurface = 15, // Полиэдральная поверхность
+    TIN = 16,             // TIN (триангуляционная сетка)
+    Triangle = 17         // Треугольник
 };
 
 enum class StyleUnit{

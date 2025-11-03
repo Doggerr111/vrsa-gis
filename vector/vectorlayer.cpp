@@ -1,9 +1,5 @@
-//#include "lipvectorlayer.h"
-//#include "QDebug"
-//#include "mainwindow.h"
-//#include "lippointlayer.h"
-//#include "liplinelayer.h"
-//#include "lippolygonlayer.h"
+#include "vectorlayer.h"
+
 //LIPVectorLayer::LIPVectorLayer(OGRLayer *l, QString path, GDALDataset *dataset)
 //    : layer{l},
 //      dS{dataset},
@@ -363,3 +359,19 @@
 
 
 
+
+vrsa::vector::VectorLayer::VectorLayer(OGRLayer *l)
+    :mOGRLayer{l}
+{
+
+}
+
+int vrsa::vector::VectorLayer::id()
+{
+    return 2;
+}
+
+void vrsa::vector::VectorLayer::setFeatures(featuresVec features)
+{
+    mFeatures = std::move(features);
+}

@@ -1,8 +1,10 @@
-#ifndef LIPVECTORLAYER_H
-#define LIPVECTORLAYER_H
+#ifndef VectorLayer_H
+#define VectorLayer_H
 #include <QString>
 #include <QObject>
 #include "vector/vectorfeature.h"
+#include "gdal/geometrytypeconverter.h"
+//#include "gdal/gdalvectorreader.h"
 //#include "gdal.h"
 //#include "gdal_priv.h"
 //#include "ogrsf_frmts.h"
@@ -14,23 +16,29 @@
 //#include "lipwidgetmanager.h"
 //#include "ogr_spatialref.h"
 
+namespace vrsa {
+namespace vector {
+
+
 class LIPPointLayer;
 class LIPLineLayer;
 class LIPPolygonLayer;
 
 class VectorLayer: public QObject
 {
-//    Q_OBJECT
-//public:
-//    //в качестве параметров конструктора используются объекты библиотечных классов GDAL и путь к файлу слоя
-//    LIPVectorLayer(OGRLayer *l, QString path, GDALDataset *dataset);
-//    // запрещаем копирование и перемещение
-//    LIPVectorLayer(LIPVectorLayer&&) = delete;
-//    LIPVectorLayer(const LIPVectorLayer&) = delete;
-//    LIPVectorLayer& operator= ( const LIPVectorLayer & ) = delete;
-//    LIPVectorLayer& operator= ( LIPVectorLayer && ) = delete;
-//    /** возвращает путь к слою*/
-//    QString returnFileName();
+    Q_OBJECT
+public:
+    using featuresVec = std::vector<std::unique_ptr<vrsa::vector::VectorFeature>>;
+    VectorLayer(OGRLayer *l);
+    int id();
+    void setFeatures(featuresVec features);
+    // запрещаем копирование и перемещение
+    VectorLayer(VectorLayer&&) = delete;
+    VectorLayer(const VectorLayer&) = delete;
+    VectorLayer& operator= ( const VectorLayer & ) = delete;
+    VectorLayer& operator= ( VectorLayer && ) = delete;
+    /** возвращает путь к слою*/
+    QString returnFileName();
 //    /** возвращает вектор с типами атрибутов слоя */
 //    QVector<LIPAttributeType> getAttributeTypes();
 //    /** возвращает вектор с названиями полей атрибутов слоя */
@@ -73,9 +81,9 @@ class VectorLayer: public QObject
 
 
 
-//public:
+public:
 //    virtual QString returnGISName();
-//    virtual ~LIPVectorLayer();
+//    virtual ~VectorLayer();
 //    virtual void addFeature(QVector<QPointF> coords, QVector<LIPAttribute> attrs);
 //    virtual void setVisible(bool=true);
 //    virtual bool reproject(LIPCoordinateSystem *targetCRS);
@@ -88,26 +96,31 @@ class VectorLayer: public QObject
 //    virtual void deselectItems();
 
 
-//signals:
-//    //вызов сигнала приводит к перерисовке слоя
-//    void needRepaint();
+signals:
+    //вызов сигнала приводит к перерисовке слоя
+    //void needRepaint();
 
-//public slots:
+public slots:
 //    virtual void setSceneScaleFactor(double factor);
 //    virtual void flyReprojection();
 
-//protected:
-//    OGRLayer *layer;
-//    GDALDataset *dS;
-//    QString fileName;
-//    QVector<LIPAttributeType> attributeTypes;
-//    QVector<QString> attributeNames;
-//    double mScaleFactor;
-//    LIPVectorStyle *mStyle;
-//    LIPCoordinateSystem* mCRS;
-//    int mZValue;
-//    int mSelectedFeatureIndex;
-//    bool mIsSelected;
+protected:
+    OGRLayer *mOGRLayer;
+    GDALDataset *dS;
+    QString fileName;
+    //QVector<LIPAttributeType> attributeTypes;
+    QVector<QString> attributeNames;
+    double mScaleFactor;
+    //LIPVectorStyle *mStyle;
+    //LIPCoordinateSystem* mCRS;
+    int mZValue;
+    int mSelectedFeatureIndex;
+    bool mIsSelected;
+    featuresVec mFeatures;
+    vrsa::common::GeometryType geomType;
 };
 
-#endif // LIPVECTORLAYER_H
+}
+}
+
+#endif // VectorLayer_H

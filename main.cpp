@@ -26,8 +26,16 @@ int main(int argc, char *argv[])
     vrsa::common::Logger::getInstance().setLogFile(QDir::currentPath().toStdString()+"/application.log");
     vrsa::common::Logger::getInstance().setLogLevel(vrsa::common::LogLevel::TRACE);
     VRSA_DEBUG("GDAL", "Opening file");
+    VRSA_LOG_MEMORY("Start");
 
-    return 0;
+    std::vector<int*> arrays;
+    for(int i = 0; i < 10; i++) {
+        arrays.push_back(new int[1000000]);  // 4 MB каждый
+        for(int j = 0; j < 1000000; j++) arrays[i][j] = j;
+        VRSA_LOG_MEMORY("After allocation " + std::to_string(i));
+    }
+
+    //return 0;
 
     MainWindow w;
     w.show();
