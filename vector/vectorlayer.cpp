@@ -366,6 +366,11 @@ vrsa::vector::VectorLayer::VectorLayer(OGRLayer *l)
 
 }
 
+std::unique_ptr<vrsa::vector::VectorFeature>& vrsa::vector::VectorLayer::getFeatureAt(size_t idx)
+{
+    return mFeatures[idx];
+}
+
 int vrsa::vector::VectorLayer::id()
 {
     return 2;
@@ -374,4 +379,9 @@ int vrsa::vector::VectorLayer::id()
 void vrsa::vector::VectorLayer::setFeatures(featuresVec features)
 {
     mFeatures = std::move(features);
+}
+
+std::size_t vrsa::vector::VectorLayer::featuresCount()
+{
+    return mFeatures.size();
 }

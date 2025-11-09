@@ -1,5 +1,5 @@
-#ifndef GDALVECTORREADER_H
-#define GDALVECTORREADER_H
+#ifndef GDALReader_H
+#define GDALReader_H
 
 
 #include <memory>
@@ -25,16 +25,19 @@ namespace gdalwrapper
 
 /**
  * @english
- * @brief GDAL vector data reader - provides functionality for reading vector datasets
- * through GDAL/OGR library. Supports multiple formats (Shapefile, GeoJSON, GPKG, etc.)
+ * @brief GDAL Reader - provides functionality for reading both vector and raster datasets
+ * through GDAL library. Supports multiple formats (Shapefile, GeoJSON, GPKG, GeoTIFF, JPEG, etc.)
+ * @details The reader can handle both vector data (points, lines, polygons) and raster data (images, DEMs).
  * @endenglish
  * @russian
- * @brief Чтение векторных данных через GDAL - предоставляет функциональность для чтения
- * векторных наборов данных через библиотеку GDAL/OGR. Поддерживает множественные форматы
- * (Shapefile, GeoJSON, GPKG и др.)
+ * @brief Чтение данных через GDAL - предоставляет функциональность для чтения
+ * как векторных, так и растровых наборов данных через библиотеку GDAL.
+ * Поддерживает множественные форматы (Shapefile, GeoJSON, GPKG, GeoTIFF, JPEG и др.)
+ * @details Может обрабатывать как векторные данные (точки, линии, полигоны),
+ * так и растровые данные (изображения, ЦМР).
  * @endrussian
  */
-class GDALVectorReader {
+class GDALReader {
 public:
     /**
     * @english
@@ -44,7 +47,7 @@ public:
     * @brief Конструктор по умолчанию
     * @endrussian
     */
-    GDALVectorReader();
+    GDALReader();
     /**
     * @english
     * @brief Default destructor
@@ -53,33 +56,36 @@ public:
     * @brief Деструктор по умолчанию
     * @endrussian
     */
-    ~GDALVectorReader() = default;
+    ~GDALReader() = default;
 
 
     /**
     * @english
-    * @brief Reads complete vector dataset from specified source
-    * @param source Path to vector data file or data source identifier
-    * @return Unique pointer to VectorDataset containing all layers and metadata
+    * @brief Reads complete dataset (vector or raster) from specified source
+    * @param source Path to data file or data source identifier
+    * @return Unique pointer to Dataset (could be VectorDataset or RasterDataset)
     * @throws GISException if dataset cannot be opened or read
+    * @note To determine the polymorph type of returned dataset, call getDatasetType() method
     * @endenglish
     * @russian
-    * @brief Читает полный векторный набор данных из указанного источника
-    * @param source Путь к файлу векторных данных или идентификатор источника данных
-    * @return Умный указатель на VectorDataset, содержащий все слои и метаданные
+    * @brief Читает полный набор данных (векторный или растровый) из указанного источника
+    * @param source Путь к файлу данных или идентификатор источника данных
+    * @return Умный указатель на Dataset (может быть VectorDataset или RasterDataset)
     * @throws GISException если набор данных не может быть открыт или прочитан
+    * @note Для определения полиморфного типа возвращенного набора данных
+    * вызовите метод getDatasetType()
     * @endrussian
     */
-    std::unique_ptr<vrsa::vector::VectorDataset> readDataset(const std::string& source);
+    std::unique_ptr<vrsa::gdalwrapper::Dataset> readDataset(const std::string& source);
     /**
     * @english
-    * @brief Reads all layers from opened GDAL dataset
+    * @brief Reads all vector layers from opened GDAL dataset
     * @param uPtrDs Smart pointer to opened GDAL dataset
     * @return Vector of unique pointers to VectorLayer objects
     * @throws GISException if layers cannot be read
     * @endenglish
     * @russian
-    * @brief Читает все слои из открытого GDAL набора данных
+    * @brief Читает все векторные слои из открытого GDAL набора данных
     * @param uPtrDs Умный указатель на открытый GDAL набор данных
     * @return Вектор умных указателей на объекты VectorLayer
     * @throws GISException если слои не могут быть прочитаны
@@ -102,6 +108,7 @@ public:
      */
     std::unique_ptr<vrsa::vector::VectorLayer>  convertOGRLayerToVectorLayer(OGRLayer* layer);
 
+
     std::unique_ptr<vrsa::vector::VectorFeature> convertOGRFeatureToVectorFeature(OgrFeaturePtr &ogrFeature);
 
     vrsa::vector::VectorFeature::AttributeValue convertOGRFieldValue(OgrFeaturePtr &feature,
@@ -109,8 +116,21 @@ public:
                                                                    int fieldIndex);
 
 
+    static OGRGeometry* getOGRGeometry(const OgrFeaturePtr &feature);
 
-
+/**
+    * @english
+    * @brief Detects the type of GDAL dataset (vector, raster, or mixed)
+    * @param uPtrDs Smart pointer to GDAL dataset
+    * @return DatasetType indicating whether dataset is vector, raster, or mixed
+    * @endenglish
+    * @russian
+    * @brief Определяет тип GDAL набора данных (векторный, растровый или смешанный)
+    * @param uPtrDs Умный указатель на GDAL набор данных
+    * @return DatasetType, указывающий является ли набор данных векторным, растровым или смешанным
+    * @endrussian
+    */
+    vrsa::common::DatasetType detectDatasetType(const vrsa::gdalwrapper::GdalDatasetPtr &uPtrDs) const;
 
 
 
@@ -139,4 +159,4 @@ private:
 }
 }
 
-#endif // GDALVECTORREADER_H
+#endif // GDALReader_H

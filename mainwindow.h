@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "services/giscontroller.h"
+#include <QFileDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -15,8 +17,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_actionLoad_vector_layer_triggered();
+
 private:
     Ui::MainWindow *ui;
+    std::unique_ptr<vrsa::services::GISController> mGisController;
 
 };
 #endif // MAINWINDOW_H

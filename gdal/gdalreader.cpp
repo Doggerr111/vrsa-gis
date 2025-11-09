@@ -1,13 +1,13 @@
-#include "gdalvectorreader.h"
+#include "gdalreader.h"
 
 
 using namespace vrsa::vector;
-vrsa::gdalwrapper::GDALVectorReader::GDALVectorReader()
+vrsa::gdalwrapper::GDALReader::GDALReader()
 {
 
 }
 
-std::unique_ptr<VectorDataset> vrsa::gdalwrapper::GDALVectorReader::readDataset(const std::string &source)
+std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readDataset(const std::string &source)
 {
     auto dS = vrsa::gdalwrapper::createDataset(source, GDAL_OF_VECTOR | GDAL_OF_READONLY);
     if (!dS)
@@ -16,13 +16,25 @@ std::unique_ptr<VectorDataset> vrsa::gdalwrapper::GDALVectorReader::readDataset(
         VRSA_LOG_GDAL_ERROR("GDAL", "Failed to open data source: " + source);
 
     }
+    switch (detectDatasetType(dS))
+    {
+    case vrsa::common::DatasetType::Vector:{
+        auto layers = readLayers(dS);
+        VRSA_DEBUG("GDAL", "Creating Vector Dataset");
+        auto vrsaDs = std::make_unique<vrsa::vector::VectorDataset>(std::move(dS), source, std::move(layers));
+        vrsaDs->SetDatasetType(vrsa::common::DatasetType::Vector);
+        return vrsaDs;
 
-    auto layers = readLayers(dS);
-    return std::make_unique<vrsa::vector::VectorDataset>(std::move(dS), source, std::move(layers));
-    //return vDs;
+    }
+    default: { //TODO - raster ds
+        return nullptr;
+    }
+    }
+
+
 }
 
-std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALVectorReader::readLayers
+std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALReader::readLayers
                                            (const vrsa::gdalwrapper::GdalDatasetPtr &uPtrDs)
 {
     std::string source = uPtrDs->GetDescription();
@@ -69,7 +81,7 @@ std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALV
     return layers;
 }
 
-std::unique_ptr<vrsa::vector::VectorLayer> vrsa::gdalwrapper::GDALVectorReader::convertOGRLayerToVectorLayer(OGRLayer *layer)
+std::unique_ptr<vrsa::vector::VectorLayer> vrsa::gdalwrapper::GDALReader::convertOGRLayerToVectorLayer(OGRLayer *layer)
 {
     layer->ResetReading();
     //OGRFeature* ogrFeature;
@@ -91,7 +103,7 @@ std::unique_ptr<vrsa::vector::VectorLayer> vrsa::gdalwrapper::GDALVectorReader::
 
 }
 
-std::unique_ptr<vrsa::vector::VectorFeature> vrsa::gdalwrapper::GDALVectorReader::convertOGRFeatureToVectorFeature(OgrFeaturePtr &ogrFeature)
+std::unique_ptr<vrsa::vector::VectorFeature> vrsa::gdalwrapper::GDALReader::convertOGRFeatureToVectorFeature(OgrFeaturePtr &ogrFeature)
 {
     if (!ogrFeature) return nullptr;
 
@@ -123,7 +135,7 @@ std::unique_ptr<vrsa::vector::VectorFeature> vrsa::gdalwrapper::GDALVectorReader
        return vectorFeature;
 }
 
-vrsa::vector::VectorFeature::AttributeValue vrsa::gdalwrapper::GDALVectorReader::convertOGRFieldValue(OgrFeaturePtr &ogrFeature, OGRFieldDefn *fieldDef, int fieldIndex)
+vrsa::vector::VectorFeature::AttributeValue vrsa::gdalwrapper::GDALReader::convertOGRFieldValue(OgrFeaturePtr &ogrFeature, OGRFieldDefn *fieldDef, int fieldIndex)
 {
     if (!ogrFeature->IsFieldSet(fieldIndex)) {
         return nullptr; // NULL значение
@@ -159,6 +171,32 @@ vrsa::vector::VectorFeature::AttributeValue vrsa::gdalwrapper::GDALVectorReader:
         default:
             // Для неподдерживаемых типов возвращаем строковое представление
             return std::string(ogrFeature->GetFieldAsString(fieldIndex));
+    }
+}
+
+OGRGeometry* vrsa::gdalwrapper::GDALReader::getOGRGeometry(const OgrFeaturePtr &feature)
+{
+    // Геометрия
+    return feature->GetGeometryRef();
+
+}
+
+vrsa::common::DatasetType vrsa::gdalwrapper::GDALReader::detectDatasetType(const GdalDatasetPtr &uPtrDs) const
+{
+    using namespace vrsa::common;
+    if (!uPtrDs) return DatasetType::Unknown;
+
+    int layerCount = uPtrDs->GetLayerCount();
+    int bandCount = uPtrDs->GetRasterCount();
+
+    if (layerCount > 0 && bandCount > 0) {
+        return DatasetType::Mixed;  // Форматы вроде GeoPackage
+    } else if (layerCount > 0) {
+        return DatasetType::Vector;
+    } else if (bandCount > 0) {
+        return DatasetType::Raster;
+    } else {
+        return DatasetType::Empty;
     }
 }
 

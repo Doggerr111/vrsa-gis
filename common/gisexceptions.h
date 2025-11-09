@@ -56,6 +56,13 @@ public:
         : DataException("Failed to open data source: " + filename) {}
 };
 
+
+class DataSetNotFoundException : public DataException {
+public:
+    explicit DataSetNotFoundException(const std::string& filename)
+        : DataException("Data set not found: " + filename) {}
+};
+
 class DataFormatException : public DataException {
 public:
     DataFormatException(const std::string& format, const std::string& details = "")

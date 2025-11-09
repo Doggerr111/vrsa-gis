@@ -48,6 +48,9 @@ file(GLOB CORE_SOURCES
     "gdal/*.cpp"
     "vector/*.cpp"
     "common/*.cpp"
+    "graphics/*.cpp"
+    "services/*.cpp"
+    "calculations/*.cpp"
 )
 
 # ЗАГОЛОВОЧНЫЕ ФАЙЛЫ для библиотеки
@@ -55,6 +58,9 @@ file(GLOB CORE_HEADERS
     "gdal/*.h"
     "vector/*.h"
     "common/*.h"
+    "graphics/*.h"
+    "services/*.h"
+    "calculations/*.h"
 )
 add_library(vrsa_core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
 
@@ -63,6 +69,9 @@ target_include_directories(vrsa_core PUBLIC
     gdal
     vector
     common
+    graphics
+    services
+    calculations
 )
 
 target_link_libraries(vrsa_core PUBLIC

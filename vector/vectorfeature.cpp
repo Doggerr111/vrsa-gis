@@ -8,7 +8,7 @@ vrsa::vector::VectorFeature::VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr feat
 
 void vrsa::vector::VectorFeature::setGeometry(gdalwrapper::OgrGeometryPtr ptr)
 {
-    mGeometry = std::move(ptr);
+    //mGeometry = std::move(ptr);
 //    emit geometryChanged();
 //    emit featureChanged();
 }
@@ -33,4 +33,14 @@ void vrsa::vector::VectorFeature::setVisible(bool visible) {
         //emit visibilityChanged(visible);
         //emit featureChanged();
     }
+}
+
+vrsa::common::GeometryType vrsa::vector::VectorFeature::getType()
+{
+    return vrsa::gdalwrapper::GeometryTypeConverter::FromOGR(mFeature->GetGeometryRef()->getGeometryType());
+}
+
+OGRGeometry *vrsa::vector::VectorFeature::getOGRGeometry()
+{
+    return mFeature->GetGeometryRef();
 }

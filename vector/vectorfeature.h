@@ -2,9 +2,10 @@
 #define VECTORFEATURE_H
 #include <QObject>
 //#include <ogr_geometry.h>
-#include <gdal/gdalresourcehandles.h>
+#include "gdal/gdalresourcehandles.h"
 #include <unordered_map>
 #include <variant>
+#include "gdal/geometrytypeconverter.h"
 namespace vrsa
 {
 namespace vector
@@ -24,7 +25,7 @@ public:
     >;
 
 private:
-    vrsa::gdalwrapper::OgrGeometryPtr mGeometry;
+    OGRGeometry * mGeometry;
     std::string mName;
     using AttributeMap = std::unordered_map<std::string, AttributeValue>;
     AttributeMap mAttributes;
@@ -38,6 +39,10 @@ public:
     void setName(const std::string& name);
     void setAttribute(const std::string& name, const AttributeValue& value);
     void setVisible(bool visible);
+
+    vrsa::common::GeometryType getType();
+    OGRGeometry *getOGRGeometry();
+
 };
 }
 }

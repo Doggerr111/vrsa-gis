@@ -1,6 +1,7 @@
 #ifndef LIPTYPES_H
 #define LIPTYPES_H
 
+
 namespace vrsa
 {
 namespace common
@@ -24,6 +25,13 @@ namespace common
  * систем координат, типов атрибутов и общих операций.
  * @endrussian
  */
+enum class DatasetType {
+    Vector,
+    Raster,
+    Mixed,
+    Unknown,
+    Empty
+};
 
 enum class GeometryType{
     Unknown = 0,          // Неизвестный тип

@@ -1,7 +1,7 @@
 #ifndef VECTORDATASET_H
 #define VECTORDATASET_H
 #include "vector/vectorlayer.h"
-
+#include "gdal/dataset.h"
 namespace vrsa{
 namespace vector{
 /**
@@ -22,17 +22,15 @@ namespace vector{
  * и предоставляет доступ к отдельным слоям и метаданным.
  * @endrussian
  */
-class VectorDataset
+class VectorDataset: public vrsa::gdalwrapper::Dataset
 {
     using vecLayers=std::vector<std::unique_ptr<vrsa::vector::VectorLayer>>;
 public:
     VectorDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, const std::string source, vecLayers = vecLayers());
     std::size_t layersCount();
+    VectorLayer& getLayer(size_t index);
     std::string getSource();
 private:
-
-    vrsa::gdalwrapper::GdalDatasetPtr mDs;
-    std::string mSource;
     vecLayers mLayers;
 };
 }

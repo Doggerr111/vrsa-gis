@@ -17,7 +17,9 @@ namespace gdalwrapper {
 struct GdalDatasetDeleter {
     void operator()(GDALDataset* dataset) const {
         if (dataset) {
+#ifdef ENABLE_DEBUG_LOGS
             VRSA_DEBUG("GDAL", "calling GdalDatasetDeleter");
+#endif
             GDALClose(dataset);
         }
     }
@@ -48,6 +50,9 @@ struct OgrLayerDeleter {
 struct OgrFeatureDeleter {
     void operator()(OGRFeature* feature) const {
         if (feature) {
+#ifdef ENABLE_DEBUG_LOGS
+            //VRSA_DEBUG("GDAL", "calling OgrFeatureDeleter");
+#endif
             OGRFeature::DestroyFeature(feature);
         }
     }

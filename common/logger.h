@@ -1,6 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#define ENABLE_DEBUG_LOGS
 
 #include <string>
 #include <fstream>

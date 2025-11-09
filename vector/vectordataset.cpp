@@ -1,9 +1,8 @@
 #include "vectordataset.h"
-#include "gdal/gdalvectorreader.h"
+#include "gdal/gdalreader.h"
 vrsa::vector::VectorDataset::VectorDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, const std::string source, vecLayers layers)
-    : mDs{std::move(dataset)},
-      mLayers{std::move(layers)},
-      mSource{source}
+    : Dataset{std::move(dataset), source},
+      mLayers{std::move(layers)}
 {
 
 }
@@ -11,6 +10,11 @@ vrsa::vector::VectorDataset::VectorDataset(vrsa::gdalwrapper::GdalDatasetPtr dat
 std::size_t vrsa::vector::VectorDataset::layersCount()
 {
     return mLayers.size();
+}
+
+vrsa::vector::VectorLayer& vrsa::vector::VectorDataset::getLayer(size_t index)
+{
+    return *mLayers[index];
 }
 
 std::string vrsa::vector::VectorDataset::getSource()
