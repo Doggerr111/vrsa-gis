@@ -2,6 +2,8 @@
 #define SPATIALREFERENCELIBRARY_H
 #include <string>
 #include <unordered_map>
+#include <QObject>
+#include <optional>
 namespace vrsa
 {
 namespace georef
@@ -20,15 +22,39 @@ struct CoordinateSystemInfo {
 };
 
 
-class SpatialReferenceLibrary
+class SpatialReferenceLibrary: public QObject
 {
+    Q_OBJECT
 public:
-    // Запрещаем создание экземпляров
-    SpatialReferenceLibrary() = delete;
-    ~SpatialReferenceLibrary() = delete;
+    static SpatialReferenceLibrary& getInstance()
+    {
+        static SpatialReferenceLibrary instance;
+        return instance;
+    }
+
     SpatialReferenceLibrary(const SpatialReferenceLibrary&) = delete;
     SpatialReferenceLibrary& operator=(const SpatialReferenceLibrary&) = delete;
+    SpatialReferenceLibrary(SpatialReferenceLibrary&&) = delete;
+    SpatialReferenceLibrary& operator=(SpatialReferenceLibrary&&) = delete;
 
+    void AddCoordinateSystem(const std::string& name, const CoordinateSystemInfo& info);
+    void RemoveCoordinateSystem(const std::string& name);
+    std::optional<std::string> GetWKTByName(std::string name);
+    std::optional<std::string> GetProjByName(std::string name);
+    std::optional<int> GetEPSGByName(std::string name);
+    std::vector<std::string> GetAvaliableSystems();
+    const std::unordered_map<std::string, CoordinateSystemInfo>& GetCRSMap() const { return mCRSMap; }
+    //CoordinateSystemInfo GetCoordinateSystem(const std::string& name) const;
+
+signals:
+    void CoordinateSystemAdded(const std::string& name);
+    void CoordinateSystemRemoved(const std::string& name);
+
+private:
+    SpatialReferenceLibrary() = default;
+    ~SpatialReferenceLibrary() override = default;
+
+    //std::unordered_map<std::string, CoordinateSystemInfo> mCRSMap;
 
 private:
 //    LIPCoordinateSystem *WGS84 = new LIPCoordinateSystem();
