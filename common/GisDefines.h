@@ -33,7 +33,13 @@ enum class DatasetType {
     Empty
 };
 
-enum class GeometryType{
+enum class CrsFormat {
+    WKT,
+    Proj,
+    EPSG
+};
+
+enum class GeometryType {
     Unknown = 0,          // Неизвестный тип
     Point = 1,            // Точка
     LineString = 2,       // Линия
