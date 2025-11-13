@@ -2,7 +2,7 @@
 #define MAPCALCULATIONS_H
 #include <QObject>
 #include <QRectF>
-#include <ogr_spatialref.h>
+#include <gdal/spatialreference.h>
 #include "common/logger.h"
 #include <numeric>
 namespace vrsa
@@ -11,11 +11,11 @@ namespace calculations
 {
 
 
-class MapCalculator : public QObject
+class MapCalculator
 {
-    Q_OBJECT
+
 public:
-    explicit MapCalculator(QObject *parent = nullptr);
+    explicit MapCalculator();
 public:
     inline void SetDpi(double dpi)
     {
@@ -34,8 +34,8 @@ public:
     /** mapExtent видимая область графической сцены
    */
     double calculateGeographicDistance( const QRectF &mapExtent ) const;
-public slots:
-    void onCRSChanged(OGRSpatialReference*);
+
+    void setCRS(const gdalwrapper::SpatialReference& CRS);
 
 private:
 
