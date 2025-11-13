@@ -639,7 +639,7 @@ border-radius: 14px;
            <number>0</number>
           </property>
           <item>
-           <widget class="LIPMapHolder" name="graphicsView">
+           <widget class="MapHolder" name="graphicsView">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
               <horstretch>0</horstretch>
@@ -901,7 +901,7 @@ background-color: rgb(68,68,68)
            </widget>
           </item>
           <item>
-           <widget class="LIPCRSComboBox" name="crsComboBox">
+           <widget class="CRSComboBox" name="crsComboBox">
             <property name="minimumSize">
              <size>
               <width>200</width>
@@ -1204,14 +1204,14 @@ background-color: rgb(68,68,68)
  </widget>
  <customwidgets>
   <customwidget>
-   <class>LIPCRSComboBox</class>
+   <class>CRSComboBox</class>
    <extends>QComboBox</extends>
-   <header>customWidgets/lipcrscombobox.h</header>
+   <header>customWidgets/crscombobox.h</header>
   </customwidget>
   <customwidget>
-   <class>LIPMapHolder</class>
+   <class>MapHolder</class>
    <extends>QGraphicsView</extends>
-   <header>customWidgets/lipmapholder.h</header>
+   <header>customWidgets/mapholder.h</header>
   </customwidget>
   <customwidget>
    <class>LIPTreeWidget</class>

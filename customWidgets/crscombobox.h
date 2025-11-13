@@ -2,16 +2,15 @@
 #define LIPCRSCOMBOBOX_H
 
 #include <QComboBox>
-//#include "lipproject.h"
 #include <QObject>
-#include <geos/geom/LineSegment.h>
-#include <geos/algorithm/Area.h>
-class LIPCRSComboBox : public QComboBox
+#include "georef/spatialreferencelibrary.h"
+class CRSComboBox : public QComboBox
 {
     Q_OBJECT
 public:
-    LIPCRSComboBox(QWidget* parent=nullptr);
+    CRSComboBox(QWidget* parent=nullptr);
     //LIPCoordinateSystem *getCurrentCRS();
+
 
 
 public slots:

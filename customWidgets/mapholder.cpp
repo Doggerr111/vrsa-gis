@@ -1,36 +1,36 @@
-#include "lipmapholder.h"
+#include "mapholder.h"
 #include <QDebug>
-LIPMapHolder::LIPMapHolder(QObject *parent)
+#include "QGuiApplication"
+#include "QScreen"
+MapHolder::MapHolder(QObject *parent)
     : QGraphicsView{},
       isDraging{false},
-      isAddingFeatures{false}
+      isAddingFeatures{false},
+      mMapCalculator{}
 {
     Q_UNUSED(parent);
+    mMapCalculator.SetDpi(QGuiApplication::primaryScreen()->logicalDotsPerInch());
 }
 
-void LIPMapHolder::zoomToRect(QRectF targetRect)
+void MapHolder::zoomToRect(QRectF targetRect)
 {
     Q_UNUSED(targetRect);
 }
 
-int LIPMapHolder::getScale()
-{
-//    LIPMapCalculations *calculator = new LIPMapCalculations();
-//    calculator->setDpi(QGuiApplication::primaryScreen()->logicalDotsPerInch());
-//    QMatrix const matrix = this->matrix().inverted();
-//    QRectF visibleRect = matrix.mapRect((viewport()->rect()));
-//    visibleRect.moveTopLeft(matrix.map(QPoint(horizontalScrollBar()->value(),
-//                                              verticalScrollBar()->value())));
-//    QRectF visibleRect1 = mapToScene(viewport()->rect()).boundingRect();
-//    double scale = calculator->calculate(visibleRect1, width());
-//    delete calculator;
-//    return static_cast<int>(scale);
-}
-
-QRectF LIPMapHolder::getExtent()
+int MapHolder::getScale()
 {
     QMatrix const matrix = this->matrix().inverted();
+    QRectF visibleRect = matrix.mapRect((viewport()->rect()));
+    visibleRect.moveTopLeft(matrix.map(QPoint(horizontalScrollBar()->value(),
+                                              verticalScrollBar()->value())));
+    QRectF visibleRect1 = mapToScene(viewport()->rect()).boundingRect();
+    double scale = mMapCalculator.calculate(visibleRect1, width());
+    return static_cast<int>(scale);
+}
 
+QRectF MapHolder::getExtent()
+{
+    QMatrix const matrix = this->matrix().inverted();
     QRectF visibleRect = matrix.mapRect((viewport()->rect()));
     visibleRect.moveTopLeft(matrix.map(QPoint(horizontalScrollBar()->value(),
                                               verticalScrollBar()->value())));
@@ -44,35 +44,52 @@ QRectF LIPMapHolder::getExtent()
     rightLon = leftLon - rightLon;
     visibleRect.setWidth(bottomLat);
     visibleRect.setHeight(rightLon);
-//    qDebug()<<"extent"<<QString::number(topLat,'f',3)<<QString::number(leftLon,'f',3)
-//           <<QString::number(bottomLat,'f',3)<<QString::number(rightLon,'f',3);
     qDebug()<<visibleRect;
     return visibleRect;
 }
 
-void LIPMapHolder::onAddingFeatures()
+void MapHolder::setMapCalculator(vrsa::calculations::MapCalculator &calc)
+{
+    mMapCalculator=calc;
+}
+
+void MapHolder::onAddingFeatures()
 {
     isAddingFeatures=true;
 }
 
-void LIPMapHolder::onStopAddingFeatures()
+void MapHolder::onStopAddingFeatures()
 {
     isAddingFeatures=false;
 }
 
-void LIPMapHolder::updateAddingFeaturesFlag(bool flag)
+void MapHolder::updateAddingFeaturesFlag(bool flag)
 {
     isAddingFeatures=flag;
 }
 
-void LIPMapHolder::resizeEvent(QResizeEvent *event)
+void MapHolder::onCrsChanged(vrsa::gdalwrapper::SpatialReference &crs)
+{
+    mMapCalculator.setCRS(crs);
+}
+
+void MapHolder::recalculateScale()
+{
+    const QRectF visibleRect = mapToScene(viewport()->rect()).boundingRect();
+    mCurrentScale = static_cast<int>(mMapCalculator.calculate(visibleRect, width()));
+    VRSA_DEBUG("MapHolder", "Calculated scale:" + std::to_string(mCurrentScale));
+    emit scaleChanged(mCurrentScale);
+}
+
+void MapHolder::resizeEvent(QResizeEvent *event)
 {
     emit MapHolderResized();
     QGraphicsView::resizeEvent(event);
+    recalculateScale();
 
 }
 
-void LIPMapHolder::wheelEvent(QWheelEvent *event)
+void MapHolder::wheelEvent(QWheelEvent *event)
 {
     if (event->angleDelta().y()<0 )
     {
@@ -84,6 +101,7 @@ void LIPMapHolder::wheelEvent(QWheelEvent *event)
         scaleFactor=2;
         scale(scaleFactor, scaleFactor);
     }
+    recalculateScale();
     //emit MapHolderZoomed(scaleFactor);
     //QTransform currentTransform = transform();
     //qreal scaleX = currentTransform.m11(); // Масштаб по горизонтали
@@ -92,7 +110,7 @@ void LIPMapHolder::wheelEvent(QWheelEvent *event)
     //QGraphicsView::wheelEvent(event);
 }
 
-void LIPMapHolder::mousePressEvent(QMouseEvent *event)
+void MapHolder::mousePressEvent(QMouseEvent *event)
 {
 
     if (event->button()==Qt::LeftButton && !isAddingFeatures)
@@ -107,14 +125,14 @@ void LIPMapHolder::mousePressEvent(QMouseEvent *event)
 //    qDebug()<<mapToScene(event->pos());
 }
 
-void LIPMapHolder::mouseReleaseEvent(QMouseEvent *event)
+void MapHolder::mouseReleaseEvent(QMouseEvent *event)
 {
 
     isDraging=false;
     QGraphicsView::mouseReleaseEvent(event);
 }
 
-void LIPMapHolder::mouseMoveEvent(QMouseEvent *event)
+void MapHolder::mouseMoveEvent(QMouseEvent *event)
 {
 
     if (isDraging)

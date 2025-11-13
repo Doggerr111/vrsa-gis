@@ -37,11 +37,13 @@ public:
 protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 signals:
+    void mouseMoved(QPointF);
 //    void pos_changed(QPointF);
 //    void scene_dragging(QPointF,QPointF);
 //    /** Сигнал, срабатывающий, когда добавляются новые объекты к слою*/
 //    void startAdding();
 //    void stopAdding();
+
 
     // QGraphicsScene interface
 protected:

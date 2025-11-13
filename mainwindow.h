@@ -20,6 +20,12 @@ public:
 private slots:
     void on_actionLoad_vector_layer_triggered();
 
+    void on_crsComboBox_currentIndexChanged(int index);
+
+public slots:
+    void updateScaleLineEdit(int s);
+    void updateCoordinatesLineEdit(QPointF p);
+
 private:
     Ui::MainWindow *ui;
     std::unique_ptr<vrsa::services::GISController> mGisController;

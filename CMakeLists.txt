@@ -51,6 +51,7 @@ file(GLOB CORE_SOURCES
     "graphics/*.cpp"
     "services/*.cpp"
     "calculations/*.cpp"
+    "georef/*.cpp"
 )
 
 # ЗАГОЛОВОЧНЫЕ ФАЙЛЫ для библиотеки
@@ -61,6 +62,7 @@ file(GLOB CORE_HEADERS
     "graphics/*.h"
     "services/*.h"
     "calculations/*.h"
+    "georef/*.h"
 )
 add_library(vrsa_core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
 
@@ -72,6 +74,7 @@ target_include_directories(vrsa_core PUBLIC
     graphics
     services
     calculations
+    georef
 )
 
 target_link_libraries(vrsa_core PUBLIC
@@ -132,7 +135,7 @@ if(QT_VERSION_MAJOR EQUAL 6)
         ${CMAKE_CURRENT_SOURCE_DIR}
         customWidgets
         ui
-        ${CMAKE_CURRENT_BINARY_DIR}  # ← ВАЖНО: для сгенерированных ui_*.h файлов
+        ${CMAKE_CURRENT_BINARY_DIR}  # ← для сгенерированных ui_*.h файлов
     )
 
     qt6_create_translation(QM_FILES ${CMAKE_CURRENT_SOURCE_DIR} ${TS_FILES})
@@ -180,7 +183,7 @@ endif()
 
 if(BUILD_TESTS)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tests/data)
-    file(COPY tests/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tests/data)
+    #file(COPY tests/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tests/data)
 
     include(FetchContent)
     FetchContent_Declare(googletest

@@ -77,7 +77,7 @@ vrsa::graphics::MapScene::MapScene(QObject *parent)
 
 void vrsa::graphics::MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-//    emit pos_changed(event->scenePos());
+    emit mouseMoved(event->scenePos());
 //    if (isDraging)
 //    {
 ////        QPointF delta=clickPos-event->pos();
@@ -101,7 +101,7 @@ void vrsa::graphics::MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 //        vectPoints.removeLast();
 
 //    }
-//    QGraphicsScene::mouseMoveEvent(event);
+    QGraphicsScene::mouseMoveEvent(event);
 }
 
 void vrsa::graphics::MapScene::wheelEvent(QGraphicsSceneWheelEvent *event)

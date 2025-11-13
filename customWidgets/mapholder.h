@@ -5,19 +5,23 @@
 #include <QResizeEvent>
 #include <QWheelEvent>
 #include <QScrollBar>
-//#include "lipmapcalculations.h"
+#include "calculations/mapcalculations.h"
+#include "ogr_spatialref.h"
 /** Данный класс представляет собой виджет для отображения цифровой карты */
-class LIPMapHolder : public QGraphicsView
+class MapHolder : public QGraphicsView
 {
     Q_OBJECT
 public:
-    LIPMapHolder(QObject *parent);
+    MapHolder(QObject *parent);
     /** Смещает видимую область виджета в bRect */
     void zoomToRect(QRectF bRect);
     /** Возвращает текущий масштаб */
     int getScale();
     /** Возвращает текущую видимую область виджета */
     QRectF getExtent();
+
+    void SetSpatialRef(OGRSpatialReference* ref);
+    void setMapCalculator(vrsa::calculations::MapCalculator& calc);
 
 public slots:
     /** Слот вызывается, когда пользователь начинает добавлять объекты на карту (при оцифровке) */
@@ -27,6 +31,10 @@ public slots:
     /** Слот для изменения состояния добавления объектов на карту (при оцифровке) */
     void updateAddingFeaturesFlag(bool flag);
 
+    void onCrsChanged(vrsa::gdalwrapper::SpatialReference &crs);
+
+    void recalculateScale();
+
 signals:
     /** Сигнал вызывается при изменении размеров виджета*/
     void MapHolderResized();
@@ -35,6 +43,9 @@ signals:
     /** Сигнал вызывается при изменением видимого окна карты */
     void extentChanged();
 
+    void CRSChanged(OGRSpatialReference*);
+
+    void scaleChanged(int);
     // QWidget interface
 protected:
     //слоты для обработки различных событий с виджетом
@@ -50,6 +61,9 @@ private:
     bool isDraging;
     bool isAddingFeatures;
     double scaleFactor;
+    int mCurrentScale;
+    vrsa::calculations::MapCalculator mMapCalculator;
+    OGRSpatialReference* mCRS;
 };
 
 #endif // LIPMAPHOLDER_H
