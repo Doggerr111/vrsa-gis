@@ -78,7 +78,7 @@ void MapHolder::recalculateScale()
     const QRectF visibleRect = mapToScene(viewport()->rect()).boundingRect();
     mCurrentScale = static_cast<int>(mMapCalculator.calculate(visibleRect, width()));
     VRSA_DEBUG("MapHolder", "Calculated scale:" + std::to_string(mCurrentScale));
-    emit scaleChanged(mCurrentScale);
+    emit scaleChanged(mCurrentScale, transform().m11());
 }
 
 void MapHolder::resizeEvent(QResizeEvent *event)

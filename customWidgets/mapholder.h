@@ -45,7 +45,7 @@ signals:
 
     void CRSChanged(OGRSpatialReference*);
 
-    void scaleChanged(int);
+    void scaleChanged(int, double);
     // QWidget interface
 protected:
     //слоты для обработки различных событий с виджетом
