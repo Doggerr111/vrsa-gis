@@ -40,7 +40,7 @@ public:
     VectorLayer& operator= ( VectorLayer && ) = delete;
     /** возвращает путь к слою*/
     QString returnFileName();
-
+    OGRLayer* getOGRLayer();
     std::unique_ptr<VectorFeature>& getFeatureAt(size_t idx);
 //    /** возвращает вектор с типами атрибутов слоя */
 //    QVector<LIPAttributeType> getAttributeTypes();

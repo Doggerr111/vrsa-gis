@@ -366,6 +366,11 @@ vrsa::vector::VectorLayer::VectorLayer(OGRLayer *l)
 
 }
 
+OGRLayer *vrsa::vector::VectorLayer::getOGRLayer()
+{
+    return mOGRLayer;
+}
+
 std::unique_ptr<vrsa::vector::VectorFeature>& vrsa::vector::VectorLayer::getFeatureAt(size_t idx)
 {
     return mFeatures[idx];
