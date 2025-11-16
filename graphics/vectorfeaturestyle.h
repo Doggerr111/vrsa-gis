@@ -4,6 +4,7 @@
 #include <QBrush>
 #include <QRandomGenerator>
 #include "common/GisDefines.h"
+#include "calculations/unitconverter.h"
 namespace vrsa
 {
 namespace graphics
@@ -14,11 +15,11 @@ class VectorFeatureStyle
 {
 public:
     VectorFeatureStyle();
-    inline void setPen(QPen pen)
+    inline void setPen(const QPen pen)
     {
         mPen = pen;
     }
-    inline void setBrush(QBrush brush)
+    inline void setBrush(const QBrush brush)
     {
         mBrush = brush;
     }
@@ -31,8 +32,31 @@ public:
     {
         return mBrush;
     }
-
-    static VectorFeatureStyle createDefaultVectorStyle(vrsa::common::GeometryType type)
+    inline void setPointSize(const double pointSize)
+    {
+        mPointSize = pointSize;
+    }
+    inline double getPointSize() const
+    {
+        return mPointSize;
+    }
+    inline void setGeomType(const common::GeometryType type)
+    {
+        mType = type;
+    }
+    inline common::GeometryType getGeomType()
+    {
+        return mType;
+    }
+    inline void setPointSymbolType(const common::PointSymbolType type)
+    {
+        mPointSymbolType = type;
+    }
+    inline common::PointSymbolType getPointSymbolType()
+    {
+        return mPointSymbolType;
+    }
+    static VectorFeatureStyle createDefaultVectorStyle(const common::GeometryType type)
     {
         using namespace vrsa::common;
         QPen pen;
@@ -49,18 +73,50 @@ public:
             brush.setStyle(Qt::SolidPattern);
             st.setBrush(brush);
             st.setPen(pen);
-//            st.setPointSize(1);
-//            st.setGeomType(type);
-//            st.setPointType(Circle);
+            st.setPointSize(1);
+            st.setGeomType(type);
+            st.setPointSymbolType(Circle);
+            return st;
+
+        }
+
+        case GeometryType::LineString:
+        case GeometryType::MultiLineString:
+        {
+            pen.setWidthF(calculations::UnitConversion::mmToPixels(0.1));
+            pen.setColor(QColor::fromRgb(QRandomGenerator::global()->bounded(0, 255),
+                                         QRandomGenerator::global()->bounded(0, 255),
+                                         QRandomGenerator::global()->bounded(0, 255)));
+            st.setGeomType(type);
+            st.setPen(pen);
             return st;
         }
-}
+        case GeometryType::Polygon:
+        case GeometryType::MultiPolygon:
+        {
+            QBrush brush;
+            pen.setWidthF(0);
+            brush.setColor(QColor::fromRgb(QRandomGenerator::global()->bounded(0, 255),
+                                           QRandomGenerator::global()->bounded(0, 255),
+                                           QRandomGenerator::global()->bounded(0, 255)));
+            brush.setStyle(Qt::SolidPattern);
+            st.setBrush(brush);
+            st.setPen(pen);
+            st.setPointSize(1);
+            st.setGeomType(type);
+            return st;
+        }
+    }
     }
 
 
 private:
     QPen mPen;
     QBrush mBrush;
+
+    double mPointSize;
+    common::GeometryType mType;
+    common::PointSymbolType mPointSymbolType;
 };
 
 }

@@ -16,6 +16,7 @@ struct DrawingContext
     const QStyleOptionGraphicsItem* option;
     QWidget* widget;
     OGRGeometry* geom;
+    double sceneScale;
     //vrsa::gdalwrapper::OgrGeometryPtr geometry;
 };
 

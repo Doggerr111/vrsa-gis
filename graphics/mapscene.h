@@ -17,7 +17,8 @@
 //#include "lipnewattrfeatureform.h"
 //#include "vector/lipvectorconvertor.h"
 #include <QKeyEvent>
-
+#include "graphics/featuregraphicsitem.h"
+#include "vector/vectorlayer.h"
 namespace vrsa
 {
 namespace graphics
@@ -29,7 +30,7 @@ class MapScene : public QGraphicsScene
     Q_OBJECT
 public:
     explicit MapScene(QObject *parent = nullptr);
-
+    void addLayer(std::unique_ptr<vector::VectorLayer>& l);
 
     //void startAddingFeatures(LIPVectorLayer *activeLayer);
     //void stopAddingFeatures();
@@ -54,11 +55,14 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
 public slots:
+    void onMapHolderScaleChanged(int mapScale, double widgetScale);
 //    void drawVectorLayer(LIPVectorLayer*);
 //    void redrawVectorLayer(LIPVectorLayer*);
 //    void updateVectorLayer();
 //    void addPointFeature();
 private:
+    int mMapScale;
+    double mMapHolderScale;
     QPointF clickPos;
     bool isDraging;
     bool isAddingFeaturesToMap;
@@ -72,6 +76,8 @@ private:
     QGraphicsPolygonItem *tempPoly=nullptr;
     //LIPVectorLayer *activeLayer;
     //QVector<LIPPointLayer*> layers;
+    std::vector<std::unique_ptr<graphics::FeatureGraphicsItem>> mFeatures;
+
 
     // QGraphicsScene interface
 protected:

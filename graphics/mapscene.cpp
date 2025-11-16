@@ -1,5 +1,7 @@
 #include "mapscene.h"
 #include <QDebug>
+#include "gdal/gdalreader.h"
+#include "graphics/featuregraphicsitemfactory.h"
 
 vrsa::graphics::MapScene::MapScene(QObject *parent)
     : QGraphicsScene{parent},
@@ -11,6 +13,74 @@ vrsa::graphics::MapScene::MapScene(QObject *parent)
 //      tempLine{nullptr},
       tempPoly{nullptr}
 {
+//    vrsa::gdalwrapper::GDALReader reader;
+//    auto test_dS1=reader.readDataset("/home/doger/Documents/GepPortal/osmData/place_points_osm.shp");
+//    auto toVectorDs1 = static_cast<vrsa::vector::VectorDataset*>(test_dS1.get());
+//    auto &l = toVectorDs1->getLayer(0);
+//    for (int i=0; i<l.featuresCount(); ++i)
+//    {
+//        mFeatures.push_back(vrsa::graphics::
+//                            FeatureGraphicsItemFactory::createForFeature(l.getFeatureAt(i),
+//                                                                         vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle
+//                                                                         (vrsa::common::GeometryType::Point)));
+//        addItem(mFeatures[i].get());
+//        //VRSA_DEBUG("FeatureGraphicsItemFactory", "Create Feature for place_points_osm.shp #" + std::to_string(i));
+//    }
+}
+
+void vrsa::graphics::MapScene::addLayer(std::unique_ptr<vector::VectorLayer> &l)
+{
+    for (int i=0; i<l->featuresCount(); ++i)
+    {
+        qDebug()<< static_cast<int>(l->getFeatureAt(i)->getType());
+    }
+    for (int i=0; i<l->featuresCount(); ++i)
+    {
+
+        switch(l->getFeatureAt(i)->getType())
+        {
+        case common::GeometryType::Point:{
+            mFeatures.push_back(vrsa::graphics::
+                                FeatureGraphicsItemFactory::createForFeature(l->getFeatureAt(i),
+                                                                             vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle
+                                                                             (vrsa::common::GeometryType::Point)));
+            break;
+        }
+        case common::GeometryType::LineString:
+        {
+        mFeatures.push_back(vrsa::graphics::
+                            FeatureGraphicsItemFactory::createForFeature(l->getFeatureAt(i),
+                                                                         vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle
+                                                                         (vrsa::common::GeometryType::LineString)));
+            break;
+        }
+
+        case common::GeometryType::MultiLineString:
+        {
+        mFeatures.push_back(vrsa::graphics::
+                            FeatureGraphicsItemFactory::createForFeature(l->getFeatureAt(i),
+                                                                         vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle
+                                                                         (vrsa::common::GeometryType::MultiLineString)));
+            break;
+        }
+        case common::GeometryType::Polygon:
+        {
+        mFeatures.push_back(vrsa::graphics::
+                            FeatureGraphicsItemFactory::createForFeature(l->getFeatureAt(i),
+                                                                         vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle
+                                                                         (vrsa::common::GeometryType::Polygon)));
+            break;
+        }
+        }
+
+
+        addItem(mFeatures[i].get());
+    }
+
+
+
+
+
 
 }
 
@@ -248,6 +318,17 @@ void vrsa::graphics::MapScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event
 
     isDraging=false;
     QGraphicsScene::mouseReleaseEvent(event);
+}
+
+void vrsa::graphics::MapScene::onMapHolderScaleChanged(int mapScale, double widgetScale)
+{
+    mMapScale = mapScale;
+    mMapHolderScale = widgetScale;
+    for (const auto& feat: mFeatures)
+    {
+        feat->setScale(widgetScale);
+    }
+    update();
 }
 
 //void LIPMapScene::drawVectorLayer(LIPVectorLayer* layer)

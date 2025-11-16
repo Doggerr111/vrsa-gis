@@ -9,23 +9,34 @@ namespace graphics
 class LineFeatureDrawingPolicy: public VectorFeatureDrawingPolicy
 {
 public:
-    LineFeatureDrawingPolicy();
+    LineFeatureDrawingPolicy(VectorFeatureStyle &style);
 
     // VectorFeatureDrawingPolicy interface
 public:
-    void paint(const DrawingContext &context) const override;
+    void paint(const DrawingContext &context) override;
     common::GeometryType getType() const override;
+    QRectF boundingRect(const DrawingContext &context) const override;
+    void rebuildCache(const DrawingContext &context) override;
+    //QPainterPath geometryToPath(const DrawingContext &context) const override;
+    void cacheGeometry(OGRGeometry *geom) override;
+private:
+    //std::vector<QPointF> mPoints;
+    QPainterPath path;
 };
 
 class MultiLineFeatureDrawingPolicy: public VectorFeatureDrawingPolicy
 {
 public:
-    MultiLineFeatureDrawingPolicy();
+    MultiLineFeatureDrawingPolicy(VectorFeatureStyle& style);
 
     // VectorFeatureDrawingPolicy interface
 public:
-    void paint(const DrawingContext &context) const override;
+    void paint(const DrawingContext &context) override;
     common::GeometryType getType() const override;
+    QRectF boundingRect(const DrawingContext &context) const override;
+    void rebuildCache(const DrawingContext &context) override;
+    //QPainterPath geometryToPath(const DrawingContext &context) const override;
+    void cacheGeometry(OGRGeometry *geom) override;
 };
 
 

@@ -10,11 +10,12 @@ vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(DrawingPolicy dPolicy,c
 
 QRectF vrsa::graphics::FeatureGraphicsItem::boundingRect() const
 {
-
+    DrawingContext context{nullptr, nullptr, nullptr, mFeature->getOGRGeometry(), mWidgetScale};
+    return mPolicy->boundingRect(context);
 }
 
 void vrsa::graphics::FeatureGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    DrawingContext context{painter, option, widget, mFeature->getOGRGeometry()};
+    DrawingContext context{painter, option, widget, mFeature->getOGRGeometry(), mWidgetScale};
     mPolicy->paint(context);
 }
