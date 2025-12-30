@@ -11,6 +11,8 @@
 #include "georef/spatialreferencelibrary.h"
 #include "gdal/spatialreference.h"
 #include "customWidgets/mapholder.h"
+#include "customWidgets/treewidget.h"
+#include <QTreeWidget>
 namespace vrsa
 {
 namespace services
@@ -25,6 +27,8 @@ public:
 
     void initializeScene(MapHolder* view);
 
+    void setTreeWidget(TreeWidget* treeWidget);
+
     void LoadDataSet(std::string& source);
 
     void ApplyCRS(std::string name);
@@ -38,12 +42,17 @@ public:
 
 
 private:
-    std::unique_ptr<vrsa::services::ProjectManager> mProjManager;
+    vrsa::services::ProjectManager mProjManager;
     //std::unique_ptr<vrsa::calculations::MapCalculator> mMapCalculator;
     vrsa::gdalwrapper::SpatialReference mProjCrs;
     MapHolder* mMapView;
+    TreeWidget* mTreeWidget;
     graphics::MapScene* mMapScene;
+
     //std::unique_ptr<vrsa::georef::SpatialReferenceLibrary> mCRSLib;
+
+public slots:
+    void showContextMenu(const QPoint&);
 
 signals:
     void DatasetAdded(std::string src);
