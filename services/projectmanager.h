@@ -14,7 +14,17 @@ class ProjectManager : public QObject
     using DatasetPtr = std::unique_ptr<vrsa::gdalwrapper::Dataset>;
     Q_OBJECT
 public:
-    explicit ProjectManager(QObject *parent = nullptr);
+
+    // Удаляем конструкторы копирования и присваивания
+    ProjectManager(const ProjectManager&) = delete;
+    ProjectManager& operator=(const ProjectManager&) = delete;
+
+    //синглтон  Майерса
+    static ProjectManager& instance() {
+        static ProjectManager s_instance;
+        return s_instance;
+    }
+
     void AddDataset(DatasetPtr dS);
 
     std::vector<DatasetPtr>& getDatasets() noexcept;
@@ -52,6 +62,7 @@ signals:
       */
      void datasetsChanged();
 private:
+    explicit ProjectManager(QObject *parent = nullptr);
     std::vector<DatasetPtr> mDatasets;
 };
 }
