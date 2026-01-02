@@ -8,6 +8,7 @@
 #include "vector/vectorfeature.h"
 #include "graphics/vectorfeaturestyle.h"
 #include "graphics/polygonfeaturedrawingpolicy.h"
+
 namespace vrsa
 {
 namespace graphics
@@ -23,11 +24,10 @@ public:
             const std::unique_ptr<vrsa::vector::VectorFeature>& feature, vrsa::graphics::VectorFeatureStyle style)
     {
         auto strategy = createPainterPolicy(feature, style);
-        return std::make_unique<FeatureGraphicsItem>(
-            std::move(strategy),
-            feature
-
-        );
+        auto item = std::make_unique<FeatureGraphicsItem>(std::move(strategy), feature);
+        QObject::connect(feature.get(), &vector::VectorFeature::visibilityChanged,
+                         item.get(), &FeatureGraphicsItem::setVisible);
+        return item;
     }
 private:
     static std::unique_ptr<VectorFeatureDrawingPolicy> createPainterPolicy(

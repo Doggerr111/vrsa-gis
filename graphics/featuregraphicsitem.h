@@ -9,8 +9,9 @@ namespace vrsa
 namespace graphics
 {
 
-class FeatureGraphicsItem: public QGraphicsItem
+class FeatureGraphicsItem: public QObject, public QGraphicsItem
 {
+    Q_OBJECT
     using DrawingPolicy = std::unique_ptr<VectorFeatureDrawingPolicy>;
     using Feature = std::unique_ptr<vrsa::vector::VectorFeature>;
 public:
@@ -25,6 +26,9 @@ public:
 public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+
+public slots:
+    void setVisible(bool);
 
 private:
     DrawingPolicy mPolicy;

@@ -19,3 +19,8 @@ void vrsa::graphics::FeatureGraphicsItem::paint(QPainter *painter, const QStyleO
     DrawingContext context{painter, option, widget, mFeature->getOGRGeometry(), mWidgetScale};
     mPolicy->paint(context);
 }
+
+void vrsa::graphics::FeatureGraphicsItem::setVisible(bool flagVisible)
+{
+    QGraphicsItem::setVisible(flagVisible);
+}

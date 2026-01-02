@@ -30,51 +30,60 @@ vrsa::graphics::MapScene::MapScene(QObject *parent)
 
 void vrsa::graphics::MapScene::addLayer(std::unique_ptr<vector::VectorLayer> &l)
 {
-    for (int i=0; i<l->featuresCount(); ++i)
-    {
-        qDebug()<< static_cast<int>(l->getFeatureAt(i)->getType());
-    }
-    for (int i=0; i<l->featuresCount(); ++i)
-    {
+//    for (int i=0; i<l->featuresCount(); ++i)
+//    {
+//        //qDebug()<< static_cast<int>(l->getFeatureAt(i)->getType());
+//    }
 
-        switch(l->getFeatureAt(i)->getType())
+    auto pointStyle = vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle(
+        vrsa::common::GeometryType::Point);
+    auto lineStyle = vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle(
+        vrsa::common::GeometryType::LineString);
+    auto multiLineStyle = vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle(
+        vrsa::common::GeometryType::MultiLineString);
+    auto polygonStyle = vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle(
+        vrsa::common::GeometryType::Polygon);
+
+
+    std::unique_ptr<graphics::FeatureGraphicsItem> graphicsItem;
+    for (int i=0; i<l->featuresCount(); ++i)
+    {
+        auto& feature = l->getFeatureAt(i);
+        switch(feature->getType())
         {
-        case common::GeometryType::Point:{
-            mFeatures.push_back(vrsa::graphics::
-                                FeatureGraphicsItemFactory::createForFeature(l->getFeatureAt(i),
-                                                                             vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle
-                                                                             (vrsa::common::GeometryType::Point)));
+        case common::GeometryType::Point:
+        {
+            graphicsItem = vrsa::graphics::
+                    FeatureGraphicsItemFactory::createForFeature(feature, pointStyle);
             break;
         }
         case common::GeometryType::LineString:
         {
-        mFeatures.push_back(vrsa::graphics::
-                            FeatureGraphicsItemFactory::createForFeature(l->getFeatureAt(i),
-                                                                         vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle
-                                                                         (vrsa::common::GeometryType::LineString)));
+            graphicsItem = vrsa::graphics::
+                                FeatureGraphicsItemFactory::createForFeature(feature, lineStyle);
             break;
         }
 
         case common::GeometryType::MultiLineString:
         {
-        mFeatures.push_back(vrsa::graphics::
-                            FeatureGraphicsItemFactory::createForFeature(l->getFeatureAt(i),
-                                                                         vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle
-                                                                         (vrsa::common::GeometryType::MultiLineString)));
+            graphicsItem = vrsa::graphics::
+                                FeatureGraphicsItemFactory::createForFeature(feature, multiLineStyle);
             break;
         }
         case common::GeometryType::Polygon:
         {
-        mFeatures.push_back(vrsa::graphics::
-                            FeatureGraphicsItemFactory::createForFeature(l->getFeatureAt(i),
-                                                                         vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle
-                                                                         (vrsa::common::GeometryType::Polygon)));
+            graphicsItem = vrsa::graphics::
+                                FeatureGraphicsItemFactory::createForFeature(feature, polygonStyle);
             break;
         }
+        default:
+            break;
         }
 
 
-        addItem(mFeatures[i].get());
+        addItem(graphicsItem.get());
+
+        mFeatures.push_back(std::move(graphicsItem));
     }
 
 
