@@ -558,7 +558,7 @@ QPushButton:hover {
            </widget>
           </item>
           <item>
-           <widget class="LIPTreeWidget" name="LayerTree">
+           <widget class="TreeWidget" name="LayerTree">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
               <horstretch>0</horstretch>
@@ -730,7 +730,7 @@ background-color: rgb(68,68,68)
            </widget>
           </item>
           <item>
-           <widget class="LIPTreeWidget" name="DBLayerTree">
+           <widget class="TreeWidget" name="DBLayerTree">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -1214,9 +1214,9 @@ background-color: rgb(68,68,68)
    <header>customWidgets/mapholder.h</header>
   </customwidget>
   <customwidget>
-   <class>LIPTreeWidget</class>
+   <class>TreeWidget</class>
    <extends>QTreeWidget</extends>
-   <header location="global">customWidgets/liptreewidget.h</header>
+   <header location="global">customWidgets/treewidget.h</header>
   </customwidget>
   <customwidget>
    <class>LIPFrame</class>
