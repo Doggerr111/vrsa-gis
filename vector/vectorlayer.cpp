@@ -371,9 +371,31 @@ OGRLayer *vrsa::vector::VectorLayer::getOGRLayer()
     return mOGRLayer;
 }
 
+QRectF vrsa::vector::VectorLayer::getBoundingBox()
+{
+    OGREnvelope envelope;
+    auto er=mOGRLayer->GetExtent(&envelope, true);
+    if (er!=OGRERR_NONE)
+        return QRectF();
+    qreal minX = envelope.MinX;
+    qreal minY = envelope.MinY;
+    qreal maxX = envelope.MaxX;
+    qreal maxY = envelope.MaxY;
+    return QRectF(QPointF(minX, minY), QSizeF(maxX - minX, maxY - minY));
+}
+
 std::unique_ptr<vrsa::vector::VectorFeature>& vrsa::vector::VectorLayer::getFeatureAt(size_t idx)
 {
     return mFeatures[idx];
+}
+
+void vrsa::vector::VectorLayer::setVisible(bool visible)
+{
+    for (auto& feat : mFeatures)
+    {
+        feat->setVisible(visible);
+    }
+
 }
 
 int vrsa::vector::VectorLayer::id()
@@ -389,4 +411,14 @@ void vrsa::vector::VectorLayer::setFeatures(featuresVec features)
 std::size_t vrsa::vector::VectorLayer::featuresCount()
 {
     return mFeatures.size();
+}
+
+vrsa::common::GeometryType vrsa::vector::VectorLayer::getGeomType()
+{
+    return gdalwrapper::GeometryTypeConverter::FromOGR(mOGRLayer->GetGeomType());
+}
+
+const char *vrsa::vector::VectorLayer::getName()
+{
+    return mOGRLayer->GetName();
 }

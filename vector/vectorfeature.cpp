@@ -27,12 +27,10 @@ void vrsa::vector::VectorFeature::setAttribute(const std::string& name, const At
     //emit featureChanged();
 }
 
-void vrsa::vector::VectorFeature::setVisible(bool visible) {
-    if (mVisible != visible) {
-        mVisible = visible;
-        //emit visibilityChanged(visible);
-        //emit featureChanged();
-    }
+void vrsa::vector::VectorFeature::setVisible(bool visible)
+{
+    mVisible = visible;
+    emit visibilityChanged(visible);
 }
 
 vrsa::common::GeometryType vrsa::vector::VectorFeature::getType()

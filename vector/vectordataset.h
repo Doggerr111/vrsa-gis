@@ -29,6 +29,10 @@ public:
     VectorDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, const std::string source, vecLayers = vecLayers());
     std::size_t layersCount();
     std::unique_ptr<VectorLayer>& getLayer(size_t index);
+    inline vecLayers& getLayers()
+    {
+        return mLayers;
+    }
     std::string getSource();
 private:
     vecLayers mLayers;

@@ -39,9 +39,11 @@ public:
     void setName(const std::string& name);
     void setAttribute(const std::string& name, const AttributeValue& value);
     void setVisible(bool visible);
-
     vrsa::common::GeometryType getType();
     OGRGeometry *getOGRGeometry();
+
+signals:
+    void visibilityChanged(bool);
 
 };
 }

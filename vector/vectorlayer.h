@@ -2,6 +2,7 @@
 #define VectorLayer_H
 #include <QString>
 #include <QObject>
+#include <QRectF>
 #include "vector/vectorfeature.h"
 #include "gdal/geometrytypeconverter.h"
 //#include "gdal/gdalreader.h"
@@ -33,6 +34,8 @@ public:
     int id();
     void setFeatures(featuresVec features);
     std::size_t featuresCount();
+    common::GeometryType getGeomType();
+    const char* getName();
     // запрещаем копирование и перемещение
     VectorLayer(VectorLayer&&) = delete;
     VectorLayer(const VectorLayer&) = delete;
@@ -41,7 +44,9 @@ public:
     /** возвращает путь к слою*/
     QString returnFileName();
     OGRLayer* getOGRLayer();
+    QRectF getBoundingBox();
     std::unique_ptr<VectorFeature>& getFeatureAt(size_t idx);
+    void setVisible(bool visible);
 //    /** возвращает вектор с типами атрибутов слоя */
 //    QVector<LIPAttributeType> getAttributeTypes();
 //    /** возвращает вектор с названиями полей атрибутов слоя */
