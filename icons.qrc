@@ -51,5 +51,8 @@
         <file>images/icons/down-left-arrow.png</file>
         <file>images/icons/resize.png</file>
         <file>images/icons/close_small.png</file>
+        <file>images/icons/dataset.png</file>
+        <file>images/icons/group.png</file>
+        <file>images/icons/unknown.png</file>
     </qresource>
 </RCC>
