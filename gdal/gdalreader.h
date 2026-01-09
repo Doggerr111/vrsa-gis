@@ -7,6 +7,7 @@
 #include <string>
 #include "vector/vectorlayer.h"
 #include "vector/vectordataset.h"
+#include "raster/rasterdataset.h"
 #include "common/GisDefines.h"
 #include "common/GisTypes.h"
 #include <gdal_priv.h>
@@ -77,6 +78,9 @@ public:
     * @endrussian
     */
     std::unique_ptr<vrsa::gdalwrapper::Dataset> readDataset(const std::string& source);
+
+
+    std::vector<std::unique_ptr<vrsa::raster::RasterChannel>> readChannels(const vrsa::gdalwrapper::GdalDatasetPtr &uPtrDs);
     /**
     * @english
     * @brief Reads all vector layers from opened GDAL dataset

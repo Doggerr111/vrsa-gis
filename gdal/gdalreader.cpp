@@ -18,7 +18,8 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readD
     }
     switch (detectDatasetType(dS))
     {
-    case vrsa::common::DatasetType::Vector:{
+    case vrsa::common::DatasetType::Vector:
+    {
         auto layers = readLayers(dS);
         VRSA_DEBUG("GDAL", "Creating Vector Dataset");
         auto vrsaDs = std::make_unique<vrsa::vector::VectorDataset>(std::move(dS), source, std::move(layers));
@@ -26,11 +27,53 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readD
         return vrsaDs;
 
     }
-    default: { //TODO - raster ds
-        return nullptr;
+    case vrsa::common::DatasetType::Raster:
+    {
+        auto channels = readChannels(dS);
+        VRSA_DEBUG("GDAL", "Creating Raster Dataset");
+        auto vrsaDs = std::make_unique<vrsa::raster::RasterDataset>(std::move(dS), source, std::move(channels));
+        vrsaDs->SetDatasetType(vrsa::common::DatasetType::Raster);
+        return vrsaDs;
     }
+    default:  //TODO - mixed ds
+        VRSA_INFO("GDAL", "Mixed datasets are not supported");
+        return nullptr;
+
     }
 
+
+}
+
+std::vector<std::unique_ptr<vrsa::raster::RasterChannel> > vrsa::gdalwrapper::GDALReader::readChannels(const GdalDatasetPtr &uPtrDs)
+{
+    std::string source = uPtrDs->GetDescription();
+    int channelCount = uPtrDs->GetRasterCount();
+    VRSA_DEBUG("GDAL", "Reading raster channels count:" + std::to_string(channelCount) + " from: " + source);
+    if (channelCount == 0)
+    {
+        VRSA_INFO("GDAL", "No layers found in: " + source);
+        return std::vector<std::unique_ptr<vrsa::raster::RasterChannel>>();
+    }
+    std::vector<std::unique_ptr<raster::RasterChannel>> channels;
+    channels.reserve(channelCount);
+
+    // Обрабатываем все слои
+    for (int i = 0; i < channelCount; ++i)
+    {
+        VRSA_INFO("GDAL", "Reading channel №" + std::to_string(i) + " from: " + source);
+        GDALRasterBand* band = uPtrDs->GetRasterBand(i);
+        if (!band)
+        {
+            VRSA_ERROR("GDAL", std::string("Warning: Failed to get raster channel") + std::to_string(i) + " from: " + source);
+            continue;
+        }
+        channels.push_back(std::make_unique<raster::RasterChannel>(band));
+
+    }
+
+
+
+    return channels;
 
 }
 
@@ -43,8 +86,8 @@ std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALR
 
     if (layerCount == 0)
     {
-        return std::vector<std::unique_ptr<vrsa::vector::VectorLayer>>();
         VRSA_INFO("GDAL", "No layers found in: " + source);
+        return std::vector<std::unique_ptr<vrsa::vector::VectorLayer>>();
     }
 
     std::vector<std::unique_ptr<VectorLayer>> layers;
