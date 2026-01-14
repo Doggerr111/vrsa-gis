@@ -9,7 +9,7 @@ vrsa::gdalwrapper::GDALReader::GDALReader()
 
 std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readDataset(const std::string &source)
 {
-    auto dS = vrsa::gdalwrapper::createDataset(source, GDAL_OF_VECTOR | GDAL_OF_READONLY);
+    auto dS = vrsa::gdalwrapper::createDataset(source, GDAL_OF_VERBOSE_ERROR | GDAL_OF_READONLY);
     if (!dS)
     {
         throw vrsa::common::DataSetOpenException(source);
@@ -58,7 +58,7 @@ std::vector<std::unique_ptr<vrsa::raster::RasterChannel> > vrsa::gdalwrapper::GD
     channels.reserve(channelCount);
 
     // Обрабатываем все слои
-    for (int i = 0; i < channelCount; ++i)
+    for (int i = 1; i <= channelCount; ++i)
     {
         VRSA_INFO("GDAL", "Reading channel №" + std::to_string(i) + " from: " + source);
         GDALRasterBand* band = uPtrDs->GetRasterBand(i);

@@ -13,7 +13,10 @@ public:
 
     void SetDatasetType(vrsa::common::DatasetType dsType) noexcept;
     vrsa::common::DatasetType GetDatasetType() const noexcept;
-    std::string GetSource() const noexcept;
+    inline std::string getSource() noexcept
+    {
+        return mSource;
+    }
 
 protected:
     vrsa::common::DatasetType mType;

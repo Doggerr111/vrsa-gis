@@ -17,7 +17,4 @@ vrsa::common::DatasetType vrsa::gdalwrapper::Dataset::GetDatasetType() const noe
     return mType;
 }
 
-std::string vrsa::gdalwrapper::Dataset::GetSource() const noexcept
-{
-    return mSource;
-}
+
