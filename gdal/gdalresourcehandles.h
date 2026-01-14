@@ -38,7 +38,7 @@ using OgrGeometrySharedPtr = std::shared_ptr<OGRGeometry>;
  * @endrussian
  */
 inline GdalDatasetPtr createDataset(const std::string& filename,
-                                   unsigned int openFlags = GDAL_OF_VECTOR | GDAL_OF_READONLY)
+                                   unsigned int openFlags = GDAL_OF_VERBOSE_ERROR | GDAL_OF_READONLY)
 {
     return GdalDatasetPtr(
         static_cast<GDALDataset*>(GDALOpenEx(filename.c_str(), openFlags, nullptr, nullptr, nullptr))
