@@ -33,7 +33,7 @@ public:
     {
         return mLayers;
     }
-    std::string getSource();
+    //std::string getSource();
 private:
     vecLayers mLayers;
 };

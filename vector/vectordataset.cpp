@@ -14,13 +14,13 @@ std::size_t vrsa::vector::VectorDataset::layersCount()
 
 std::unique_ptr<vrsa::vector::VectorLayer>& vrsa::vector::VectorDataset::getLayer(size_t index)
 {
-    return mLayers[index];
+    return mLayers.at(index);
 }
 
-std::string vrsa::vector::VectorDataset::getSource()
-{
-    return mSource;
-}
+//std::string vrsa::vector::VectorDataset::getSource()
+//{
+//    return mSource;
+//}
 
 //void vrsa::vector::VectorDataset::InitializeLayers()
 //{
