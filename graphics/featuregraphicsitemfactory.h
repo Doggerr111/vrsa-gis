@@ -46,8 +46,8 @@ private:
                 return std::make_unique<MultiLineFeatureDrawingPolicy>(style);
             case GeometryType::Polygon:
                 return std::make_unique<PolygonFeatureDrawingPolicy>(style);
-//            case GeometryType::MultiPolygon:
-//                return std::make_unique<>(style);
+            case GeometryType::MultiPolygon:
+                return std::make_unique<MultiPolygonFeatureDrawingPolicy>(style);
             }
             //return std::make_unique<UnknownGeometryPainterStrategy>(style);
         }
