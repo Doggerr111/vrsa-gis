@@ -1,27 +1,34 @@
 #ifndef RASTERDATASET_H
 #define RASTERDATASET_H
 #include "gdal/dataset.h"
-
+#include "raster/rasterchannel.h"
 namespace vrsa
 {
 namespace raster
 {
 
-class RasterDataset: gdalwrapper::Dataset
+class RasterDataset: public gdalwrapper::Dataset
 {
 
-    using channels = std::vector<std::unique_ptr<vrsa::raster::RasterChannel>>;
+    using channels = std::vector<std::unique_ptr<RasterChannel>>;
 public:
-    VectorDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, const std::string source, vecLayers = vecLayers());
-    std::size_t layersCount();
-    std::unique_ptr<VectorLayer>& getLayer(size_t index);
-    inline vecLayers& getLayers()
+    RasterDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, const std::string source, channels = channels());
+
+    std::unique_ptr<RasterChannel>& getChannel(size_t index);
+    inline std::size_t channelsCount() const noexcept
     {
-        return mLayers;
+        return mRasterChannels.size();
     }
-    std::string getSource();
+    inline channels& getChannels() noexcept
+    {
+        return mRasterChannels;
+    }
+    QTransform getGeoTransform();
+    QRectF getBoundingBox();
 private:
-    vecLayers mLayers;
+    channels mRasterChannels;
+    //double mGeoTransform;
+    QTransform mGeoTransform;
 public:
     RasterDataset();
 };
