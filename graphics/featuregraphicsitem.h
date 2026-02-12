@@ -13,10 +13,10 @@ class FeatureGraphicsItem: public QObject, public QGraphicsItem
 {
     Q_OBJECT
     using DrawingPolicy = std::unique_ptr<VectorFeatureDrawingPolicy>;
-    using Feature = std::unique_ptr<vrsa::vector::VectorFeature>;
+    using Feature = vrsa::vector::VectorFeature;
 public:
-    FeatureGraphicsItem(DrawingPolicy dPolicy,const Feature& feature);
-    inline void setScale(int s)
+    FeatureGraphicsItem(DrawingPolicy dPolicy,const Feature* feature);
+    inline void setScale(double s)
     {
         mWidgetScale = s;
         //update();
@@ -32,7 +32,7 @@ public slots:
 
 private:
     DrawingPolicy mPolicy;
-    const Feature& mFeature;
+    const Feature* mFeature;
     double mWidgetScale;
 
 
