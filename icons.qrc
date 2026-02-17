@@ -54,5 +54,8 @@
         <file>images/icons/dataset.png</file>
         <file>images/icons/group.png</file>
         <file>images/icons/unknown.png</file>
+        <file>images/icons/SymbolStyling/plus.png</file>
+        <file>images/icons/SymbolStyling/document.png</file>
+        <file>images/icons/SymbolStyling/delete.png</file>
     </qresource>
 </RCC>

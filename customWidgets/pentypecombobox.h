@@ -3,10 +3,10 @@
 
 #include <QComboBox>
 
-class LIPPenTypeComboBox : public QComboBox
+class PenTypeComboBox : public QComboBox
 {
 public:
-    LIPPenTypeComboBox(QWidget* parent=nullptr);
+    PenTypeComboBox(QWidget* parent=nullptr);
     Qt::PenStyle getStyle();
 };
 

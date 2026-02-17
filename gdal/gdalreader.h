@@ -113,9 +113,9 @@ public:
     std::unique_ptr<vrsa::vector::VectorLayer>  convertOGRLayerToVectorLayer(OGRLayer* layer);
 
 
-    std::unique_ptr<vrsa::vector::VectorFeature> convertOGRFeatureToVectorFeature(OgrFeaturePtr &ogrFeature);
+    std::unique_ptr<vrsa::vector::VectorFeature> convertOGRFeatureToVectorFeature(OgrFeaturePtr &ogrFeature, OGRLayer* layer);
 
-    vrsa::vector::VectorFeature::AttributeValue convertOGRFieldValue(OgrFeaturePtr &feature,
+    vrsa::vector::VectorFeature::AttributeValue convertOGRFieldValue(OGRFeature *feature,
                                                                    OGRFieldDefn* fieldDef,
                                                                    int fieldIndex);
 

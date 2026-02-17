@@ -42,11 +42,14 @@ void vrsa::graphics::PointFeatureDrawingPolicy::paint(const DrawingContext &cont
     //VRSA_DEBUG("PointFeatureDrawingPolicy", "paint called");
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
-    if (mCache.sceneScale != context.sceneScale) {
+    double radius;
+    if (mCache.sceneScale != context.sceneScale)
+    {
         double pointSize = calculations::UnitConversion::mmToPixels(mStyle.getPointSize());
         mCache.path = QPainterPath();
-        double radius = (pointSize / 2.0) / context.sceneScale;  // Масштаб СРАЗУ в расчете!
+        radius = (pointSize / 2.0) / context.sceneScale;  // Масштаб СРАЗУ в расчете!
         mCache.path.addEllipse(QPointF(mX, mY), radius, radius);
+        qDebug()<< mX << mY << pointSize/2.0 << context.sceneScale;
         mCache.sceneScale = context.sceneScale;
     }
     context.painter->setPen(mStyle.getPen());
@@ -54,6 +57,9 @@ void vrsa::graphics::PointFeatureDrawingPolicy::paint(const DrawingContext &cont
     brush.setTransform(QTransform(context.painter->worldTransform().inverted())); //обязательно для корректного применения стилей кисти
     context.painter->setBrush(brush);
     context.painter->drawPath(mCache.path);
+
+    //context.painter->drawEllipse(QPointF(mX, mY), radius, radius);
+
 
 //    OGRPoint* point = static_cast<OGRPoint*>(context.geom);
 //    mX = point->getX();

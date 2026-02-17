@@ -51,7 +51,7 @@ struct OgrFeatureDeleter {
     void operator()(OGRFeature* feature) const {
         if (feature) {
 #ifdef ENABLE_DEBUG_LOGS
-            //VRSA_DEBUG("GDAL", "calling OgrFeatureDeleter");
+            VRSA_DEBUG("GDAL", "calling OgrFeatureDeleter");
 #endif
             OGRFeature::DestroyFeature(feature);
         }

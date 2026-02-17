@@ -13,6 +13,11 @@
 #include "customWidgets/mapholder.h"
 #include "customWidgets/treewidget.h"
 #include <QTreeWidget>
+#include <QAction>
+#include <QMenu>
+#include "vectordatasetform.h"
+#include "attributetableform.h"
+#include "digitizingmanager.h"
 namespace vrsa
 {
 namespace services
@@ -35,24 +40,28 @@ public:
 
     bool isCurrentCRSGeographic() const;
 
-    inline graphics::MapScene* getScene() const
+    inline graphics::MapScene* getScene() const noexcept
     {
         return mMapScene;
     }
 
-
+    void startDigitizing() const;
 private:
-    vrsa::services::ProjectManager mProjManager;
     //std::unique_ptr<vrsa::calculations::MapCalculator> mMapCalculator;
     vrsa::gdalwrapper::SpatialReference mProjCrs;
+
     MapHolder* mMapView;
     TreeWidget* mTreeWidget;
     graphics::MapScene* mMapScene;
 
+    std::unique_ptr<DigitizingManager> mDigitizingManager;
+    const int DATA_COLUMN = 0;
     //std::unique_ptr<vrsa::georef::SpatialReferenceLibrary> mCRSLib;
 
 public slots:
     void showContextMenu(const QPoint&);
+    void layerTreeDataChanged(QTreeWidgetItem*, int);
+    void onLayerTreeItemDoubleClicked(QTreeWidgetItem*, int);
 
 signals:
     void DatasetAdded(std::string src);

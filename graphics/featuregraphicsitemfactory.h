@@ -21,17 +21,20 @@ public:
 
 public:
     static std::unique_ptr<FeatureGraphicsItem> createForFeature(
-            const std::unique_ptr<vrsa::vector::VectorFeature>& feature, vrsa::graphics::VectorFeatureStyle style)
+            const vrsa::vector::VectorFeature* feature, vrsa::graphics::VectorFeatureStyle style)
     {
         auto strategy = createPainterPolicy(feature, style);
         auto item = std::make_unique<FeatureGraphicsItem>(std::move(strategy), feature);
-        QObject::connect(feature.get(), &vector::VectorFeature::visibilityChanged,
+        QObject::connect(feature, &vector::VectorFeature::visibilityChanged,
                          item.get(), &FeatureGraphicsItem::setVisible);
         return item;
     }
+
+
+    //static std::unique_ptr
 private:
     static std::unique_ptr<VectorFeatureDrawingPolicy> createPainterPolicy(
-            const std::unique_ptr<vrsa::vector::VectorFeature>& feature,
+            const vrsa::vector::VectorFeature* feature,
             VectorFeatureStyle& style
         ) {
             using namespace vrsa::common;

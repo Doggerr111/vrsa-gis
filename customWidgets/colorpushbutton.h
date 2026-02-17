@@ -3,10 +3,11 @@
 
 #include <QPushButton>
 #include <QColorDialog>
-class LIPColorPushButton : public QPushButton
+
+class ColorPushButton : public QPushButton
 {
 public:
-    LIPColorPushButton(QWidget* parent = nullptr);
+    ColorPushButton(QWidget* parent = nullptr);
     QColor getColor();
 private:
     QColor mColor;

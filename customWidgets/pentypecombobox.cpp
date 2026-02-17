@@ -1,6 +1,6 @@
-#include "lippentypecombobox.h"
+#include "pentypecombobox.h"
 
-LIPPenTypeComboBox::LIPPenTypeComboBox(QWidget *parent)
+PenTypeComboBox::PenTypeComboBox(QWidget *parent)
     : QComboBox(parent)
 {
     addItem("Сплошная линия");
@@ -10,7 +10,7 @@ LIPPenTypeComboBox::LIPPenTypeComboBox(QWidget *parent)
     addItem("ШТрихпунктирная линия с 2 точками");
 }
 
-Qt::PenStyle LIPPenTypeComboBox::getStyle()
+Qt::PenStyle PenTypeComboBox::getStyle()
 {
     switch (currentIndex())
     {
@@ -25,4 +25,5 @@ Qt::PenStyle LIPPenTypeComboBox::getStyle()
     case 4:
         return Qt::DashDotDotLine;
     }
+    return Qt::SolidLine;
 }

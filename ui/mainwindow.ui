@@ -670,6 +670,9 @@ border-top: 0px solid black</string>
             <property name="dragMode">
              <enum>QGraphicsView::NoDrag</enum>
             </property>
+            <property name="resizeAnchor">
+             <enum>QGraphicsView::AnchorViewCenter</enum>
+            </property>
             <property name="viewportUpdateMode">
              <enum>QGraphicsView::MinimalViewportUpdate</enum>
             </property>
@@ -1204,6 +1207,12 @@ background-color: rgb(68,68,68)
  </widget>
  <customwidgets>
   <customwidget>
+   <class>LIPFrame</class>
+   <extends>QFrame</extends>
+   <header location="global">lipframe.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>CRSComboBox</class>
    <extends>QComboBox</extends>
    <header>customWidgets/crscombobox.h</header>
@@ -1217,12 +1226,6 @@ background-color: rgb(68,68,68)
    <class>TreeWidget</class>
    <extends>QTreeWidget</extends>
    <header location="global">customWidgets/treewidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>LIPFrame</class>
-   <extends>QFrame</extends>
-   <header location="global">customWidgets/lipframe.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

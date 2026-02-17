@@ -34,8 +34,6 @@ private:
     DrawingPolicy mPolicy;
     const Feature* mFeature;
     double mWidgetScale;
-
-
 };
 
 

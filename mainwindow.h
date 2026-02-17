@@ -22,8 +22,10 @@ private slots:
 
     void on_crsComboBox_currentIndexChanged(int index);
 
+    void on_pushButton_addFeature_clicked();
+
 public slots:
-    void updateScaleLineEdit(int s);
+    void updateScaleLineEdit(int mapScale, double widgetScale);
     void updateCoordinatesLineEdit(QPointF p);
 
 private:

@@ -2,6 +2,7 @@
 #define GISEXCEPTIONS_H
 #include <exception>
 #include <string>
+#include <gdal_priv.h>
 
 namespace vrsa{
 namespace common{
@@ -75,6 +76,12 @@ public:
     CRSException(const std::string& crs, const std::string& operation)
         : DataException("CRS operation failed: " + operation +
                        " for CRS: " + crs) {}
+};
+
+class GDALDataTypeException: public DataException {
+public:
+    GDALDataTypeException(GDALDataType type)
+        : DataException("Unsupported GDAL data type:" + std::string(GDALGetDataTypeName(type))) {}
 };
 
 // 4. Исключения для пространственных операций

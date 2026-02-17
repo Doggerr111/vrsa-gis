@@ -10,6 +10,11 @@ vrsa::graphics::VectorFeatureStyle::VectorFeatureStyle()
 
 }
 
+vrsa::graphics::VectorFeatureStyle::VectorFeatureStyle(std::unique_ptr<Symbol> symbol)
+{
+
+}
+
 //void vrsa::graphics::VectorFeatureStyle::setPen(QPen pen)
 //{
 //    mPen = pen;

@@ -1,6 +1,6 @@
-#include "lipbrushtypecombobox.h"
+#include "brushtypecombobox.h"
 
-LIPBrushTypeComboBox::LIPBrushTypeComboBox(QWidget *parent)
+BrushTypeComboBox::BrushTypeComboBox(QWidget *parent)
     : QComboBox(parent)
 {
     addItem("SolidPattern");
@@ -20,7 +20,7 @@ LIPBrushTypeComboBox::LIPBrushTypeComboBox(QWidget *parent)
     addItem("DiagCrossPattern");
 }
 
-Qt::BrushStyle LIPBrushTypeComboBox::getStyle()
+Qt::BrushStyle BrushTypeComboBox::getStyle()
 {
     switch (currentIndex())
     {

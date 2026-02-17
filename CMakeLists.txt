@@ -49,10 +49,14 @@ file(GLOB CORE_SOURCES
     "vector/*.cpp"
     "common/*.cpp"
     "graphics/*.cpp"
-    "services/*.cpp"
+    "graphics/symbols/*.cpp"
     "calculations/*.cpp"
     "georef/*.cpp"
+    "raster/*.cpp"
+    "tools/*.cpp"
 )
+file(GLOB_RECURSE GRAPHICS_SOURCES "graphics/*.cpp")
+file(GLOB_RECURSE GRAPHICS_HEADERS "graphics/*.h")
 
 # ЗАГОЛОВОЧНЫЕ ФАЙЛЫ для библиотеки
 file(GLOB CORE_HEADERS
@@ -60,9 +64,11 @@ file(GLOB CORE_HEADERS
     "vector/*.h"
     "common/*.h"
     "graphics/*.h"
-    "services/*.h"
+    "graphics/symbols/*.h"
     "calculations/*.h"
     "georef/*.h"
+    "raster/*.h"
+    "tools/*.h"
 )
 add_library(vrsa_core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
 
@@ -72,9 +78,11 @@ target_include_directories(vrsa_core PUBLIC
     vector
     common
     graphics
-    services
+    graphics/symbols
     calculations
     georef
+    raster
+    tools
 )
 
 target_link_libraries(vrsa_core PUBLIC
@@ -92,7 +100,10 @@ file(GLOB MAIN_SOURCES
     "mainwindow.cpp"      # ← mainwindow.cpp в корне
 )
 
-file(GLOB CUSTOM_WIDGETS_CPP "customWidgets/*.cpp")
+file(GLOB CUSTOM_WIDGETS_CPP
+    "customWidgets/*.cpp"
+    "services/*.cpp"
+    )
 file(GLOB UI_CPP "ui/*.cpp")
 
 # Заголовочные файлы для приложения
@@ -101,7 +112,10 @@ file(GLOB MAIN_HEADERS
     "*.h"  # другие заголовки в корне
 )
 
-file(GLOB CUSTOM_WIDGETS_HEADERS "customWidgets/*.h")
+file(GLOB CUSTOM_WIDGETS_HEADERS
+    "customWidgets/*.h"
+    "services/*.h"
+    )
 file(GLOB UI_HEADERS "ui/*.h")
 
 # ВСЕ UI файлы включая поддиректории
@@ -195,17 +209,30 @@ if(BUILD_TESTS)
     add_executable(test_vector_feature tests/unit/test_vector_feature.cpp
          tests/unit/test_vector_reader.cpp)
 
+    add_executable(test_raster tests/unit/test_raster.cpp )
+
     target_link_libraries(test_vector_feature PRIVATE
         vrsa_core
         GTest::gtest_main
     )
 
+
+target_link_libraries(test_raster PRIVATE
+    vrsa_core
+    GTest::gtest_main
+)
+
     target_include_directories(test_vector_feature PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/tests
     )
 
+target_include_directories(test_raster PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests
+)
+
     include(GoogleTest)
     gtest_discover_tests(test_vector_feature)
+    gtest_discover_tests(test_raster)
 
     add_custom_target(run_tests
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure

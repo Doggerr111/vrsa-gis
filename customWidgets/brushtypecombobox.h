@@ -3,10 +3,10 @@
 
 #include <QComboBox>
 
-class LIPBrushTypeComboBox : public QComboBox
+class BrushTypeComboBox : public QComboBox
 {
 public:
-    LIPBrushTypeComboBox(QWidget* parent=nullptr);
+    BrushTypeComboBox(QWidget* parent=nullptr);
     Qt::BrushStyle getStyle();
 };
 

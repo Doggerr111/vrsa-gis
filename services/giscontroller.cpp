@@ -1,8 +1,8 @@
 #include "giscontroller.h"
 vrsa::services::GISController::GISController(QObject *parent)
     : QObject{parent},
-      mProjManager{},
-      mMapView{nullptr}
+      mMapView{nullptr},
+      mDigitizingManager{std::make_unique<DigitizingManager>()}
       //mMapCalculator{std::make_unique<vrsa::calculations::MapCalculator>()}
       //mCRSLib{std::make_unique<vrsa::georef::SpatialReferenceLibrary>()}
 {
@@ -20,33 +20,16 @@ void vrsa::services::GISController::initializeScene(MapHolder *view)
     mMapView->connect(this, &vrsa::services::GISController::ProjectCRSChanged, mMapView, &MapHolder::onCrsChanged);
     mMapScene = new vrsa::graphics::MapScene();
     mMapView->setScene(mMapScene);
-    //connect(ui->graphicsView,SIGNAL(MapHolderResized()),this,SLOT(recalculateScale()));
     connect(mMapView, &MapHolder::scaleChanged, mMapScene, &graphics::MapScene::onMapHolderScaleChanged);
-
-
-//    connect(this, SIGNAL(newVectorLayer(LIPVectorLayer*)), mMapScene, SLOT(drawVectorLayer(LIPVectorLayer*)));
-//    connect(mMapScene,SIGNAL(pos_changed(QPointF)),this,SLOT(scenePos(QPointF)));
-//    connect(mMapScene,SIGNAL(scene_dragging(QPointF,QPointF)),this,SLOT(changeExtent(QPointF,QPointF)));
-
-    //connect(scene,SIGNAL(startAdding()),ui->graphicsView,SLOT(onAddingFeatures()));
-    //connect(scene,SIGNAL(stopAdding()),ui->graphicsView,SLOT(onStopAddingFeatures()));
-
-    //connect(view, SIGNAL(MapHolderZoomed(double)), this, SLOT(redrawNeeded(double)));
-
-
     mMapView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
     mMapView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-    //ui->graphicsView->setAttribute(Qt::WA_OpaquePaintEvent);
-    //ui->graphicsView->setAttribute(Qt::WA_NoSystemBackground);
     mMapView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
 
-    // Отключаем ненужные функции вида
     view->setOptimizationFlags(
         QGraphicsView::DontSavePainterState |
         QGraphicsView::DontAdjustForAntialiasing
     );
 
-    // Или все оптимизации сразу
     view->setOptimizationFlags(QGraphicsView::DontSavePainterState);
     view->setRenderHint(QPainter::Antialiasing, true);
     view->setRenderHint(QPainter::SmoothPixmapTransform, false);
@@ -61,11 +44,8 @@ void vrsa::services::GISController::initializeScene(MapHolder *view)
 
     // Установка сцены в пределах EPSG:3857 координат
     mMapView->scale(1,-1);
-    //ui->graphicsView->scene()->setSceneRect(xMin, yMax, width, height);
-
     mMapView->setSceneRect(xMin*4, 4*yMax, 4*width, -8*height);
     mMapView->recalculateScale();
-    //ui->graphicsView->setFixedWidth(100);
 }
 
 void vrsa::services::GISController::setTreeWidget(TreeWidget *treeWidget)
@@ -74,6 +54,12 @@ void vrsa::services::GISController::setTreeWidget(TreeWidget *treeWidget)
     mTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(mTreeWidget, &TreeWidget::customContextMenuRequested,
            this, &services::GISController::showContextMenu);
+
+    connect(mTreeWidget, &TreeWidget::itemChanged,
+            this, &services::GISController::layerTreeDataChanged);
+
+    connect(mTreeWidget, &TreeWidget::itemDoubleClicked,
+            this, &services::GISController::onLayerTreeItemDoubleClicked);
 //    connect(mTreeWidget, SIGNAL(customContextMenuRequested(const QPoint&)),
 //            this, SLOT(showContextMenu(const QPoint&)));
 }
@@ -81,65 +67,113 @@ void vrsa::services::GISController::setTreeWidget(TreeWidget *treeWidget)
 void vrsa::services::GISController::LoadDataSet(std::string &source)
 {
     vrsa::gdalwrapper::GDALReader reader;
-    auto ptr=reader.readDataset(source);
-    if (!ptr)
-        VRSA_ERROR("GDAL", "Can't read dataset: " + source);
-    mProjManager.AddDataset(std::move(ptr));
-    //mProjManager->getDatasetBySource(source);
-    if (mProjManager.getDatasetBySource(source)->GetDatasetType()==common::DatasetType::Vector)
+    std::unique_ptr<vrsa::gdalwrapper::Dataset> ptr;
+    try
     {
-        auto vDs = static_cast<vrsa::vector::VectorDataset*>(mProjManager.getDatasetBySource(source));
-        auto* dSItem = new QTreeWidgetItem();
+        ptr=reader.readDataset(source);
+    }
+    catch (const vrsa::common::DataSetOpenException& e)
+    {
+        VRSA_DEBUG("DataSetOpenException", e.what());
+    }
+    if (!ptr)
+    {
+        VRSA_ERROR("GDAL", "Can't read dataset: " + source);
+        return;
+    }
+    auto& projManager = services::ProjectManager::instance();
+    auto dS = ptr.get();
+    projManager.AddDataset(std::move(ptr));
 
-        dSItem->setIcon(0, QIcon(":/images/icons/dataset.png"));
-        dSItem->setText(0, QString::fromStdString(source));
-        dSItem->setToolTip(0, QString::fromStdString(source));
-        dSItem->setData(0, common::DatasetPathRole, QString::fromStdString(source));
-        dSItem->setData(0, common::DatasetTypeRole, QVariant::fromValue(common::DatasetType::Vector));
-
+    auto* dSItem = new QTreeWidgetItem();
+    dSItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/dataset.png"));
+    dSItem->setText(DATA_COLUMN, QString::fromStdString(source));
+    dSItem->setToolTip(DATA_COLUMN, QString::fromStdString(source));
+    dSItem->setData(DATA_COLUMN, common::DatasetPathRole, QString::fromStdString(source));
+    dSItem->setCheckState(DATA_COLUMN,Qt::Checked);
+    dSItem->setFlags(dSItem->flags() | Qt::ItemIsDragEnabled );
+    switch (dS->GetDatasetType())
+    {
+    case common::DatasetType::Vector:
+    {
+        auto vDs = static_cast<vrsa::vector::VectorDataset*>(dS);
+        dSItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_VectorDataset));
+        dSItem->setData(DATA_COLUMN, common::DatasetTypeRole, QVariant::fromValue(common::DatasetType::Vector));
         for (int i=0; i<vDs->layersCount(); ++i)
         {
             auto& layer = vDs->getLayer(i);
             mMapScene->addLayer(layer);
             auto* layerItem = new QTreeWidgetItem(dSItem);
 
-            layerItem->setData(0, common::DatasetPathRole, QString::fromStdString(source));
-            layerItem->setData(0, common::LayerIDRole, i);
-            layerItem->setData(0, common::LayerTypeRole, QVariant::fromValue(layer->getGeomType()));
+            layerItem->setCheckState(DATA_COLUMN,Qt::Checked);
+
+            layerItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_VectorLayer));
+            layerItem->setData(DATA_COLUMN, common::DatasetPathRole, QString::fromStdString(source));
+            layerItem->setData(DATA_COLUMN, common::LayerIDRole, i);
+            layerItem->setData(DATA_COLUMN, common::LayerTypeRole, QVariant::fromValue(layer->getGeomType()));
 
             const char* layerName = layer->getName();
             const char* displayName = "unknown";
             if (layerName && layerName[0] != '\0')
                 displayName = layerName;
-            layerItem->setText(0, QString::fromUtf8(displayName));
+            layerItem->setText(DATA_COLUMN, QString::fromUtf8(displayName));
             switch (layer->getGeomType())
             {
             case common::GeometryType::Point:
             case common::GeometryType::MultiPoint:
-                layerItem->setIcon(0, QIcon(":/images/icons/pointLayer.png"));
+                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/pointLayer.png"));
                 break;
             case common::GeometryType::LineString:
             case common::GeometryType::MultiLineString:
-                layerItem->setIcon(0, QIcon(":/images/icons/lineLayer.png"));
+                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/lineLayer.png"));
                 break;
             case common::GeometryType::Polygon:
             case common::GeometryType::MultiPolygon:
-                layerItem->setIcon(0, QIcon(":/images/icons/polygonLayer.png"));
+                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/polygonLayer.png"));
                 break;
             case common::GeometryType::GeometryCollection:
-                layerItem->setIcon(0, QIcon(":/images/icons/group.png"));
+                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/group.png"));
                 break;
             default:
-                layerItem->setIcon(0, QIcon(":/images/icons/unknown.png"));
+                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/unknown.png"));
                 break;
 
-
             }
-            //layerItem->setData(0, Qt::UserRole,"Layer #" + QString::number(i));
         }
+        break;
+    }
+
+    case common::DatasetType::Raster:
+    {
+        auto rDs = static_cast<vrsa::raster::RasterDataset*>(dS);
+        mMapScene->addRasterDataset(rDs);
+        dSItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_RasterDataset));
+        dSItem->setData(DATA_COLUMN, common::DatasetTypeRole, QVariant::fromValue(common::DatasetType::Raster));
+        for (int i=0; i<rDs->channelsCount(); ++i)
+        {
+            auto& layer = rDs->getChannel(i);
+            //mMapScene->addLayer(layer);
+            auto* layerItem = new QTreeWidgetItem(dSItem);
+
+            layerItem->setCheckState(DATA_COLUMN,Qt::Checked);
+
+            layerItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_RasterLayer));
+            layerItem->setData(DATA_COLUMN, common::DatasetPathRole, QString::fromStdString(source));
+            layerItem->setData(DATA_COLUMN, common::LayerIDRole, i);
+
+            QString displayName = tr("Band №");
+            layerItem->setText(DATA_COLUMN, displayName + QString::number(i+1));
+            layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/rasterTreeItem.png"));
+
+        }
+        break;
+    }
+    }
+
         if (mTreeWidget)
             mTreeWidget->addTopLevelItem(dSItem);
-    }
+
+
     emit DatasetAdded(source);
 
 }
@@ -166,176 +200,193 @@ bool vrsa::services::GISController::isCurrentCRSGeographic() const
     return mProjCrs.GetOGRSpatialRef()->IsGeographic();
 }
 
+void vrsa::services::GISController::startDigitizing() const
+{
+    auto& pM = ProjectManager::instance();
+    auto activeLayer = pM.getActiveVectorLayer();
+    if (!activeLayer)
+        return;
+    switch (activeLayer->getGeomType())
+    {
+    case common::GeometryType::Point:
+    case common::GeometryType::MultiPoint:
+    {
+        auto pointTool = std::make_unique<tools::PointDigitizingTool>(mMapScene);
+        connect(pointTool.get(), &tools::PointDigitizingTool::cancelled, mDigitizingManager.get(),
+                &DigitizingManager::onDIgitizingCanceled);
+        connect(pointTool.get(), &tools::PointDigitizingTool::geometryCreated, mDigitizingManager.get(),
+                &DigitizingManager::onGeometryCreated);
+        mMapScene->setTool(std::move(pointTool));
+        break;
+    }
+    case common::GeometryType::LineString:
+    case common::GeometryType::MultiLineString:
+    {
+        break;
+    }
+    default:
+    {
+        break;
+    }
+    }
+
+}
+
 void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
 {
     QTreeWidgetItem *clickedItem=mTreeWidget->itemAt(itemPos);
     if (!clickedItem)
         return;
-    if (clickedItem->parent()) {
-        qDebug() << "Есть родитель! Текст родителя:" << clickedItem->parent()->text(0);
+    //получение типа QTreeWidgetItem (dataset, layer etc..)
 
-        // Получить родителя
-        QTreeWidgetItem *parentItem = clickedItem->parent();
-        QString parentPath = parentItem->toolTip(0);
-        qDebug() << "Путь родителя:" << parentPath;
+    QMenu menu;
+    switch (clickedItem->data(DATA_COLUMN, common::ItemTypeRole).value<common::TreeItemType>())
+    {
+    case common::ItemType_VectorDataset:
+        qDebug() << "Vector Dataset Item Clicked!";
+        menu.addAction(tr("Свойства"), this, [this, clickedItem]() {
+            VectorDatasetForm form;
+            form.setTreeItem(clickedItem);
+            form.exec();
+            qDebug() << "properties";
+        });
+        break;
+    case common::ItemType_RasterDataset:
+        qDebug() << "Raster Dataset Item Clicked!";
+        menu.addAction(tr("Свойства"), this, [this, clickedItem]() {
+//            VectorDatasetForm form;
+//            form.setTreeItem(clickedItem);
+//            form.exec();
+            qDebug() << "properties";
+        });
+        menu.addAction(tr("Увеличить до слоя"), this, [this, clickedItem]() {
+
+            QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
+            int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
+            auto rasterDataset = static_cast<raster::RasterDataset*>(ProjectManager::instance()
+                                                                    .getDatasetBySource(path.toStdString()));
+
+            QRectF targetRect = rasterDataset->getBoundingBox();
+            mMapView->fitInView(targetRect, Qt::KeepAspectRatio);
+            mMapView->centerOn(targetRect.center());
+            mMapView->recalculateScale();
+            qDebug() << "zoom to layer";
+        });
+        break;
+    case common::ItemType_VectorLayer:
+        qDebug() << "Vector Layer Item Clicked!";
+
+        menu.addAction(tr("Свойства"), this, [this, clickedItem]() {
+//            VectorDatasetForm form;
+//            form.setTreeItem(clickedItem);
+//            form.exec();
+            qDebug() << "properties";
+        });
+
+        menu.addAction(tr("Увеличить до слоя"), this, [this, clickedItem]() {
+            QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
+            int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
+            auto selectedLayer = ProjectManager::instance().getLayer(path.toStdString(), layerID);
+            QRectF targetRect = selectedLayer->getBoundingBox();
+            mMapView->fitInView(targetRect, Qt::KeepAspectRatio);
+            mMapView->centerOn(targetRect.center());
+            mMapView->recalculateScale();
+            qDebug() << "zoom to layer";
+        });
+
+        menu.addAction(tr("Таблица атрибутов"), this, [this, clickedItem]() {
+            QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
+            int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
+            auto selectedLayer = ProjectManager::instance().getLayer(path.toStdString(), layerID);
+            AttributeTableForm form(nullptr, selectedLayer);
+            //VectorDatasetForm form;
+            form.exec();
+        });
+
+        break;
+    case common::ItemType_RasterLayer:
+        break;
+    default:
+        break;
+
+    }
+    menu.show();
+    menu.exec(mTreeWidget->mapToGlobal(itemPos));
+
+//    if (clickedItem->parent()) {
+//        qDebug() << "Parent found:" << clickedItem->parent()->text(0);
+//        QTreeWidgetItem *parentItem = clickedItem->parent();
+//        QString parentPath = parentItem->toolTip(0);
+//        qDebug() << "Путь родителя:" << parentPath;
+//    }
+
+}
+
+void vrsa::services::GISController::layerTreeDataChanged(QTreeWidgetItem *selectedItem, int column)
+{
+    auto& pM = ProjectManager::instance();
+    switch (selectedItem->data(DATA_COLUMN, common::ItemTypeRole).value<common::TreeItemType>())
+    {
+    case common::ItemType_VectorDataset:
+    {
+        QString path = selectedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
+        for (auto& layer: static_cast<vector::VectorDataset*>(pM.getDatasetBySource(path.toStdString()))->getLayers())
+        {
+            layer->setVisible(selectedItem->checkState(column));
+        }
+        for (int i = 0; i < selectedItem->childCount(); ++i)
+        {
+            QTreeWidgetItem* child = selectedItem->child(i);
+            child->setCheckState(column, selectedItem->checkState(column));
+        }
+        break;
+    }
+    case common::ItemType_RasterDataset:
+        break;
+    case common::ItemType_VectorLayer:
+    {
+        QString path = selectedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
+        int id = selectedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
+        auto selectedLayer = pM.getLayer(path.toStdString(), id);
+        if (selectedLayer)
+            selectedLayer->setVisible(selectedItem->checkState(column));
+        break;
+    }
+    case common::ItemType_RasterLayer:
+        break;
+    default:
+        break;
+
     }
 
 }
 
-//void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
-//{
-//    QTreeWidgetItem *clickedItem=mTreeWidget->itemAt(itemPos);
-//    qDebug()<<"ok1";
-//    if (clickedItem==nullptr)
-//        return;
-//    QString path=clickedItem->toolTip(0);
-//    //if (path.isEmpty())
-//        //return;
-//    qDebug()<<"ok2";
+void vrsa::services::GISController::onLayerTreeItemDoubleClicked(QTreeWidgetItem *selectedItem, int column)
+{
+    auto& pM = ProjectManager::instance();
+    switch (selectedItem->data(DATA_COLUMN, common::ItemTypeRole).value<common::TreeItemType>())
+    {
+    case common::ItemType_VectorDataset:
+        return;
 
-//    if (dynamic_cast<LIPTreeWidgetRasterItem*>(clickedItem)!=nullptr) //если выбран растровый слой
-//    {
-//        LIPRasterLayer* selectedRasterLayer=LIPProject::getInstance().getRasterLayerByPath(path);
-//        if (selectedRasterLayer==nullptr)
-//            return;
-//        QMenu menu;
-//        QAction* actionProperties = new QAction(QString::fromUtf8("Свойства"), this);
-//        menu.addAction(actionProperties);
-//        menu.addSeparator();
-//        QAction* actionStyle = new QAction(QString::fromUtf8("Стиль"), this);
-//        menu.addAction(actionStyle);
-//        // стилизация
-//        connect(actionStyle, &QAction::triggered, this, [selectedRasterLayer]() {
-//            LIPRasterStyleDialog* form = new LIPRasterStyleDialog(selectedRasterLayer);
-//            form->exec();
-//        });
-//        menu.addAction(actionStyle);
-//        QAction* actionDelete = new QAction(QString::fromUtf8("Удалить"), this);
-//        connect(actionDelete, &QAction::triggered, this, [selectedRasterLayer, clickedItem, this]() {
+    case common::ItemType_RasterDataset:
+        break;
+    case common::ItemType_VectorLayer:
+    {
+        QString path = selectedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
+        int id = selectedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
+        auto selectedLayer = pM.getLayer(path.toStdString(), id);
+        if (selectedLayer)
+            pM.setActiveVectorLayer(selectedLayer);
+        qDebug()<<pM.getActiveVectorLayer();
+        break;
+    }
+    case common::ItemType_RasterLayer:
+        break;
+    default:
+        break;
 
-//            for(int i=0; i<LIPProject::getInstance().getRasterLayers().size();i++)
-//            {
-//                if (LIPProject::getInstance().getRasterLayers().at(i)==selectedRasterLayer)
-//                {
-//                    LIPProject::getInstance().deleteRasterLayerByPath(selectedRasterLayer->getFileName());
+    }
+}
 
-//                    QTreeWidgetItem *parent = clickedItem->parent();
-//                    int index;
-//                    if (parent) {
-//                        index = parent->indexOfChild(clickedItem);
-//                        delete parent->takeChild(index);
-//                    }
-//                    else {
-//                        index = ui->LayerTree->indexOfTopLevelItem(clickedItem);
-//                        ui->LayerTree->takeTopLevelItem(index);
-//                    }
-//                    //delete clickedItem;
-//                }
-//            }
-//        });
-//        menu.addAction(actionDelete);
-//        menu.show();
-//        menu.exec(ui->LayerTree->mapToGlobal(f));
-//        delete actionProperties;
-//        delete actionStyle;
-//        delete actionDelete;
-
-//    }
-//    qDebug()<<"ok3";
-//    LIPXYZConnection* connection = LIPProject::getInstance().getXYZConnectionByConnectionName(path);
-//    if (connection)
-//    {
-//        QMenu menu;
-//        QAction* actionDelete = new QAction(QString::fromUtf8("Удалить"), this);
-//        connect(actionDelete, &QAction::triggered, this, [path, clickedItem, this]()
-//        {
-//            LIPProject::getInstance().deleteXYZConnectionByConnectionName(path);
-
-//            QTreeWidgetItem *parent = clickedItem->parent();
-//            int index;
-//            if (parent) {
-//                index = parent->indexOfChild(clickedItem);
-//                delete parent->takeChild(index);
-//            }
-//            else {
-//                index = ui->LayerTree->indexOfTopLevelItem(clickedItem);
-//                ui->LayerTree->takeTopLevelItem(index);
-//            }
-//            //delete clickedItem;
-
-
-//        });
-//        menu.addAction(actionDelete);
-//        menu.show();
-//        menu.exec(ui->LayerTree->mapToGlobal(f));
-//        delete actionDelete;
-//    }
-//    qDebug()<<"ok4";
-//    LIPVectorLayer* selectedLayer=LIPProject::getInstance().getVectorLayerByPath(path);
-//    if (selectedLayer==nullptr)
-//        return;
-//    QMenu menu;
-//    QAction* actionProperties = new QAction(QString::fromUtf8("Свойства"), this);
-//    connect(actionProperties, &QAction::triggered, this, [selectedLayer]() {
-//        LIPVectorPropertiesForm* form = new LIPVectorPropertiesForm(selectedLayer);
-//        form->exec();
-//        delete form;
-//    });
-//    menu.addAction(actionProperties);
-//    menu.addSeparator();
-//    QAction* actionStyle = new QAction(QString::fromUtf8("Стиль"), this);
-//    menu.addAction(actionStyle);
-//    connect(actionStyle, &QAction::triggered, this, [selectedLayer]() {
-//        LIPVectorStyleForm* form = new LIPVectorStyleForm(nullptr,selectedLayer);
-//        form->exec();
-//        delete form;
-//    });
-//    menu.addAction(actionStyle);
-//    QAction* actionDelete = new QAction(QString::fromUtf8("Удалить"), this);
-//    connect(actionDelete, &QAction::triggered, this, [selectedLayer, clickedItem, this]() {
-//        for(int i=0; i<LIPProject::getInstance().getVectorLayers().size();i++)
-//        {
-//            if (LIPProject::getInstance().getVectorLayers().at(i)==selectedLayer)
-//            {
-//                LIPProject::getInstance().deleteVectorByPath(selectedLayer->returnFileName());
-
-//                QTreeWidgetItem *parent = clickedItem->parent();
-//                int index;
-//                if (parent) {
-//                    index = parent->indexOfChild(clickedItem);
-//                    delete parent->takeChild(index);
-//                }
-//                else {
-//                    index = ui->LayerTree->indexOfTopLevelItem(clickedItem);
-//                    ui->LayerTree->takeTopLevelItem(index);
-//                }
-//                //delete clickedItem;
-//            }
-//        }
-//    });
-//    qDebug()<<"ok5";
-//    QAction* attrTable = new QAction(QString::fromUtf8("Таблица атрибутов"), this);
-//    connect(attrTable, &QAction::triggered, this, [selectedLayer, clickedItem, this]() {
-//        LIPAttributesTableForm* form = new LIPAttributesTableForm();
-//        if (selectedLayer!=nullptr)
-//        {
-//            form->setLayer(selectedLayer);
-//            form->exec();
-
-//        }
-//        delete form;
-
-
-//    });
-//    menu.addAction(actionDelete);
-//    menu.addAction(attrTable);
-//    menu.show();
-//    menu.exec(ui->LayerTree->mapToGlobal(f));
-//    delete actionProperties;
-//    delete actionStyle;
-//    delete actionDelete;
-
-
-
-//}
 

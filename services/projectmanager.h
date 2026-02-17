@@ -4,6 +4,7 @@
 #include <QObject>
 #include "vector/vectordataset.h"
 #include "common/gisexceptions.h"
+#include "common/logger.h"
 namespace vrsa
 {
 namespace services
@@ -47,13 +48,49 @@ public:
      *       Указатель становится невалидным если набор данных удаляется из ProjectManager.
      * @endrussian
      */
-    vrsa::gdalwrapper::Dataset* getDatasetBySource(std::string& src);
+    vrsa::gdalwrapper::Dataset* getDatasetBySource(const std::string str);
+
+    /**
+     * @english
+     * @brief Retrieves the names of all layers from a dataset located at the specified path
+     * @param src Path to the dataset file or data source (e.g., Shapefile, GeoPackage, GeoJSON)
+     * @return Vector of strings containing names of all layers found in the dataset
+     * @note This function opens the dataset in read-only mode using GDAL/OGR.
+     *       The dataset is automatically closed after retrieving layer names.
+     *       For multi-layer formats (GeoPackage, FileGDB), all available layers are returned.
+     *       For single-layer formats (Shapefile), a vector with one element is returned.
+     *       An empty vector is returned if the dataset cannot be opened or contains no layers.
+     * @endenglish
+     * @russian
+     * @brief Возвращает имена всех слоев из набора данных, расположенного по указанному пути
+     * @param src Путь к файлу набора данных или источнику данных (например, Shapefile, GeoPackage, GeoJSON)
+     * @return Вектор строк, содержащий имена всех слоев, найденных в наборе данных
+     * @note Функция открывает набор данных в режиме только для чтения с использованием GDAL/OGR.
+     *       Набор данных автоматически закрывается после получения имен слоев.
+     *       Для многослойных форматов (GeoPackage, FileGDB) возвращаются все доступные слои.
+     *       Для однослойных форматов (Shapefile) возвращается вектор с одним элементом.
+     *       Пустой вектор возвращается, если набор данных не может быть открыт или не содержит слоев.
+     * @endrussian
+     */
+    std::vector<std::string> getLayerNames(const std::string& src);
+
+    vrsa::vector::VectorLayer*  getLayer(const std::string src, int idx);
+
+    void setActiveVectorLayer(const std::string& src, int idx);
+
+    inline void setActiveVectorLayer(vector::VectorLayer* vL) noexcept
+    {
+        mActiveVectorLayer = vL;
+    }
+
+    inline vector::VectorLayer* getActiveVectorLayer() const noexcept
+    {
+        return mActiveVectorLayer;
+    }
 
 signals:
     /**
       * @brief Сигнал о добавлении нового датасета
-      * @param dataset Указатель на добавленный датасет
-      * @param source Путь к источнику датасета
       */
      void datasetAdded();
 
@@ -64,6 +101,7 @@ signals:
 private:
     explicit ProjectManager(QObject *parent = nullptr);
     std::vector<DatasetPtr> mDatasets;
+    vector::VectorLayer* mActiveVectorLayer;
 };
 }
 }

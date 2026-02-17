@@ -1,6 +1,6 @@
 #include "featuregraphicsitem.h"
 
-vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(DrawingPolicy dPolicy,const Feature& feature)
+vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(DrawingPolicy dPolicy, const Feature *feature)
     : QGraphicsItem(),
       mPolicy{std::move(dPolicy)},
       mFeature{feature}

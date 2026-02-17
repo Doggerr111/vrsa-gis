@@ -5,20 +5,14 @@
 #include <QObject>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneWheelEvent>
-//#include "vector/lippointlayer.h"
-//#include "vector/lippointgraphicsitem.h"
-//#include "vector/liplinelayer.h"
-//#include "vector/liplinegraphicsitem.h"
-//#include "vector/lippolygonlayer.h"
-//#include "vector/lippolygongraphicsitem.h"
-#include "QGraphicsLineItem"
-#include "QGraphicsPolygonItem"
-//#include "lipnewlinelayerform.h"
-//#include "lipnewattrfeatureform.h"
-//#include "vector/lipvectorconvertor.h"
 #include <QKeyEvent>
 #include "graphics/featuregraphicsitem.h"
 #include "vector/vectorlayer.h"
+#include "graphics/rastergraphicsitemfactory.h"
+#include "raster/rasterdataset.h"
+#include "tools/pointdigitizingtool.h"
+
+
 namespace vrsa
 {
 namespace graphics
@@ -30,58 +24,43 @@ class MapScene : public QGraphicsScene
     Q_OBJECT
 public:
     explicit MapScene(QObject *parent = nullptr);
+
     void addLayer(std::unique_ptr<vector::VectorLayer>& l);
+    void addLayer(std::unique_ptr<raster::RasterChannel>& channel);
+    void addRasterDataset(raster::RasterDataset* dS);
+    //TODO ADDVECTORDATASET
 
-    //void startAddingFeatures(LIPVectorLayer *activeLayer);
-    //void stopAddingFeatures();
-    // QGraphicsScene interface
-protected:
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
-signals:
-    void mouseMoved(QPointF);
-//    void pos_changed(QPointF);
-//    void scene_dragging(QPointF,QPointF);
-//    /** Сигнал, срабатывающий, когда добавляются новые объекты к слою*/
-//    void startAdding();
-//    void stopAdding();
+    inline double getMapScale() noexcept { return mMapScale; };
+    inline double getMapHolderScale() noexcept { return mMapHolderScale; };
 
+    void setTool(std::unique_ptr<tools::MapTool> tool);
 
-    // QGraphicsScene interface
-protected:
-    void wheelEvent(QGraphicsSceneWheelEvent *event);
 
     // QGraphicsScene interface
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void wheelEvent(QGraphicsSceneWheelEvent *event);
+    void keyPressEvent(QKeyEvent *event);
+
+signals:
+    void mouseMoved(QPointF);
+    void toolChanged(tools::MapTool*);
 public slots:
     void onMapHolderScaleChanged(int mapScale, double widgetScale);
-//    void drawVectorLayer(LIPVectorLayer*);
-//    void redrawVectorLayer(LIPVectorLayer*);
-//    void updateVectorLayer();
-//    void addPointFeature();
+
+    void onVectorLayerFeatureAdded(vector::VectorFeature*);
+    void onVectorLayerFeatureRemoved(vector::VectorFeature*);
+
 private:
-    int mMapScale;
+    double mMapScale;
     double mMapHolderScale;
-    QPointF clickPos;
-    bool isDraging;
-    bool isAddingFeaturesToMap;
-    bool isPoint;
-    bool isLine; //флаг для проверки является ли активный слой линейным
-    bool isPolygon;
-    QVector<QPointF> vectPoints;
-    //элементы, отображаемые при добавлении на карту новых объектов.
-    //LIPLineGraphicsItem *tempLine;
-    //LIPLineGraphicsItem * lineItem;
-    QGraphicsPolygonItem *tempPoly=nullptr;
-    //LIPVectorLayer *activeLayer;
-    //QVector<LIPPointLayer*> layers;
+
     std::vector<std::unique_ptr<graphics::FeatureGraphicsItem>> mFeatures;
 
+    std::unique_ptr<tools::MapTool> mCurrentMapTool;
 
-    // QGraphicsScene interface
-protected:
-    void keyPressEvent(QKeyEvent *event);
 };
 
 }

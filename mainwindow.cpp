@@ -3,7 +3,9 @@
 #include "gdal/gdalreader.h"
 #include <QDebug>
 #include "graphics/featuregraphicsitemfactory.h"
-
+#include "ui/vectorstylingform.h"
+#include "graphics/symbols/layerpointsymbol.h"
+#include "graphics/symbols/simplepointsymbol.h"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
@@ -15,10 +17,13 @@ MainWindow::MainWindow(QWidget *parent)
     if (mGisController)
         VRSA_DEBUG("Services", "GIS Controller succesfully created");
     mGisController->initializeScene(ui->graphicsView);
-
+    mGisController->setTreeWidget(ui->LayerTree);
     connect(ui->graphicsView, &MapHolder::scaleChanged, this, &MainWindow::updateScaleLineEdit);
     connect(mGisController->getScene(), &vrsa::graphics::MapScene::mouseMoved, this, &MainWindow::updateCoordinatesLineEdit);
 
+    auto symbol = std::make_unique<vrsa::graphics::LayerPointSymbol>(std::make_unique<vrsa::graphics::SimplePointSymbol>());
+    VectorStylingForm form(symbol.get());
+    form.exec();
 
 //    vrsa::gdalwrapper::GDALReader reader;
 //    auto ptr=reader.readDataset("/home/doger/Documents/vrsa/VRSA/tests/data/KostromskayaBoundary.shp");
@@ -79,9 +84,9 @@ void MainWindow::on_crsComboBox_currentIndexChanged(int index)
     mGisController->ApplyCRS(ui->crsComboBox->currentText().toStdString());
 }
 
-void MainWindow::updateScaleLineEdit(int s)
+void MainWindow::updateScaleLineEdit(int mapScale, double widgetScale)
 {
-    ui->lineEditScale->setText(QString::number(s));
+    ui->lineEditScale->setText(QString::number(mapScale));
 }
 
 void MainWindow::updateCoordinatesLineEdit(QPointF p)
@@ -100,5 +105,11 @@ void MainWindow::updateCoordinatesLineEdit(QPointF p)
         QString coords = QString("%1  %2").arg(xCoord, yCoord);
         ui->lineEditCoordinates->setText(coords);
     }
+}
+
+
+void MainWindow::on_pushButton_addFeature_clicked()
+{
+    mGisController->startDigitizing();
 }
 

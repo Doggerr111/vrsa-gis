@@ -1,6 +1,6 @@
 #ifndef LIPTYPES_H
 #define LIPTYPES_H
-
+#include <QMetaEnum>
 
 namespace vrsa
 {
@@ -39,6 +39,18 @@ enum class CrsFormat {
     EPSG
 };
 
+enum PointSymbolType {
+    Square,
+    Circle,
+    Triangle,
+    Rhombus
+};
+
+enum class BandRenderType {
+    MultiBandColor,
+    SingleBandGray //TODO PseudoColor, unique values
+};
+
 enum class GeometryType {
     Unknown = 0,          // Неизвестный тип
     Point = 1,            // Точка
@@ -60,6 +72,7 @@ enum class GeometryType {
     Triangle = 17         // Треугольник
 };
 
+
 enum class StyleUnit{
     Millimeters,
     Inches,
@@ -70,6 +83,72 @@ enum class AttributeType{
     INT32,
     String,
     Real
+};
+
+//Роли для QTreeWidgetItem/QTableWidgetItem
+enum CustomRoles {
+    ItemTypeRole = Qt::UserRole + 1,
+    DatasetPathRole,
+    DatasetTypeRole,
+    LayerTypeRole,
+    LayerIDRole, //layer index frm dataset
+    FullMetadataRole,    // для сложных структур
+    AttributeTableFeatureRole,
+    AttributeTableFeatureNameRole
+};
+
+
+enum TreeItemType {
+    ItemType_Unknown = 0,
+    // Уровень 1
+    ItemType_Project,
+    ItemType_ConnectionsRoot,
+
+    // Уровень 2 - группы
+    ItemType_RasterGroup,
+    ItemType_VectorGroup,
+    ItemType_DatabaseGroup,
+    ItemType_WMSGroup,
+
+    // Уровень 3 - источники
+    ItemType_RasterDataset,    // .tif, .jpg и т.д.
+    ItemType_VectorDataset,    // .shp, .geojson
+    ItemType_DatabaseDataset,  // PostgreSQL, SQLite
+    ItemType_WMSService,       // WMS сервис
+
+    // Уровень 4 - слои
+    ItemType_RasterLayer,      // Канал/слой растра
+    ItemType_VectorLayer,      // Векторный слой
+    ItemType_QueryLayer,       // Слой-запрос
+
+    // Уровень 5 - детали
+    ItemType_Style,
+    ItemType_Labels,
+    ItemType_Attributes
+};
+
+enum class MapToolType
+{
+    PointDigitizingTool = 0,
+    MultiPointDigitizingTool,
+    LineStringDigitizingTool,
+    MultiLineStringDigitizingTool,
+    PolygonDigitizingTool,
+    MultiPolygonDigitizingTool
+};
+
+enum class SymbolType
+{
+    SimpleSymbol = 0,
+    SimplePointSymbol,
+    SimpleLineSymbol,
+    SimplePolygonSymbol,
+    //containers
+    LayerSymbol,
+    LayerPointSymbol,
+    LayerLineSymbol,
+    LayerPolygonSymbol,
+    Unknown
 };
 
 class Types
@@ -86,4 +165,8 @@ public:
 
 }
 }
+Q_DECLARE_METATYPE(vrsa::common::CustomRoles);
+Q_DECLARE_METATYPE(vrsa::common::GeometryType);
+Q_DECLARE_METATYPE(vrsa::common::DatasetType);
+Q_DECLARE_METATYPE(vrsa::common::TreeItemType);
 #endif // LIPTYPES_H

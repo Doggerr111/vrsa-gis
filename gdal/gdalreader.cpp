@@ -9,7 +9,7 @@ vrsa::gdalwrapper::GDALReader::GDALReader()
 
 std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readDataset(const std::string &source)
 {
-    auto dS = vrsa::gdalwrapper::createDataset(source, GDAL_OF_VERBOSE_ERROR | GDAL_OF_READONLY);
+    auto dS = vrsa::gdalwrapper::createDataset(source, GDAL_OF_VERBOSE_ERROR | GDAL_OF_UPDATE);
     if (!dS)
     {
         throw vrsa::common::DataSetOpenException(source);
@@ -132,7 +132,7 @@ std::unique_ptr<vrsa::vector::VectorLayer> vrsa::gdalwrapper::GDALReader::conver
     int featureCount = 0;
     std::vector<std::unique_ptr<vrsa::vector::VectorFeature>> mFeatures;
     while ((ogrFeature = OgrFeaturePtr(layer->GetNextFeature())) != nullptr) {
-           auto vectorFeature = std::make_unique<VectorFeature>(std::move(ogrFeature));
+           auto vectorFeature = convertOGRFeatureToVectorFeature(ogrFeature, layer);
            if (vectorFeature) {
                mFeatures.push_back(std::move(vectorFeature));
                featureCount++;
@@ -146,17 +146,17 @@ std::unique_ptr<vrsa::vector::VectorLayer> vrsa::gdalwrapper::GDALReader::conver
 
 }
 
-std::unique_ptr<vrsa::vector::VectorFeature> vrsa::gdalwrapper::GDALReader::convertOGRFeatureToVectorFeature(OgrFeaturePtr &ogrFeature)
+std::unique_ptr<vrsa::vector::VectorFeature> vrsa::gdalwrapper::GDALReader::convertOGRFeatureToVectorFeature(OgrFeaturePtr &ogrFeatureUptr, OGRLayer *layer)
 {
-    if (!ogrFeature) return nullptr;
+    if (!ogrFeatureUptr) return nullptr;
 
-       auto vectorFeature = std::make_unique<vrsa::vector::VectorFeature>(std::move(ogrFeature));
-
+       auto vectorFeature = std::make_unique<vrsa::vector::VectorFeature>(std::move(ogrFeatureUptr), layer);
+       auto ogrFeature = vectorFeature->getOGRFeature();
        // Геометрия
-       OGRGeometry* ogrGeometry = ogrFeature->GetGeometryRef();
-       if (ogrGeometry) {
-           vectorFeature->setGeometry(vrsa::gdalwrapper::OgrGeometryPtr(ogrGeometry->clone()));
-       }
+//       OGRGeometry* ogrGeometry = ogrFeature->GetGeometryRef();
+//       if (ogrGeometry) {
+//           vectorFeature->setGeometry(vrsa::gdalwrapper::OgrGeometryPtr(ogrGeometry->clone()));
+//       }
 
        // ID/имя
        vectorFeature->setName(std::to_string(ogrFeature->GetFID()));
@@ -178,7 +178,7 @@ std::unique_ptr<vrsa::vector::VectorFeature> vrsa::gdalwrapper::GDALReader::conv
        return vectorFeature;
 }
 
-vrsa::vector::VectorFeature::AttributeValue vrsa::gdalwrapper::GDALReader::convertOGRFieldValue(OgrFeaturePtr &ogrFeature, OGRFieldDefn *fieldDef, int fieldIndex)
+vrsa::vector::VectorFeature::AttributeValue vrsa::gdalwrapper::GDALReader::convertOGRFieldValue(OGRFeature* ogrFeature, OGRFieldDefn *fieldDef, int fieldIndex)
 {
     if (!ogrFeature->IsFieldSet(fieldIndex)) {
         return nullptr; // NULL значение
