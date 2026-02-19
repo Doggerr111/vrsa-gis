@@ -49,21 +49,31 @@ signals:
     // QWidget interface
 protected:
     //слоты для обработки различных событий с виджетом
-    void resizeEvent(QResizeEvent *event);
-    void wheelEvent(QWheelEvent *event);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
+    void resizeEvent(QResizeEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
 
 
 private:
-    QPointF clickPos;
-    bool isDraging;
+//    QPointF clickPos;
+//    bool isDraging;
+
+    bool isDraging = false;
+        QPoint clickPos;
+        QPoint m_lastPos;
+        QPixmap m_dragPixmap;
+        QImage m_dragImage;
+        double scaleF;
+
     bool isAddingFeatures;
     double scaleFactor;
     int mCurrentScale;
     vrsa::calculations::MapCalculator mMapCalculator;
     OGRSpatialReference* mCRS;
+
 };
 
 #endif // LIPMAPHOLDER_H

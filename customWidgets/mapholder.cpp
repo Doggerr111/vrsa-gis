@@ -2,14 +2,16 @@
 #include <QDebug>
 #include "QGuiApplication"
 #include "QScreen"
+#include "QElapsedTimer"
 MapHolder::MapHolder(QObject *parent)
     : QGraphicsView{},
-      isDraging{false},
+      //isDraging{false},
       isAddingFeatures{false},
       mMapCalculator{}
 {
     Q_UNUSED(parent);
     mMapCalculator.SetDpi(QGuiApplication::primaryScreen()->logicalDotsPerInch());
+
 }
 
 void MapHolder::zoomToRect(QRectF targetRect)
@@ -110,52 +112,78 @@ void MapHolder::wheelEvent(QWheelEvent *event)
     //QGraphicsView::wheelEvent(event);
 }
 
-void MapHolder::mousePressEvent(QMouseEvent *event)
-{
+void MapHolder::mousePressEvent(QMouseEvent* event) {
+    if (event->button() == Qt::LeftButton) {
+        isDraging = true;
+        clickPos = event->pos();
+        m_lastPos = event->pos();
 
-    if (event->button()==Qt::LeftButton && !isAddingFeatures)
-        isDraging=true;
-    else if (event->button()==Qt::MiddleButton && isAddingFeatures)
-        isDraging=true;
-    //clickPos=mapToScene(event->pos());
-    clickPos=event->pos();
-    qDebug()<<isDraging;
+        // Отключаем улучшения
+        setRenderHint(QPainter::Antialiasing, false);
+        setRenderHint(QPainter::SmoothPixmapTransform, false);
+
+        // Замер времени начала
+        QElapsedTimer timer;
+        timer.start();
+
+        // Рендерим в QImage (быстрее!)
+        m_dragImage = QImage(viewport()->size(), QImage::Format_ARGB32_Premultiplied);
+        m_dragImage.fill(Qt::transparent);
+
+        QPainter painter(&m_dragImage);
+        render(&painter);
+        painter.end();
+
+        // Замер времени окончания
+        qint64 elapsed = timer.elapsed();
+        qDebug() << "Время рендера drag-изображения:" << elapsed << "мс";
+
+        // Конвертируем в QPixmap для отрисовки
+        m_dragPixmap = QPixmap::fromImage(m_dragImage);
+
+        // Возвращаем настройки
+        setRenderHint(QPainter::Antialiasing, true);
+        setRenderHint(QPainter::SmoothPixmapTransform, true);
+
+        viewport()->update();
+    }
     QGraphicsView::mousePressEvent(event);
-//    qDebug()<<clickPos;
-//    qDebug()<<mapToScene(event->pos());
 }
 
-void MapHolder::mouseReleaseEvent(QMouseEvent *event)
-{
-
-    isDraging=false;
-    QGraphicsView::mouseReleaseEvent(event);
-}
-
-void MapHolder::mouseMoveEvent(QMouseEvent *event)
-{
-
-    if (isDraging)
-    {
-//        qDebug()<<"координаты клика";
-//        qDebug()<<clickPos;
-//        QPointF delta=clickPos-mapToScene(event->pos());
-//        clickPos=mapToScene(event->pos());
-//        qDebug()<<"координаты перемещени";
-//        qDebug()<<clickPos;
-//        QPoint rect=viewport()->rect().center();
-//        qDebug()<<"координаты";
-//        qDebug()<<mapToScene(this->viewport()->rect().center())+delta.toPoint();
-//        this->centerOn(mapToScene(this->viewport()->rect().center())+delta.toPoint());
-
-
-        QPointF delta=clickPos-event->pos();
-        clickPos=event->pos();
-        //QPoint rect=viewport()->rect().center();
-        this->centerOn(mapToScene(this->viewport()->rect().center()+delta.toPoint()));
-        emit extentChanged();
+void MapHolder::mouseMoveEvent(QMouseEvent* event) {
+    if (isDraging) {
+        m_lastPos = event->pos();
+        viewport()->update();
     }
     QGraphicsView::mouseMoveEvent(event);
 }
 
+void MapHolder::mouseReleaseEvent(QMouseEvent* event) {
+    if (isDraging) {
+        isDraging = false;
+
+        // Сдвигаем сцену
+        QPointF start = mapToScene(clickPos);
+        QPointF end = mapToScene(m_lastPos);
+        QPointF delta = end - start;
+
+        QPointF newCenter = mapToScene(viewport()->rect().center()) - delta;
+        centerOn(newCenter);
+
+        m_dragPixmap = QPixmap();
+        viewport()->update();
+    }
+    QGraphicsView::mouseReleaseEvent(event);
+}
+
+void MapHolder::paintEvent(QPaintEvent* event) {
+    if (isDraging && !m_dragPixmap.isNull()) {
+        QPainter painter(viewport());
+        //painter.fillRect(viewport()->rect(), Qt::lightGray);
+        QPoint offset = m_lastPos - clickPos;
+        painter.drawPixmap(offset, m_dragPixmap);
+        return;
+    }
+    QGraphicsView::paintEvent(event);
+}
 
