@@ -19,6 +19,7 @@ void vrsa::services::GISController::initializeScene(MapHolder *view)
     mMapView = view;
     mMapView->connect(this, &vrsa::services::GISController::ProjectCRSChanged, mMapView, &MapHolder::onCrsChanged);
     mMapScene = new vrsa::graphics::MapScene();
+    mMapScene->setMapHolderScale(mMapView->getMapHolderScale());
     mMapView->setScene(mMapScene);
     connect(mMapView, &MapHolder::scaleChanged, mMapScene, &graphics::MapScene::onMapHolderScaleChanged);
     mMapView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
@@ -29,6 +30,8 @@ void vrsa::services::GISController::initializeScene(MapHolder *view)
         QGraphicsView::DontSavePainterState |
         QGraphicsView::DontAdjustForAntialiasing
     );
+
+
 
     view->setOptimizationFlags(QGraphicsView::DontSavePainterState);
     view->setRenderHint(QPainter::Antialiasing, true);
