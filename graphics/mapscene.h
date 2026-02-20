@@ -30,10 +30,13 @@ public:
     void addRasterDataset(raster::RasterDataset* dS);
     //TODO ADDVECTORDATASET
 
-    inline double getMapScale() noexcept { return mMapScale; };
-    inline double getMapHolderScale() noexcept { return mMapHolderScale; };
+    inline double getMapScale() const noexcept { return mMapScale; };
+    inline double getMapHolderScale() const noexcept { return mMapHolderScale; };
+    inline void setMapHolderScale(double scale) noexcept { mMapHolderScale = scale; };
+    inline void setMapScale(double scale) noexcept { mMapScale = scale; };
 
     void setTool(std::unique_ptr<tools::MapTool> tool);
+
 
 
     // QGraphicsScene interface

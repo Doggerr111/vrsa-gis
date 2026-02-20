@@ -10,7 +10,7 @@ vrsa::graphics::MapScene::MapScene(QObject *parent)
       mFeatures{},
       mCurrentMapTool{nullptr}
 {
-
+    setItemIndexMethod(QGraphicsScene::NoIndex);
 }
 
 void vrsa::graphics::MapScene::addLayer(std::unique_ptr<vector::VectorLayer> &l)
@@ -25,12 +25,11 @@ void vrsa::graphics::MapScene::addLayer(std::unique_ptr<vector::VectorLayer> &l)
         common::GeometryType::Point);
     auto lineStyle = VectorFeatureStyle::createDefaultVectorStyle(
         common::GeometryType::LineString);
-    auto multiLineStyle = VectorFeatureStyle::createDefaultVectorStyle(
-        common::GeometryType::MultiLineString);
     auto polygonStyle = VectorFeatureStyle::createDefaultVectorStyle(
         common::GeometryType::Polygon);
 
 
+    //todo разделять слои принудительно по типу геометрии для форматов типа geojson poLayer->GetGeomType() = wkbUnknown
     std::unique_ptr<graphics::FeatureGraphicsItem> graphicsItem;
     for (int i=0; i<l->getFeaturesCount(); ++i)
     {
@@ -40,27 +39,28 @@ void vrsa::graphics::MapScene::addLayer(std::unique_ptr<vector::VectorLayer> &l)
         case common::GeometryType::Point:
         {
             graphicsItem = vrsa::graphics::
-                    FeatureGraphicsItemFactory::createForFeature(feature, pointStyle);
+                    FeatureGraphicsItemFactory::createForFeature(feature, pointStyle.get());
             qDebug()<<feature->getOGRGeometry()->toPoint()->getX();
             break;
         }
         case common::GeometryType::LineString:
         {
             graphicsItem = vrsa::graphics::
-                                FeatureGraphicsItemFactory::createForFeature(feature, lineStyle);
+                                FeatureGraphicsItemFactory::createForFeature(feature, lineStyle.get());
+
             break;
         }
 
         case common::GeometryType::MultiLineString:
         {
             graphicsItem = vrsa::graphics::
-                                FeatureGraphicsItemFactory::createForFeature(feature, multiLineStyle);
+                                FeatureGraphicsItemFactory::createForFeature(feature, lineStyle.get());
             break;
         }
         case common::GeometryType::Polygon:
         {
             graphicsItem = vrsa::graphics::
-                                FeatureGraphicsItemFactory::createForFeature(feature, polygonStyle);
+                                FeatureGraphicsItemFactory::createForFeature(feature, polygonStyle.get());
             break;
         }
         default:
@@ -68,10 +68,19 @@ void vrsa::graphics::MapScene::addLayer(std::unique_ptr<vector::VectorLayer> &l)
         }
 
         addItem(graphicsItem.get());
+        graphicsItem->setScale(mMapHolderScale);
+        //graphicsItem->setZValue(ag);
         mFeatures.push_back(std::move(graphicsItem));
-    }
-    qDebug() << mFeatures.size();
 
+
+
+    }
+
+    l->setStyle(std::move(pointStyle), common::GeometryType::Point);
+    l->setStyle(std::move(lineStyle), common::GeometryType::LineString);
+    l->setStyle(std::move(polygonStyle), common::GeometryType::Polygon);
+    qDebug() << mFeatures.size();
+    update();
 }
 
 void vrsa::graphics::MapScene::addLayer(std::unique_ptr<raster::RasterChannel> &channel)
