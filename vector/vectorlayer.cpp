@@ -124,11 +124,6 @@ bool vrsa::vector::VectorLayer::deleteFeature(VectorFeature *feature)
     return deleteFeature(feature->getOGRFeature()->GetFID());
 }
 
-void vrsa::vector::VectorLayer::setStyle(graphics::VectorFeatureStyle style)
-{
-    mStyle = style;
-}
-
 
 
 vrsa::common::GeometryType vrsa::vector::VectorLayer::getGeomType() const

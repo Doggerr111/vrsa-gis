@@ -40,8 +40,18 @@ public:
     bool deleteFeature(GIntBig fid);
     bool deleteFeature(VectorFeature* feature);
 
-    void setStyle(graphics::VectorFeatureStyle style);
-    graphics::VectorFeatureStyle getStyle() const noexcept { return mStyle; };
+    void setStyle(std::unique_ptr<graphics::VectorFeatureStyle> style, common::GeometryType geomType)
+    {
+        mStyles.emplace(geomType, std::move(style));
+    }
+    graphics::VectorFeatureStyle* getStyle(common::GeometryType geomType) const noexcept
+    {
+        auto it = mStyles.find(geomType);
+        if (it != mStyles.end()) {
+            return it->second.get();
+        }
+        return nullptr;
+    };
 
 signals:
     void featureAdded(VectorFeature*);
@@ -59,7 +69,9 @@ protected:
     bool mIsSelected;
     featuresVec mFeatures;
     vrsa::common::GeometryType geomType;
-    graphics::VectorFeatureStyle mStyle;
+    std::unique_ptr<graphics::VectorFeatureStyle> mStyle;
+    std::unordered_map<common::GeometryType, std::unique_ptr<graphics::VectorFeatureStyle>> mStyles;
+
 };
 
 }
