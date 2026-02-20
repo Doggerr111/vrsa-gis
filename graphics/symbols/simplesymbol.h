@@ -11,11 +11,11 @@ namespace graphics
 class SimpleSymbol : public Symbol
 {
 public:
-    SimpleSymbol() = default;
+    SimpleSymbol();
 
 public:
     common::StyleUnit unitType = common::StyleUnit::Millimeters;
-    double opacity;
+    double opacity = 1.0 ;
 
     // Symbol interface
 public:

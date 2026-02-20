@@ -1,12 +1,15 @@
 #include "simplepointsymbol.h"
 #include <QPen>
+#include <QRandomGenerator>
+#include "graphicsutils.h"
 
 
-
-
-vrsa::graphics::SimplePointSymbol::SimplePointSymbol()
+std::unique_ptr<vrsa::graphics::SimplePointSymbol> vrsa::graphics::SimplePointSymbol::createDefaultSymbol()
 {
-
+    auto pointSymbol = std::make_unique<SimplePointSymbol>();
+    pointSymbol->borderColor = GraphicsUtils::generateColor();
+    pointSymbol->fillColor = GraphicsUtils::generateColor();
+    return pointSymbol;
 }
 
 QPen vrsa::graphics::SimplePointSymbol::pen() const
@@ -16,7 +19,7 @@ QPen vrsa::graphics::SimplePointSymbol::pen() const
     pen.setStyle(borderStyle);
     pen.setJoinStyle(joinStyle);
     pen.setCapStyle(capStyle);
-    pen.setWidthF(borderWidth);
+    pen.setWidthF(GraphicsUtils::convertToPixels(borderWidth, unitType));
     return pen;
 }
 
@@ -26,4 +29,19 @@ QBrush vrsa::graphics::SimplePointSymbol::brush() const
     brush.setColor(fillColor);
     brush.setStyle(fillStyle);
     return brush;
+}
+
+double vrsa::graphics::SimplePointSymbol::getPointSize() const
+{
+    return GraphicsUtils::convertToPixels(pointSize, unitType);
+}
+
+double vrsa::graphics::SimplePointSymbol::getXOffSet() const
+{
+    return GraphicsUtils::convertToPixels(xOffset, unitType);
+}
+
+double vrsa::graphics::SimplePointSymbol::getYOffSet() const
+{
+    return GraphicsUtils::convertToPixels(yOffset, unitType);
 }
