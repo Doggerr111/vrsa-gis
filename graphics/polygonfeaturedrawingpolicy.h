@@ -1,7 +1,7 @@
 #ifndef POLYGONFEATUREDRAWINGPOLICY_H
 #define POLYGONFEATUREDRAWINGPOLICY_H
 #include "graphics/vectorfeaturedrawingpolicy.h"
-
+#include "simplepolygonsymbol.h"
 namespace vrsa
 {
 namespace graphics
@@ -11,7 +11,7 @@ namespace graphics
 class PolygonFeatureDrawingPolicy: public VectorFeatureDrawingPolicy
 {
 public:
-    PolygonFeatureDrawingPolicy(VectorFeatureStyle &style);
+    PolygonFeatureDrawingPolicy(Symbol* style);
 
     // VectorFeatureDrawingPolicy interface
 public:
@@ -19,16 +19,17 @@ public:
     common::GeometryType getType() const override;
     QRectF boundingRect(const DrawingContext &context) const override;
     void rebuildCache(const DrawingContext &context) override;
-    void cacheGeometry(OGRGeometry *geom) override;
+    void cacheGeometry(OGRGeometry *geom) const override;
 private:
     QPainterPath path;
+    const SimplePolygonSymbol* mSymbol;
 };
 
 
 class MultiPolygonFeatureDrawingPolicy: public VectorFeatureDrawingPolicy
 {
 public:
-    MultiPolygonFeatureDrawingPolicy(VectorFeatureStyle &style);
+    MultiPolygonFeatureDrawingPolicy(Symbol* style);
 
     // VectorFeatureDrawingPolicy interface
 public:
@@ -36,9 +37,10 @@ public:
     common::GeometryType getType() const override;
     QRectF boundingRect(const DrawingContext &context) const override;
     void rebuildCache(const DrawingContext &context) override;
-    void cacheGeometry(OGRGeometry *geom) override;
+    void cacheGeometry(OGRGeometry *geom) const override;
 private:
     QPainterPath path;
+    const SimplePolygonSymbol* mSymbol;
 };
 
 }

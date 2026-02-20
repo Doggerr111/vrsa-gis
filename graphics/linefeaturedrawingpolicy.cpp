@@ -1,15 +1,16 @@
 #include "linefeaturedrawingpolicy.h"
+#include "simplelinesymbol.h"
 
 
 
-
-vrsa::graphics::LineFeatureDrawingPolicy::LineFeatureDrawingPolicy(VectorFeatureStyle &style)
-    : VectorFeatureDrawingPolicy(style)
+vrsa::graphics::LineFeatureDrawingPolicy::LineFeatureDrawingPolicy(const Symbol *symbol)
+    : VectorFeatureDrawingPolicy()
 {
-
+    assert(symbol->type() == common::SymbolType::SimpleLineSymbol);
+    mSymbol = static_cast<const SimpleLineSymbol*>(symbol);
 }
 
-void vrsa::graphics::LineFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom)
+void vrsa::graphics::LineFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom) const
 {
     mCache.path = QPainterPath();
     OGRLineString* line = (OGRLineString*)geom;
@@ -27,16 +28,20 @@ void vrsa::graphics::LineFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom)
 
 void vrsa::graphics::LineFeatureDrawingPolicy::paint(const DrawingContext &context)
 {
+    context.painter->save();
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
 
-    QPen pen = mStyle.getPen();
-    pen.setCapStyle(Qt::SquareCap);
-    pen.setWidthF(calculations::UnitConversion::mmToPixels(pen.widthF())/context.sceneScale);
+    QPen pen = mSymbol->pen();
+    pen.setWidthF(pen.widthF()/context.sceneScale);
     context.painter->setPen(pen);
-
+    double offsetX = mSymbol->getXOffSet() / context.sceneScale;
+    double offsetY = mSymbol->getYOffSet() / context.sceneScale;
+    context.painter->translate(offsetX, offsetY);
     context.painter->drawPath(mCache.path);
     mCache.sceneScale = context.sceneScale;
+
+    context.painter->restore();
     //}
 
 //    QVector<QPointF> points;
@@ -69,64 +74,37 @@ QRectF vrsa::graphics::LineFeatureDrawingPolicy::boundingRect(const DrawingConte
 {
 
     if (!mCache.isGeomValid || mCache.path.isEmpty())
-            return QRectF();
+        cacheGeometry(context.geom);
     if (mCache.isGeomValid && context.sceneScale == mCache.sceneScale)
-            return mCache.boundingRect;
+        return mCache.boundingRect;
 
-        QRectF rect = mCache.path.boundingRect();
-        qreal penWidth = mStyle.getPen().widthF();
-        qreal scaledPenWidth = calculations::UnitConversion::mmToPixels(penWidth) / mCache.sceneScale;
-        qreal halfPenWidth = scaledPenWidth / 2.0;
+    QRectF rect = mCache.path.boundingRect();
+    double penWidth = mSymbol->pen().widthF();
+    double scaledPenWidth = penWidth / context.sceneScale;
+    double halfPenWidth = scaledPenWidth / 2.0;
 
-        return mCache.boundingRect = QRectF(rect.x() - halfPenWidth,
-                      rect.y() - halfPenWidth,
-                      rect.width() + scaledPenWidth,
-                      rect.height() + scaledPenWidth);
+    double offsetX = mSymbol->getXOffSet() / context.sceneScale;
+    double offsetY = mSymbol->getYOffSet() / context.sceneScale;
 
+    rect.translate(offsetX, offsetY);
 
+    mCache.sceneScale = context.sceneScale;
+    return mCache.boundingRect = rect.adjusted(
+                -halfPenWidth, -halfPenWidth,
+                halfPenWidth, halfPenWidth
+                );
 
-//    //todo function
-//    QVector<QPointF> points;
-//    OGRGeometry* poGeometry = context.geom;
-//    OGRwkbGeometryType geomType = wkbFlatten(poGeometry->getGeometryType());
-//    assert(geomType == wkbLineString);
-
-//    OGRLineString* line = (OGRLineString*)poGeometry;
-//    int pointCount = line->getNumPoints();
-
-//    for (int i = 0; i < pointCount; i++)
-//    {
-//        points.push_back(QPointF(line->getX(i),line->getY(i)));
-//    }
-//    // f
-//    QPolygonF polyLine = points;
-//    qreal minX = polyLine.first().x();
-//    qreal maxX = polyLine.first().x();
-//    qreal minY = polyLine.first().y();
-//    qreal maxY = polyLine.first().y();
-
-//    for (const QPointF& point : polyLine)
-//    {
-//        minX = qMin(minX, point.x());
-//        maxX = qMax(maxX, point.x());
-//        minY = qMin(minY, point.y());
-//        maxY = qMax(maxY, point.y());
-//    }
-
-//    qreal penWidth = calculations::UnitConversion::mmToPixels(mStyle.getPen().widthF()/context.sceneScale);
-//    qreal halfPenWidth = penWidth / 2.0;
-
-//    return QRectF(minX - halfPenWidth, minY - halfPenWidth, maxX - minX + penWidth, maxY - minY + penWidth);
 }
 
-vrsa::graphics::MultiLineFeatureDrawingPolicy::MultiLineFeatureDrawingPolicy(VectorFeatureStyle &style)
-    : VectorFeatureDrawingPolicy(style)
+vrsa::graphics::MultiLineFeatureDrawingPolicy::MultiLineFeatureDrawingPolicy(const Symbol *symbol)
+    : VectorFeatureDrawingPolicy()
 {
-
+    assert(symbol->type() == common::SymbolType::SimpleLineSymbol);
+    mSymbol = static_cast<const SimpleLineSymbol*>(symbol);
 }
 
 
-void vrsa::graphics::MultiLineFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom)
+void vrsa::graphics::MultiLineFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom) const
 {
 
     OGRMultiLineString* multiLine = (OGRMultiLineString*)geom;
@@ -151,17 +129,20 @@ void vrsa::graphics::MultiLineFeatureDrawingPolicy::cacheGeometry(OGRGeometry *g
 void vrsa::graphics::MultiLineFeatureDrawingPolicy::paint(const DrawingContext &context)
 {
 
-
+    context.painter->save();
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
 
-    QPen pen = mStyle.getPen();
+    QPen pen = mSymbol->pen();
     pen.setCapStyle(Qt::SquareCap);
-    pen.setWidthF(calculations::UnitConversion::mmToPixels(pen.widthF())/context.sceneScale);
+    pen.setWidthF(pen.widthF()/context.sceneScale);
     context.painter->setPen(pen);
-
+    double offsetX = mSymbol->getXOffSet() / context.sceneScale;
+    double offsetY = mSymbol->getYOffSet() / context.sceneScale;
+    context.painter->translate(offsetX, offsetY);
     context.painter->drawPath(mCache.path);
     mCache.sceneScale = context.sceneScale;
+    context.painter->restore();
 
 
 
@@ -207,19 +188,23 @@ QRectF vrsa::graphics::MultiLineFeatureDrawingPolicy::boundingRect(const Drawing
 {
 
     if (!mCache.isGeomValid || mCache.path.isEmpty())
-            return QRectF();
+        cacheGeometry(context.geom);
     if (mCache.isGeomValid && context.sceneScale == mCache.sceneScale)
-            return mCache.boundingRect;
+        return mCache.boundingRect;
 
-        QRectF rect = mCache.path.boundingRect();
-        qreal penWidth = mStyle.getPen().widthF();
-        qreal scaledPenWidth = calculations::UnitConversion::mmToPixels(penWidth) / mCache.sceneScale;
-        qreal halfPenWidth = scaledPenWidth / 2.0;
+    QRectF rect = mCache.path.boundingRect();
+    double penWidth = mSymbol->pen().widthF();
+    double scaledPenWidth = penWidth / mCache.sceneScale;
+    double halfPenWidth = scaledPenWidth / 2.0;
 
-        return mCache.boundingRect = QRectF(rect.x() - halfPenWidth,
-                      rect.y() - halfPenWidth,
-                      rect.width() + scaledPenWidth,
-                      rect.height() + scaledPenWidth);
+    double offsetX = mSymbol->getXOffSet() / context.sceneScale;
+    double offsetY = mSymbol->getYOffSet() / context.sceneScale;
+    rect.translate(offsetX, offsetY);
+
+    return mCache.boundingRect = QRectF(rect.x() - halfPenWidth,
+                                        rect.y() - halfPenWidth,
+                                        rect.width() + scaledPenWidth,
+                                        rect.height() + scaledPenWidth);
 }
 
 

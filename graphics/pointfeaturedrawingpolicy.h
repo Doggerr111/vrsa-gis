@@ -7,32 +7,34 @@ namespace vrsa
 namespace graphics
 {
 
+class SimplePointSymbol;
 
 class PointFeatureDrawingPolicy: public VectorFeatureDrawingPolicy
 {
 
 public:
-    PointFeatureDrawingPolicy(VectorFeatureStyle &style);
+    PointFeatureDrawingPolicy(const Symbol *symbol);
 
     // VectorFeatureDrawingPolicy interface
 public:
-    void cacheGeometry(OGRGeometry* geom) override;
+    void cacheGeometry(OGRGeometry* geom) const override;
     void paint(const DrawingContext& context) override;
     common::GeometryType getType() const override;
     QRectF boundingRect(const DrawingContext& context) const override;
     void rebuildCache(const DrawingContext &context) override;
     //QPainterPath geometryToPath(const DrawingContext &context) const override;
 private:
-    double mX, mY;
+    mutable double mX, mY;
     bool isGeomValid = false;
     double mPointSize;
+    const SimplePointSymbol* mSymbol;
 
 };
 
 class MultiPointFeatureDrawingPolicy: public VectorFeatureDrawingPolicy
 {
 public:
-    MultiPointFeatureDrawingPolicy(VectorFeatureStyle &style);
+    MultiPointFeatureDrawingPolicy(const Symbol *symbol);
 
     // VectorFeatureDrawingPolicy interface
 public:
@@ -40,10 +42,11 @@ public:
     common::GeometryType getType() const override;
     QRectF boundingRect(const DrawingContext &context) const override;
     void rebuildCache(const DrawingContext &context) override;
-    void cacheGeometry(OGRGeometry* geom) override;
+    void cacheGeometry(OGRGeometry* geom) const override;
 
 private:
-    std::vector<QPointF> mPoints;
+    mutable std::vector<QPointF> mPoints;
+    const SimplePointSymbol* mSymbol;
 };
 
 }

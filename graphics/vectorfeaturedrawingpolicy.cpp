@@ -5,8 +5,7 @@
 
 //}
 
-vrsa::graphics::VectorFeatureDrawingPolicy::VectorFeatureDrawingPolicy(VectorFeatureStyle &style)
-    :mStyle{style}
+vrsa::graphics::VectorFeatureDrawingPolicy::VectorFeatureDrawingPolicy()
 {
 
 }

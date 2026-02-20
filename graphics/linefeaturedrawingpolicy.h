@@ -6,10 +6,12 @@ namespace vrsa
 namespace graphics
 {
 
+class SimpleLineSymbol;
+
 class LineFeatureDrawingPolicy: public VectorFeatureDrawingPolicy
 {
 public:
-    LineFeatureDrawingPolicy(VectorFeatureStyle &style);
+    LineFeatureDrawingPolicy(const Symbol* symbol);
 
     // VectorFeatureDrawingPolicy interface
 public:
@@ -18,16 +20,16 @@ public:
     QRectF boundingRect(const DrawingContext &context) const override;
     void rebuildCache(const DrawingContext &context) override;
     //QPainterPath geometryToPath(const DrawingContext &context) const override;
-    void cacheGeometry(OGRGeometry *geom) override;
+    void cacheGeometry(OGRGeometry *geom) const override;
 private:
     //std::vector<QPointF> mPoints;
-    QPainterPath path;
+    const SimpleLineSymbol* mSymbol;
 };
 
 class MultiLineFeatureDrawingPolicy: public VectorFeatureDrawingPolicy
 {
 public:
-    MultiLineFeatureDrawingPolicy(VectorFeatureStyle& style);
+    MultiLineFeatureDrawingPolicy(const Symbol* symbol);
 
     // VectorFeatureDrawingPolicy interface
 public:
@@ -36,7 +38,9 @@ public:
     QRectF boundingRect(const DrawingContext &context) const override;
     void rebuildCache(const DrawingContext &context) override;
     //QPainterPath geometryToPath(const DrawingContext &context) const override;
-    void cacheGeometry(OGRGeometry *geom) override;
+    void cacheGeometry(OGRGeometry *geom) const override;
+private:
+    const SimpleLineSymbol* mSymbol;
 };
 
 

@@ -1,14 +1,15 @@
 #include "pointfeaturedrawingpolicy.h"
-
-vrsa::graphics::PointFeatureDrawingPolicy::PointFeatureDrawingPolicy(VectorFeatureStyle &style)
-    : VectorFeatureDrawingPolicy(style),
+#include "simplepointsymbol.h"
+vrsa::graphics::PointFeatureDrawingPolicy::PointFeatureDrawingPolicy(const Symbol *symbol)
+    : VectorFeatureDrawingPolicy(),
       mX{},
       mY{}
 {
-
+    assert(symbol->type() == common::SymbolType::SimplePointSymbol);
+    mSymbol = static_cast<const SimplePointSymbol*>(symbol);
 }
 
-void vrsa::graphics::PointFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom)
+void vrsa::graphics::PointFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom) const
 {
     OGRPoint* point = static_cast<OGRPoint*>(geom);
     mX = point->getX();
@@ -39,35 +40,35 @@ void vrsa::graphics::PointFeatureDrawingPolicy::rebuildCache(const DrawingContex
 
 void vrsa::graphics::PointFeatureDrawingPolicy::paint(const DrawingContext &context)
 {
-    //VRSA_DEBUG("PointFeatureDrawingPolicy", "paint called");
+
+
+
+    context.painter->save();
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
     double radius;
     if (mCache.sceneScale != context.sceneScale)
     {
-        double pointSize = calculations::UnitConversion::mmToPixels(mStyle.getPointSize());
+        double pointSize = mSymbol->getPointSize();
         mCache.path = QPainterPath();
         radius = (pointSize / 2.0) / context.sceneScale;  // Масштаб СРАЗУ в расчете!
-        mCache.path.addEllipse(QPointF(mX, mY), radius, radius);
-        qDebug()<< mX << mY << pointSize/2.0 << context.sceneScale;
+        double xOffsetScaled = mSymbol->getXOffSet() / context.sceneScale;
+        double yOffsetScaled = mSymbol->getYOffSet() / context.sceneScale;
+        mCache.path.addEllipse(QPointF(mX + xOffsetScaled, mY + yOffsetScaled), radius, radius);
         mCache.sceneScale = context.sceneScale;
     }
-    context.painter->setPen(mStyle.getPen());
-    QBrush brush = mStyle.getBrush();
+    QBrush brush = mSymbol->brush();
     brush.setTransform(QTransform(context.painter->worldTransform().inverted())); //обязательно для корректного применения стилей кисти
+
+
+    QPen pen = mSymbol->pen();
+    double width = pen.widthF()/context.sceneScale;
+    pen.setWidthF(width);
+    context.painter->setPen(pen);
     context.painter->setBrush(brush);
+    context.painter->setOpacity(mSymbol->opacity);
     context.painter->drawPath(mCache.path);
-
-    //context.painter->drawEllipse(QPointF(mX, mY), radius, radius);
-
-
-//    OGRPoint* point = static_cast<OGRPoint*>(context.geom);
-//    mX = point->getX();
-//    mY = point->getY();
-//    mMapScale = context.sceneScale;
-//    mPointSize= calculations::UnitConversion::mmToPixels(mStyle.getPointSize());
-//    context.painter->drawEllipse(QPointF(mX, mY), (mPointSize/2)/mMapScale,
-//                                 (mPointSize/2)/mMapScale);
+    context.painter->restore();
 
 
 
@@ -154,23 +155,44 @@ vrsa::common::GeometryType vrsa::graphics::PointFeatureDrawingPolicy::getType() 
 
 QRectF vrsa::graphics::PointFeatureDrawingPolicy::boundingRect(const DrawingContext& context) const
 {
+
+
     if (mCache.isGeomValid && context.sceneScale == mCache.sceneScale)
-        return mCache.boundingRect;
-    double scale = context.sceneScale;
-    double size2 = mStyle.getPointSize()/scale;
-    double size = (mStyle.getPointSize()/2) /scale;
-    return  mCache.boundingRect = QRectF(mX-size, mY-size,
-                  size2,size2);
+            return mCache.boundingRect;
+
+        double scale = context.sceneScale;
+        double pointSize = mSymbol->getPointSize() / scale;
+        double halfPointSize = pointSize / 2;
+
+        // ✅ Добавляем толщину пера
+        double penWidth = mSymbol->pen().widthF() / scale;
+        double halfPenWidth = penWidth / 2;
+
+        // ✅ Общий радиус с учетом пера
+        double totalRadius = halfPointSize + halfPenWidth;
+
+        double offsetX = mSymbol->getXOffSet() / scale;
+        double offsetY = mSymbol->getYOffSet() / scale;
+        double centerX = mX + offsetX;
+        double centerY = mY + offsetY;
+
+        return mCache.boundingRect = QRectF(
+            centerX - totalRadius,
+            centerY - totalRadius,
+            totalRadius * 2,
+            totalRadius * 2
+        );
 
 }
 
-vrsa::graphics::MultiPointFeatureDrawingPolicy::MultiPointFeatureDrawingPolicy(VectorFeatureStyle &style)
-    : VectorFeatureDrawingPolicy(style)
+vrsa::graphics::MultiPointFeatureDrawingPolicy::MultiPointFeatureDrawingPolicy(const Symbol *symbol)
+    : VectorFeatureDrawingPolicy()
 {
-
+    assert(symbol->type() == common::SymbolType::SimplePointSymbol);
+    mSymbol = static_cast<const SimplePointSymbol*>(symbol);
 }
 
-void vrsa::graphics::MultiPointFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom)
+void vrsa::graphics::MultiPointFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom) const
 {
 
     OGRMultiPoint* multiPoint = (OGRMultiPoint*)geom;
@@ -186,36 +208,30 @@ void vrsa::graphics::MultiPointFeatureDrawingPolicy::cacheGeometry(OGRGeometry *
 }
 void vrsa::graphics::MultiPointFeatureDrawingPolicy::paint(const DrawingContext &context)
 {
-
+    context.painter->save();
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
     if (mCache.sceneScale != context.sceneScale) {
-        double pointSize = calculations::UnitConversion::mmToPixels(mStyle.getPointSize());
+        double pointSize = mSymbol->getPointSize();
         mCache.path = QPainterPath();
         double radius = (pointSize / 2.0) / context.sceneScale;  // Масштаб СРАЗУ в расчете!
         for (const auto& point: mPoints)
-            mCache.path.addEllipse(point, radius, radius);
+        {
+            double xOffsetScaled = mSymbol->getXOffSet() / context.sceneScale;
+            double yOffsetScaled = mSymbol->getYOffSet() / context.sceneScale;
+            mCache.path.addEllipse(QPointF(point.x() + xOffsetScaled, point.y() + yOffsetScaled), radius, radius);
+        }
         mCache.sceneScale = context.sceneScale;
     }
-    context.painter->setPen(mStyle.getPen());
-    QBrush brush = mStyle.getBrush();
+    QPen pen = mSymbol->pen();
+    pen.setWidthF(pen.widthF()/context.sceneScale);
+    context.painter->setPen(pen);
+    QBrush brush = mSymbol->brush();
     brush.setTransform(QTransform(context.painter->worldTransform().inverted())); //обязательно для корректного применения стилей кисти
     context.painter->setBrush(brush);
     context.painter->drawPath(mCache.path);
+    context.painter->restore();
 
-//    OGRGeometry* poGeometry = context.geom;
-
-//            if (poGeometry != nullptr && wkbFlatten(poGeometry->getGeometryType()) == wkbMultiPoint) {
-//                OGRMultiPoint* multiPoint = (OGRMultiPoint*)poGeometry;
-
-//                // Работа с MultiPoint
-//                int pointCount = multiPoint->getNumGeometries();
-//                for (int i = 0; i < pointCount; i++) {
-//                    OGRPoint* point = (OGRPoint*)multiPoint->getGeometryRef(i);
-//                    double x = point->getX();
-//                    double y = point->getY();
-//                }
-//            }
 }
 
 vrsa::common::GeometryType vrsa::graphics::MultiPointFeatureDrawingPolicy::getType() const
@@ -228,36 +244,38 @@ vrsa::common::GeometryType vrsa::graphics::MultiPointFeatureDrawingPolicy::getTy
 QRectF vrsa::graphics::MultiPointFeatureDrawingPolicy::boundingRect(const DrawingContext &context) const
 {
     if (mCache.isGeomValid && context.sceneScale == mCache.sceneScale)
-            return mCache.boundingRect;
+        return mCache.boundingRect;
 
-        OGRMultiPoint* multiPoint = static_cast<OGRMultiPoint*>(context.geom);
-        double scale = context.sceneScale;
-        double pointSize = mStyle.getPointSize() / scale;
-        double halfSize = pointSize / 2;
+    OGRMultiPoint* multiPoint = static_cast<OGRMultiPoint*>(context.geom);
+    if (multiPoint->getNumGeometries() == 0)
+    {
+        return mCache.boundingRect = QRectF();
+    }
 
-        // Если точек нет - возвращаем пустой rect
-        if (multiPoint->getNumGeometries() == 0) {
-            return mCache.boundingRect = QRectF();
-        }
+    double scale = context.sceneScale;
+    double size = mSymbol->getPointSize() / scale;
+    double halfSize = size / 2;
+    double offsetX = mSymbol->getXOffSet() / scale;
+    double offsetY = mSymbol->getYOffSet() / scale;
 
-        // Находим min/max координаты всех точек
-        double minX = std::numeric_limits<double>::max();
-        double minY = std::numeric_limits<double>::max();
-        double maxX = std::numeric_limits<double>::lowest();
-        double maxY = std::numeric_limits<double>::lowest();
+    // min/max координаты всех точек
+    double minX = std::numeric_limits<double>::max();
+    double minY = std::numeric_limits<double>::max();
+    double maxX = std::numeric_limits<double>::lowest();
+    double maxY = std::numeric_limits<double>::lowest();
 
-        for (int i = 0; i < multiPoint->getNumGeometries(); i++) {
-            OGRPoint* point = static_cast<OGRPoint*>(multiPoint->getGeometryRef(i));
-            double x = point->getX();
-            double y = point->getY();
+    for (int i = 0; i < multiPoint->getNumGeometries(); i++)
+    {
+        OGRPoint* point = static_cast<OGRPoint*>(multiPoint->getGeometryRef(i));
+        double x = point->getX() + offsetX;
+        double y = point->getY() + offsetY;
+        minX = std::min(minX, x - halfSize);
+        minY = std::min(minY, y - halfSize);
+        maxX = std::max(maxX, x + halfSize);
+        maxY = std::max(maxY, y + halfSize);
+    }
 
-            minX = std::min(minX, x - halfSize);
-            minY = std::min(minY, y - halfSize);
-            maxX = std::max(maxX, x + halfSize);
-            maxY = std::max(maxY, y + halfSize);
-        }
-
-        return mCache.boundingRect = QRectF(minX, minY, maxX - minX, maxY - minY);
+    return mCache.boundingRect = QRectF(minX, minY, maxX - minX, maxY - minY);
 }
 
 void vrsa::graphics::MultiPointFeatureDrawingPolicy::rebuildCache(const DrawingContext &context)

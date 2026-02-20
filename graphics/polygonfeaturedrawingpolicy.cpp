@@ -1,13 +1,14 @@
 #include "polygonfeaturedrawingpolicy.h"
 
-vrsa::graphics::PolygonFeatureDrawingPolicy::PolygonFeatureDrawingPolicy(VectorFeatureStyle &style)
-    : VectorFeatureDrawingPolicy(style)
+vrsa::graphics::PolygonFeatureDrawingPolicy::PolygonFeatureDrawingPolicy(Symbol *symbol)
+    : VectorFeatureDrawingPolicy()
 {
-
+    assert(symbol->type() == common::SymbolType::SimplePolygonSymbol);
+    mSymbol = static_cast<const SimplePolygonSymbol*>(symbol);
 }
 
 
-void vrsa::graphics::PolygonFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom)
+void vrsa::graphics::PolygonFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom) const
 {
 
     mCache.path = QPainterPath();
@@ -40,21 +41,24 @@ void vrsa::graphics::PolygonFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geo
 
 void vrsa::graphics::PolygonFeatureDrawingPolicy::paint(const DrawingContext &context)
 {
-
+    context.painter->save();
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
 
-    QPen pen = mStyle.getPen();
-    pen.setCapStyle(Qt::SquareCap);
-    pen.setWidthF(calculations::UnitConversion::mmToPixels(pen.widthF())/context.sceneScale);
+    QPen pen = mSymbol->pen();
+    pen.setWidthF(pen.widthF()/context.sceneScale);
     context.painter->setPen(pen);
-    QBrush brush = mStyle.getBrush();
-    //brush.setStyle(Qt::Dense5Pattern);
+    QBrush brush = mSymbol->brush();
     brush.setTransform(QTransform(context.painter->worldTransform().inverted())); //обязательно для корректного применения стилей кисти
     context.painter->setBrush(brush);
 
+    double offsetX = mSymbol->getXOffSet() / context.sceneScale;
+    double offsetY = mSymbol->getYOffSet() / context.sceneScale;
+    context.painter->translate(offsetX, offsetY);
+
     context.painter->drawPath(mCache.path);
     mCache.sceneScale = context.sceneScale;
+    context.painter->restore();
 
 
 
@@ -68,19 +72,23 @@ vrsa::common::GeometryType vrsa::graphics::PolygonFeatureDrawingPolicy::getType(
 QRectF vrsa::graphics::PolygonFeatureDrawingPolicy::boundingRect(const DrawingContext &context) const
 {
     if (!mCache.isGeomValid || mCache.path.isEmpty())
-            return QRectF();
+        cacheGeometry(context.geom);
     if (mCache.isGeomValid && context.sceneScale == mCache.sceneScale)
-            return mCache.boundingRect;
+        return mCache.boundingRect;
 
-        QRectF rect = mCache.path.boundingRect();
-        qreal penWidth = mStyle.getPen().widthF();
-        qreal scaledPenWidth = calculations::UnitConversion::mmToPixels(penWidth) / mCache.sceneScale;
-        qreal halfPenWidth = scaledPenWidth / 2.0;
+    QRectF rect = mCache.path.boundingRect();
+    double penWidth = mSymbol->pen().widthF();
+    double scaledPenWidth = penWidth / mCache.sceneScale;
+    double halfPenWidth = scaledPenWidth / 2.0;
 
-        return mCache.boundingRect = QRectF(rect.x() - halfPenWidth,
-                      rect.y() - halfPenWidth,
-                      rect.width() + scaledPenWidth,
-                      rect.height() + scaledPenWidth);
+    double offsetX = mSymbol->getXOffSet() / context.sceneScale;
+    double offsetY = mSymbol->getYOffSet() / context.sceneScale;
+    rect.translate(offsetX, offsetY);
+
+    return mCache.boundingRect = QRectF(rect.x() - halfPenWidth,
+                                        rect.y() - halfPenWidth,
+                                        rect.width() + scaledPenWidth,
+                                        rect.height() + scaledPenWidth);
 }
 
 void vrsa::graphics::PolygonFeatureDrawingPolicy::rebuildCache(const DrawingContext &context)
@@ -89,28 +97,34 @@ void vrsa::graphics::PolygonFeatureDrawingPolicy::rebuildCache(const DrawingCont
 
 
 
-vrsa::graphics::MultiPolygonFeatureDrawingPolicy::MultiPolygonFeatureDrawingPolicy(VectorFeatureStyle &style)
-    : VectorFeatureDrawingPolicy(style)
+vrsa::graphics::MultiPolygonFeatureDrawingPolicy::MultiPolygonFeatureDrawingPolicy(Symbol* symbol)
+    : VectorFeatureDrawingPolicy()
 {
-
+    assert(symbol->type() == common::SymbolType::SimplePolygonSymbol);
+    mSymbol = static_cast<const SimplePolygonSymbol*>(symbol);
 }
 
 void vrsa::graphics::MultiPolygonFeatureDrawingPolicy::paint(const DrawingContext &context)
 {
+    context.painter->save();
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
 
-    QPen pen = mStyle.getPen();
-    pen.setCapStyle(Qt::SquareCap);
-    pen.setWidthF(calculations::UnitConversion::mmToPixels(pen.widthF())/context.sceneScale);
+    QPen pen = mSymbol->pen();
+    pen.setWidthF(pen.widthF()/context.sceneScale);
     context.painter->setPen(pen);
-    QBrush brush = mStyle.getBrush();
+    QBrush brush = mSymbol->brush();
     //brush.setStyle(Qt::Dense5Pattern);
     brush.setTransform(QTransform(context.painter->worldTransform().inverted())); //обязательно для корректного применения стилей кисти
     context.painter->setBrush(brush);
 
+    double offsetX = mSymbol->getXOffSet() / context.sceneScale;
+    double offsetY = mSymbol->getYOffSet() / context.sceneScale;
+    context.painter->translate(offsetX, offsetY);
+
     context.painter->drawPath(mCache.path);
     mCache.sceneScale = context.sceneScale;
+    context.painter->restore();
 }
 
 vrsa::common::GeometryType vrsa::graphics::MultiPolygonFeatureDrawingPolicy::getType() const
@@ -121,14 +135,18 @@ vrsa::common::GeometryType vrsa::graphics::MultiPolygonFeatureDrawingPolicy::get
 QRectF vrsa::graphics::MultiPolygonFeatureDrawingPolicy::boundingRect(const DrawingContext &context) const
 {
     if (!mCache.isGeomValid || mCache.path.isEmpty())
-        return QRectF();
+        cacheGeometry(context.geom);
     if (mCache.isGeomValid && context.sceneScale == mCache.sceneScale)
         return mCache.boundingRect;
 
     QRectF rect = mCache.path.boundingRect();
-    qreal penWidth = mStyle.getPen().widthF();
-    qreal scaledPenWidth = calculations::UnitConversion::mmToPixels(penWidth) / mCache.sceneScale;
-    qreal halfPenWidth = scaledPenWidth / 2.0;
+    double penWidth = mSymbol->pen().widthF();
+    double scaledPenWidth = penWidth / mCache.sceneScale;
+    double halfPenWidth = scaledPenWidth / 2.0;
+
+    double offsetX = mSymbol->getXOffSet() / context.sceneScale;
+    double offsetY = mSymbol->getYOffSet() / context.sceneScale;
+    rect.translate(offsetX, offsetY);
 
     return mCache.boundingRect = QRectF(rect.x() - halfPenWidth,
                                         rect.y() - halfPenWidth,
@@ -141,7 +159,7 @@ void vrsa::graphics::MultiPolygonFeatureDrawingPolicy::rebuildCache(const Drawin
 
 }
 
-void vrsa::graphics::MultiPolygonFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom)
+void vrsa::graphics::MultiPolygonFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom) const
 {
     OGRMultiPolygon* multiPoly = (OGRMultiPolygon*)geom;
 
