@@ -1,36 +1,50 @@
 #include "vectorfeaturestyle.h"
-
-//VectorFeatureStyle::VectorFeatureStyle()
-//{
-
-//}
-
+#include "simplepointsymbol.h"
+#include "simplelinesymbol.h"
+#include "simplepolygonsymbol.h"
+#include "layersymbol.h"
 vrsa::graphics::VectorFeatureStyle::VectorFeatureStyle()
 {
 
 }
 
 vrsa::graphics::VectorFeatureStyle::VectorFeatureStyle(std::unique_ptr<Symbol> symbol)
+    :mSymbol{std::move(symbol)}
 {
 
 }
 
-//void vrsa::graphics::VectorFeatureStyle::setPen(QPen pen)
-//{
-//    mPen = pen;
-//}
+std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle(const common::GeometryType type)
+{
+    using namespace vrsa::common;
 
-//void vrsa::graphics::VectorFeatureStyle::setBrush(QBrush brush)
-//{
-//    mBrush = brush;
-//}
+    auto layerSymbol = std::make_unique<LayerSymbol>();
+    switch (type)
+    {
+    case GeometryType::Point:
+    case GeometryType::MultiPoint:
+    {
+        layerSymbol->addChild(SimplePointSymbol::createDefaultSymbol());
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
 
-//QPen vrsa::graphics::VectorFeatureStyle::getPen() const
-//{
-//    return mPen;
-//}
+    }
+    case GeometryType::LineString:
+    case GeometryType::MultiLineString:
+    {
+        layerSymbol->addChild(SimpleLineSymbol::createDefaultSymbol());
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
 
-//QBrush vrsa::graphics::VectorFeatureStyle::getBrush() const
-//{
-//    return mBrush;
-//}
+    }
+    case GeometryType::Polygon:
+    case GeometryType::MultiPolygon:
+    {
+        layerSymbol->addChild(SimplePolygonSymbol::createDefaultSymbol());
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+
+    }
+    default:
+        return{};
+    }
+}
+
+
