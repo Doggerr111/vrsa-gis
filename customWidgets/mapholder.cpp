@@ -30,6 +30,11 @@ int MapHolder::getScale()
     return static_cast<int>(scale);
 }
 
+double MapHolder::getMapHolderScale() const
+{
+    return transform().m11();
+}
+
 QRectF MapHolder::getExtent()
 {
     QMatrix const matrix = this->matrix().inverted();

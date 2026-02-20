@@ -17,6 +17,8 @@ public:
     void zoomToRect(QRectF bRect);
     /** Возвращает текущий масштаб */
     int getScale();
+    /** Возвращает View->transform()->m11() */
+    double getMapHolderScale() const;
     /** Возвращает текущую видимую область виджета */
     QRectF getExtent();
 
