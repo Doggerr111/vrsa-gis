@@ -2,7 +2,7 @@
 #define GEOGRAPHICSITEM_H
 #include <QGraphicsItem>
 #include "graphics/drawingcontext.h"
-#include "graphics/pointfeaturedrawingpolicy.h"
+#include "graphics/featuregraphicsitemrenderer.h"
 #include "vector/vectorfeature.h"
 namespace vrsa
 {
@@ -12,10 +12,10 @@ namespace graphics
 class FeatureGraphicsItem: public QObject, public QGraphicsItem
 {
     Q_OBJECT
-    using DrawingPolicy = std::unique_ptr<VectorFeatureDrawingPolicy>;
+    using Renderer = std::unique_ptr<FeatureGraphicsItemRenderer>;
     using Feature = vrsa::vector::VectorFeature;
 public:
-    FeatureGraphicsItem(DrawingPolicy dPolicy,const Feature* feature);
+    FeatureGraphicsItem(Renderer renderer,const Feature* feature);
     inline void setScale(double s)
     {
         mWidgetScale = s;
@@ -31,7 +31,7 @@ public slots:
     void setVisible(bool);
 
 private:
-    DrawingPolicy mPolicy;
+    Renderer mRenderer;
     const Feature* mFeature;
     double mWidgetScale;
 };

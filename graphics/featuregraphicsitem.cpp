@@ -1,8 +1,8 @@
 #include "featuregraphicsitem.h"
 
-vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(DrawingPolicy dPolicy, const Feature *feature)
+vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(Renderer renderer, const Feature *feature)
     : QGraphicsItem(),
-      mPolicy{std::move(dPolicy)},
+      mRenderer{std::move(renderer)},
       mFeature{feature}
 {
 
@@ -11,13 +11,14 @@ vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(DrawingPolicy dPolicy, 
 QRectF vrsa::graphics::FeatureGraphicsItem::boundingRect() const
 {
     DrawingContext context{nullptr, nullptr, nullptr, mFeature->getOGRGeometry(), mWidgetScale};
-    return mPolicy->boundingRect(context);
+    return mRenderer->boundingRect(context);
 }
 
 void vrsa::graphics::FeatureGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     DrawingContext context{painter, option, widget, mFeature->getOGRGeometry(), mWidgetScale};
-    mPolicy->paint(context);
+    mRenderer->paint(context);
+
 }
 
 void vrsa::graphics::FeatureGraphicsItem::setVisible(bool flagVisible)
