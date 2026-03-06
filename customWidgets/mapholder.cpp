@@ -3,6 +3,7 @@
 #include "QGuiApplication"
 #include "QScreen"
 #include "QElapsedTimer"
+#include "QOpenGLWidget"
 MapHolder::MapHolder(QObject *parent)
     : QGraphicsView{},
       //isDraging{false},
@@ -11,7 +12,6 @@ MapHolder::MapHolder(QObject *parent)
 {
     Q_UNUSED(parent);
     mMapCalculator.SetDpi(QGuiApplication::primaryScreen()->logicalDotsPerInch());
-
 }
 
 void MapHolder::zoomToRect(QRectF targetRect)
@@ -84,7 +84,7 @@ void MapHolder::recalculateScale()
 {
     const QRectF visibleRect = mapToScene(viewport()->rect()).boundingRect();
     mCurrentScale = static_cast<int>(mMapCalculator.calculate(visibleRect, width()));
-    VRSA_DEBUG("MapHolder", "Calculated scale:" + std::to_string(mCurrentScale));
+    //VRSA_DEBUG("MapHolder", "Calculated scale:" + std::to_string(mCurrentScale));
     emit scaleChanged(mCurrentScale, transform().m11());
 }
 

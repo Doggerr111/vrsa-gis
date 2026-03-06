@@ -7,9 +7,9 @@ namespace vrsa
 namespace raster
 {
 
-class RasterDataset: public gdalwrapper::Dataset
+class RasterDataset: public QObject, public gdalwrapper::Dataset
 {
-
+    Q_OBJECT
     using channels = std::vector<std::unique_ptr<RasterChannel>>;
 public:
     RasterDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, const std::string source, channels = channels());
@@ -25,10 +25,17 @@ public:
     }
     QTransform getGeoTransform();
     QRectF getBoundingBox();
+    inline void setZValue(int zValue) noexcept
+    {
+        mZValue = zValue;
+    }
+signals:
+    void ZValueChanged(int);
 private:
     channels mRasterChannels;
     //double mGeoTransform;
     QTransform mGeoTransform;
+    int mZValue;
 public:
     RasterDataset();
 };

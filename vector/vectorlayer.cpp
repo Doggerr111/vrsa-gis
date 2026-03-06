@@ -72,6 +72,13 @@ void vrsa::vector::VectorLayer::setFeatures(featuresVec features)
     mFeatures = std::move(features);
 }
 
+vrsa::common::GeometryType vrsa::vector::VectorLayer::getGeomType() const
+{
+    return gdalwrapper::GeometryTypeConverter::FromOGR(mOGRLayer->GetGeomType());
+}
+
+
+
 bool vrsa::vector::VectorLayer::addFeature(std::unique_ptr<VectorFeature> feature)
 {
     auto ogrF = feature->getOGRFeature();
@@ -80,10 +87,13 @@ bool vrsa::vector::VectorLayer::addFeature(std::unique_ptr<VectorFeature> featur
         VRSA_ERROR("VectorLayer", "NUFeature added!");
         return false;
     }
-    auto err = mOGRLayer->SetFeature(ogrF);
-    if (err != OGRERR_NONE)
+    auto err = mOGRLayer->CreateFeature(ogrF);
+
+    if (err == OGRERR_NONE)
     {
         VRSA_DEBUG("VectorLayer", "Feature added! FID:" + std::to_string(ogrF->GetFID()));
+        mFeatures.push_back(std::move(feature));
+        mOGRLayer->SyncToDisk();
         return true;
     }
     else
@@ -126,10 +136,7 @@ bool vrsa::vector::VectorLayer::deleteFeature(VectorFeature *feature)
 
 
 
-vrsa::common::GeometryType vrsa::vector::VectorLayer::getGeomType() const
-{
-    return gdalwrapper::GeometryTypeConverter::FromOGR(mOGRLayer->GetGeomType());
-}
+
 
 const char *vrsa::vector::VectorLayer::getName()
 {

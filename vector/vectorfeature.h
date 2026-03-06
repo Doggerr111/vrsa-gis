@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <variant>
 #include "gdal/geometrytypeconverter.h"
+#include <QPointF>
+
+#include "geometry/geometry.h"
 namespace vrsa
 {
 namespace vector
@@ -35,6 +38,7 @@ private:
     //QVariantMap mAttributes;
     bool mVisible;
     OGRLayer* mParentLayer;
+    bool mIsSelected;
 
 public:
     VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr feature, OGRLayer* layer = nullptr);
@@ -46,11 +50,22 @@ public:
 
     vrsa::common::GeometryType getType() const;
     OGRGeometry *getOGRGeometry() const;
+
+    //различные геттеры для атрибутов
     AttributeValue getAttribute(const std::string& name) const;
+    QVariant getAttributeAsQVariant(const std::string& name) const;
+    std::unordered_map<std::string, std::string> getAttributesAsString() const;     //name - value (string)
+    std::unordered_map<QString, QString> getAttributesAsQString() const;     //for ui
+    std::string getAttributeAsString(const std::string& name) const;
+    QString getAttributeAsQString(const std::string& name) const;
+    std::vector<std::string> getAttributeNames() const;
+    OGRLayer* getParentOGRLayer() const noexcept { return mParentLayer; };
+
     OGRFeature* getOGRFeature() const;
 
-    bool updateAttribute(const std::string& name, const AttributeValue& value);
 
+    bool updateAttribute(const std::string& name, const AttributeValue& value);
+    void setSelected(const bool selected) noexcept { mIsSelected = selected; };
 
     static std::unique_ptr<vrsa::vector::VectorFeature> createFeature(VectorLayer *layer);
 signals:
@@ -70,18 +85,18 @@ public:
     using MultiPolygonType = std::vector<std::vector<std::vector<QPointF>>>;
 
 
-    using GeometryVariant = std::variant<
-        PointType,                    // точка
-        MultiPointType,              // мультиточка
-        LineStringType,             // линия
-        MultiLineStringType,        // мультилиния
-        PolygonType,                // полигон
-        PolygonWithHolesType,       // полигон с отверстиями
-        MultiPolygonType           // мультиполигон
-    >;
+//    using GeometryVariant = std::variant<
+//        QPointF,
+//        std::vector<QPointF>,
+//        std::vector<std::vector<QPointF>>
+//        >;
 
+//    struct Geometry {
+//        common::GeometryType type;
+//        GeometryVariant variant;
+//    };
 
-    void setGeometry(const GeometryVariant& geometry);
+    bool setGeometry(const geometry::Geometry& geometry);
 
 private:
     // ===== РЕАЛИЗАЦИИ ДЛЯ РАЗНЫХ ТИПОВ =====

@@ -7,6 +7,7 @@
 #include "gdal/geometrytypeconverter.h"
 #include "graphics/vectorfeaturestyle.h"
 
+
 namespace vrsa {
 namespace vector {
 
@@ -44,6 +45,11 @@ public:
     {
         mStyles.emplace(geomType, std::move(style));
     }
+    void setZValue(int zValue) noexcept
+    {
+        mZValue = zValue;
+        emit ZValueChanged(mZValue);
+    }
     graphics::VectorFeatureStyle* getStyle(common::GeometryType geomType) const noexcept
     {
         auto it = mStyles.find(geomType);
@@ -56,6 +62,7 @@ public:
 signals:
     void featureAdded(VectorFeature*);
     void featureRemoved(VectorFeature*);
+    void ZValueChanged(int);
 
 protected:
     OGRLayer *mOGRLayer;

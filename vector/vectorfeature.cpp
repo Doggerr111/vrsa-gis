@@ -1,5 +1,6 @@
 #include "vectorfeature.h"
 #include "vector/vectorlayer.h"
+#include "gdal/ogrconverter.h"
 vrsa::vector::VectorFeature::VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr feature, OGRLayer* layer)
     : mFeature{std::move(feature)},
       mParentLayer{layer}
@@ -38,7 +39,12 @@ void vrsa::vector::VectorFeature::setVisible(bool visible)
 
 vrsa::common::GeometryType vrsa::vector::VectorFeature::getType() const
 {
-    return vrsa::gdalwrapper::GeometryTypeConverter::FromOGR(mFeature->GetGeometryRef()->getGeometryType());
+    if (!mFeature)
+        return vrsa::common::GeometryType::Unknown;
+    auto featGeom = mFeature->GetGeometryRef();
+    if (!featGeom)
+        return vrsa::common::GeometryType::Unknown;
+    return vrsa::gdalwrapper::GeometryTypeConverter::FromOGR(featGeom->getGeometryType());
 }
 
 OGRGeometry *vrsa::vector::VectorFeature::getOGRGeometry() const
@@ -66,6 +72,107 @@ vrsa::vector::VectorFeature::AttributeValue vrsa::vector::VectorFeature::getAttr
 
     return nullptr;
 
+}
+
+QVariant vrsa::vector::VectorFeature::getAttributeAsQVariant(const std::string &name) const
+{
+
+    auto it = mAttributes.find(name);
+    if (it != mAttributes.end())
+    {
+        auto value = it->second;
+        return std::visit([](auto&& arg) -> QVariant {
+            using T = std::decay_t<decltype(arg)>;
+
+            if constexpr (std::is_same_v<T, std::nullptr_t>) {
+                return QVariant("NULL"); // или QVariant()
+            }
+            else if constexpr (std::is_same_v<T, int>) {
+                return QVariant(arg);
+            }
+            else if constexpr (std::is_same_v<T, double>) {
+                return QVariant(arg);
+            }
+            else if constexpr (std::is_same_v<T, std::string>) {
+                return QVariant(QString::fromStdString(arg));
+            }
+            else if constexpr (std::is_same_v<T, bool>) {
+                return QVariant(arg);
+            }
+            else {
+                return QVariant();
+            }
+        }, value);
+    }
+    return QVariant();
+}
+
+std::unordered_map<std::string, std::string> vrsa::vector::VectorFeature::getAttributesAsString() const
+{
+    std::unordered_map<std::string, std::string> attributes;
+    for (const auto& attr: mAttributes)
+    {
+        attributes.insert({attr.first, getAttributeAsString(attr.first)});
+    }
+    return attributes;
+}
+
+std::unordered_map<QString, QString> vrsa::vector::VectorFeature::getAttributesAsQString() const
+{
+    std::unordered_map<QString, QString> attributes;
+    for (const auto& attr: mAttributes)
+    {
+        qDebug()<<QString::fromStdString(attr.first);
+        qDebug()<<QString::fromStdString(getAttributeAsString(attr.first));
+        attributes.insert({QString::fromStdString(attr.first), getAttributeAsQString(attr.first)});
+    }
+    return attributes;
+}
+
+std::string vrsa::vector::VectorFeature::getAttributeAsString(const std::string &name) const
+{
+    auto it = mAttributes.find(name);
+    if (it != mAttributes.end())
+    {
+        auto value = it->second;
+        return std::visit([](auto&& arg) -> std::string {
+            using T = std::decay_t<decltype(arg)>;
+
+            if constexpr (std::is_same_v<T, std::nullptr_t>) {
+                return ("NULL"); // или QVariant()
+            }
+            else if constexpr (std::is_same_v<T, int>) {
+                return std::to_string(arg);
+            }
+            else if constexpr (std::is_same_v<T, double>) {
+                return std::to_string(arg);
+            }
+            else if constexpr (std::is_same_v<T, std::string>) {
+                return arg;
+            }
+            else if constexpr (std::is_same_v<T, bool>) {
+                return arg ? "True" : "False";
+            }
+            else {
+                return "NULL_";
+            }
+        }, value);
+    }
+    return "NULL__";
+}
+
+QString vrsa::vector::VectorFeature::getAttributeAsQString(const std::string &name) const
+{
+    return QString::fromStdString(getAttributeAsString(name));
+}
+
+std::vector<std::string> vrsa::vector::VectorFeature::getAttributeNames() const
+{
+    std::vector<std::string> names;
+    names.reserve(mAttributes.size());
+    for (const auto& attr: mAttributes)
+        names.push_back(attr.first);
+    return names;
 }
 
 OGRFeature *vrsa::vector::VectorFeature::getOGRFeature() const
@@ -226,38 +333,61 @@ std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::create
         return nullptr;
     }
     OGRFeature* feature = OGRFeature::CreateFeature(ogrL->GetLayerDefn());
+    if (!feature)
+    {
+        VRSA_ERROR("VectorFeature", "Can't create feature: passed VectorLayer has incorrect layer definition");
+        return nullptr;
+    }
+
+    VRSA_DEBUG("VectorFeature", "Feature successfully created");
     vrsa::gdalwrapper::OgrFeaturePtr ptrFeat(feature);
     return std::make_unique<VectorFeature>(std::move(ptrFeat), ogrL);
 }
 
-void vrsa::vector::VectorFeature::setGeometry(const GeometryVariant &geometry)
+bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry)
 {
-    std::visit([this](const auto& geom) {
-        using T = std::decay_t<decltype(geom)>;
+    //получаем сырой указатель, т.к геометрией будет управлять сама фича
+    auto ogrGeomRawPtr = ogr_utils::OGRConverter::toOGR(geometry);
+    auto error = mFeature->SetGeometry(ogrGeomRawPtr);
+    if (error!= OGRERR_NONE)
+    {
+        VRSA_ERROR("VectorFeature", "Can't set geometry to Vector Feature, OGR error:" + std::to_string(error));
+        OGRGeometryFactory::destroyGeometry(ogrGeomRawPtr); //очищаем самостоятельно
+        return false;
+    }
+    VRSA_DEBUG("VectorFeature", "Geometry has been successfully set to vector feature");
+    return true;
 
-        if constexpr (std::is_same_v<T, PointType>) {
-            setPointGeometry(geom);
-        }
-        else if constexpr (std::is_same_v<T, MultiPointType>) {
-            setMultiPointGeometry(geom);
-        }
-        else if constexpr (std::is_same_v<T, LineStringType>) {
-            setLineStringGeometry(geom);
-        }
-        else if constexpr (std::is_same_v<T, MultiLineStringType>) {
-            setMultiLineStringGeometry(geom);
-        }
-        else if constexpr (std::is_same_v<T, PolygonType>) {
-            setPolygonGeometry(geom, {});
-        }
-        else if constexpr (std::is_same_v<T, PolygonWithHolesType>) {
-            setPolygonGeometry(geom.first, geom.second);
-        }
-        else if constexpr (std::is_same_v<T, MultiPolygonType>) {
-            setMultiPolygonGeometry(geom);
-        }
-    }, geometry);
 }
+
+//void vrsa::vector::VectorFeature::setGeometry(const GeometryVariant &geometry)
+//{
+//    std::visit([this](const auto& geom) {
+//        using T = std::decay_t<decltype(geom)>;
+
+//        if constexpr (std::is_same_v<T, PointType>) {
+//            setPointGeometry(geom);
+//        }
+//        else if constexpr (std::is_same_v<T, MultiPointType>) {
+//            setMultiPointGeometry(geom);
+//        }
+//        else if constexpr (std::is_same_v<T, LineStringType>) {
+//            setLineStringGeometry(geom);
+//        }
+//        else if constexpr (std::is_same_v<T, MultiLineStringType>) {
+//            setMultiLineStringGeometry(geom);
+//        }
+//        else if constexpr (std::is_same_v<T, PolygonType>) {
+//            setPolygonGeometry(geom, {});
+//        }
+//        else if constexpr (std::is_same_v<T, PolygonWithHolesType>) {
+//            setPolygonGeometry(geom.first, geom.second);
+//        }
+//        else if constexpr (std::is_same_v<T, MultiPolygonType>) {
+//            setMultiPolygonGeometry(geom);
+//        }
+//    }, geometry);
+//}
 
 void vrsa::vector::VectorFeature::setPointGeometry(const QPointF &p)
 {

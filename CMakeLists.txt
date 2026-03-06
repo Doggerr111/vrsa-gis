@@ -15,7 +15,13 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS
     ${CMAKE_CURRENT_SOURCE_DIR}/customWidgets
 )
 
+# ============================================================================
+# ОПЦИИ СБОРКИ
+# ============================================================================
 option(BUILD_TESTS "Build tests" ON)
+option(VRSA_ENABLE_TEST_UTILS "Include test utilities in core library" ON)
+
+
 
 # ============================================================================
 # ПОИСК QT И GDAL
@@ -54,6 +60,8 @@ file(GLOB CORE_SOURCES
     "georef/*.cpp"
     "raster/*.cpp"
     "tools/*.cpp"
+    "test_utils/*.cpp"
+    "geometry/*.cpp"
 )
 file(GLOB_RECURSE GRAPHICS_SOURCES "graphics/*.cpp")
 file(GLOB_RECURSE GRAPHICS_HEADERS "graphics/*.h")
@@ -69,9 +77,12 @@ file(GLOB CORE_HEADERS
     "georef/*.h"
     "raster/*.h"
     "tools/*.h"
+    "test_utils/*.h"
+    "geometry/*.h"
 )
 add_library(vrsa_core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
-
+#добавляем тестовые функции в ядре
+target_compile_definitions(vrsa_core PUBLIC VRSA_ENABLE_TEST_UTILS=$<BOOL:${VRSA_ENABLE_TEST_UTILS}>)
 target_include_directories(vrsa_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     gdal
@@ -83,7 +94,12 @@ target_include_directories(vrsa_core PUBLIC
     georef
     raster
     tools
+    test_utils
+    geometry
+
 )
+
+
 
 target_link_libraries(vrsa_core PUBLIC
     GDAL::GDAL
@@ -102,6 +118,7 @@ file(GLOB MAIN_SOURCES
 
 file(GLOB CUSTOM_WIDGETS_CPP
     "customWidgets/*.cpp"
+    "customWidgets/stylingWidgets/*.cpp"
     "services/*.cpp"
     )
 file(GLOB UI_CPP "ui/*.cpp")
@@ -114,6 +131,7 @@ file(GLOB MAIN_HEADERS
 
 file(GLOB CUSTOM_WIDGETS_HEADERS
     "customWidgets/*.h"
+    "customWidgets/stylingWidgets/*.h"
     "services/*.h"
     )
 file(GLOB UI_HEADERS "ui/*.h")
@@ -148,6 +166,7 @@ if(QT_VERSION_MAJOR EQUAL 6)
     target_include_directories(VRSA PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         customWidgets
+        customWidgets/stylingWidgets
         ui
         ${CMAKE_CURRENT_BINARY_DIR}  # ← для сгенерированных ui_*.h файлов
     )
@@ -178,6 +197,7 @@ else()
     target_include_directories(VRSA PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         customWidgets
+        customWidgets/stylingWidgets
         ui
         ${CMAKE_CURRENT_BINARY_DIR}
     )

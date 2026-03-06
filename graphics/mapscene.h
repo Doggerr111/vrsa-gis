@@ -7,6 +7,7 @@
 #include <QGraphicsSceneWheelEvent>
 #include <QKeyEvent>
 #include "graphics/featuregraphicsitem.h"
+#include "graphics/temporarygraphicsitem.h"
 #include "vector/vectorlayer.h"
 #include "graphics/rastergraphicsitemfactory.h"
 #include "raster/rasterdataset.h"
@@ -28,6 +29,8 @@ public:
     void addLayer(std::unique_ptr<vector::VectorLayer>& l);
     void addLayer(std::unique_ptr<raster::RasterChannel>& channel);
     void addRasterDataset(raster::RasterDataset* dS);
+    void addTemporaryItem(std::unique_ptr<TemporaryGraphicsItem> item);
+    void removeTemporaryItems();
     //TODO ADDVECTORDATASET
 
     inline double getMapScale() const noexcept { return mMapScale; };
@@ -35,9 +38,17 @@ public:
     inline void setMapHolderScale(double scale) noexcept { mMapHolderScale = scale; };
     inline void setMapScale(double scale) noexcept { mMapScale = scale; };
 
-    void setTool(std::unique_ptr<tools::MapTool> tool);
+    void setMapTool(std::unique_ptr<tools::MapTool> tool);
+    void deselectCurrentMapTool();
+    void setViewCursor(QCursor cursor);
 
 
+    FeatureGraphicsItem* asFeatureItem(QGraphicsItem* item) const {
+        return dynamic_cast<FeatureGraphicsItem*>(item);
+    }
+    TemporaryGraphicsItem* asTemporaryItem(QGraphicsItem* item) const {
+        return dynamic_cast<TemporaryGraphicsItem*>(item);
+    }
 
     // QGraphicsScene interface
 protected:
@@ -56,11 +67,14 @@ public slots:
     void onVectorLayerFeatureAdded(vector::VectorFeature*);
     void onVectorLayerFeatureRemoved(vector::VectorFeature*);
 
+    void onNewFeatureGraphicsItemCreated(std::unique_ptr<graphics::FeatureGraphicsItem>& item);
+
 private:
     double mMapScale;
     double mMapHolderScale;
 
     std::vector<std::unique_ptr<graphics::FeatureGraphicsItem>> mFeatures;
+    std::vector<std::unique_ptr<graphics::TemporaryGraphicsItem>> mTempItems;
 
     std::unique_ptr<tools::MapTool> mCurrentMapTool;
 
