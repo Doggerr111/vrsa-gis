@@ -8,6 +8,7 @@
 #include <QIcon>
 #include "common/GisDefines.h"
 #include "vector/vectorfeature.h"
+#include <QCursor>
 namespace vrsa {
 namespace graphics {
     class MapScene;
@@ -39,24 +40,38 @@ public:
     virtual common::MapToolType type() const = 0;
     virtual QString toolTip() const { return{}; };
     virtual QIcon icon() const { return{}; };
+    virtual QCursor cursor() const { return QCursor(Qt::ArrowCursor); };
 
 
     virtual bool canCancel() const noexcept { return false; }
     virtual void cancel() {};
 
     graphics::MapScene* scene() const noexcept { return mMapScene; };
+//    virtual void setScene(graphics::MapScene* scene) { mMapScene = scene; };
+
+
+    //перечесление для создания подобия шаблонного сигнала, который будет связываться с контролером
+    //GisController для обмена данными при необходимости (сигнал - toolEvent), например, для обновления ui
+    enum class ToolEventType {
+        FeatureSelected,
+        FeatureDoubleClicked,
+        SelectionCleared,
+        DigitizingFinished,
+        CursorPositionChanged
+    };
+
 
 signals:
     void activated();
     void deactivated();
     void cancelled();
     void statusMessage(const QString& message);
-    void geometryCreated(vrsa::vector::VectorFeature::GeometryVariant);
-
+    void geometryCreated(geometry::Geometry&);
+    void toolEvent(ToolEventType type, const QVariant& data = QVariant());
 protected:
     graphics::MapScene* mMapScene;
-    QPointF mLastScenePos;
-    QVector<QPointF> mPoints;
+
+    //QVector<QPointF> mPoints;
     bool mIsActive;
 
 
