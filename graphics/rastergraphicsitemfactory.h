@@ -45,7 +45,8 @@ public:
             VRSA_ERROR("Raster Graphics Factory", "Can't create RGB image from DataSet");
         }
         //TODO make unique ptr
-        QGraphicsPixmapItem *item = new QGraphicsPixmapItem;
+        RasterGraphicsItem *item = new RasterGraphicsItem;
+        QObject::connect(dS, &raster::RasterDataset::ZValueChanged, item, &RasterGraphicsItem::onZValueChanged);
         item->setPixmap(QPixmap::fromImage(im));
         item->setTransform(dS->getGeoTransform());
         return item;

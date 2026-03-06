@@ -12,8 +12,11 @@ class Symbol
 {
 public:
     Symbol() = default;
+    Symbol(const QString& name): mName{name} {};
     virtual ~Symbol() = default;
     virtual common::SymbolType type() const = 0;
+
+    virtual std::unique_ptr<Symbol> clone() const = 0;
 
     virtual bool canHaveChildren() const { return false; }
     virtual bool hasChildren() const { return false; }
@@ -23,11 +26,17 @@ public:
     virtual void addChild(std::unique_ptr<Symbol>) {}
     virtual void removeChild(int index) {}
 
+public:
+    QString mName;
+
 
 
 };
 
 }
 }
+
+Q_DECLARE_METATYPE(vrsa::graphics::Symbol*)
+Q_DECLARE_METATYPE(const vrsa::graphics::Symbol*)
 
 #endif // SYMBOL_H

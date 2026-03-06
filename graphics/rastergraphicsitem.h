@@ -3,17 +3,18 @@
 
 #include <QGraphicsItem>
 #include <QObject>
-
-//class RasterGraphicsItem : public QGraphicsPixmapItem
-//{
-//    Q_OBJECT
-//public:
-//    RasterGraphicsItem();
-
-//    // QGraphicsItem interface
-//public:
-//    QRectF boundingRect() const override;
-//    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-//};
+namespace vrsa{
+namespace graphics
+{
+class RasterGraphicsItem :public QObject, public QGraphicsPixmapItem
+{
+    Q_OBJECT
+public:
+    using QGraphicsPixmapItem::QGraphicsPixmapItem;  // наследуем конструкторы
+public slots:
+    void onZValueChanged(int zValue);
+};
+}
+}
 
 #endif // RASTERGRAPHICSITEM_H

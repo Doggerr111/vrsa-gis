@@ -21,7 +21,7 @@ public:
     void paint(const DrawingContext& context) override;
     common::GeometryType getType() const override;
     QRectF boundingRect(const DrawingContext& context) const override;
-    void rebuildCache(const DrawingContext &context) override;
+    void cachePath(const DrawingContext& context);
     //QPainterPath geometryToPath(const DrawingContext &context) const override;
 private:
     mutable double mX, mY;
@@ -41,7 +41,6 @@ public:
     void paint(const DrawingContext& context) override;
     common::GeometryType getType() const override;
     QRectF boundingRect(const DrawingContext &context) const override;
-    void rebuildCache(const DrawingContext &context) override;
     void cacheGeometry(OGRGeometry* geom) const override;
 
 private:

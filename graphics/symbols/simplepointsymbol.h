@@ -13,7 +13,7 @@ namespace graphics
 class SimplePointSymbol: public SimpleSymbol
 {
 public:
-    SimplePointSymbol() = default;
+    SimplePointSymbol(): SimpleSymbol("Point Symbol"){};
     SimplePointSymbol(const SimplePointSymbol&) = default;
     SimplePointSymbol(SimplePointSymbol&&) = default;
     SimplePointSymbol& operator=(const SimplePointSymbol&) = default;
@@ -23,6 +23,7 @@ public:
     // Symbol interface
 public:
     common::SymbolType type() const noexcept override { return common::SymbolType::SimplePointSymbol; };
+    std::unique_ptr<Symbol> clone() const override { return std::make_unique<SimplePointSymbol>(*this); };
 
     static std::unique_ptr<SimplePointSymbol> createDefaultSymbol();
 
@@ -92,6 +93,8 @@ public:
     double rotation = 0.0;
     double pointSize = 1;
     common::PointSymbolType pointType = common::PointSymbolType::Circle;
+
+
 
 };
 

@@ -19,11 +19,11 @@ public:
         switch (units)
         {
         case common::StyleUnit::Millimeters:
-        {
             return calculations::UnitConversion::mmToPixels(value);
-        }
+        default:
             return value;
         }
+        return value;
     }
 };
 }

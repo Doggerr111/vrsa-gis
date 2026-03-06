@@ -22,18 +22,22 @@ public:
         //update();
 
     }
+    void setSelected(const bool selected);
     // QGraphicsItem interface
 public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+    const inline Feature* getFeature() const noexcept {return mFeature; };
 
 public slots:
     void setVisible(bool);
+    void onZValueChanged(int zValue);
 
 private:
     Renderer mRenderer;
     const Feature* mFeature;
     double mWidgetScale;
+    bool mIsSelected;
 };
 
 

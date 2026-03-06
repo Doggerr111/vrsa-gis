@@ -1,18 +1,8 @@
 #include "rastergraphicsitem.h"
 
-//RasterGraphicsItem::RasterGraphicsItem()
-//    :QGraphicsItem()
-//{
-
-//}
 
 
+void vrsa::graphics::RasterGraphicsItem::onZValueChanged(int zValue)
+{
 
-
-//QRectF RasterGraphicsItem::boundingRect() const
-//{
-//}
-
-//void RasterGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-//{
-//}
+}

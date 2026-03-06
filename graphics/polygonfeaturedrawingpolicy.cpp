@@ -55,7 +55,7 @@ void vrsa::graphics::PolygonFeatureDrawingPolicy::paint(const DrawingContext &co
     double offsetX = mSymbol->getXOffSet() / context.sceneScale;
     double offsetY = mSymbol->getYOffSet() / context.sceneScale;
     context.painter->translate(offsetX, offsetY);
-
+    context.painter->setOpacity(mSymbol->opacity);
     context.painter->drawPath(mCache.path);
     mCache.sceneScale = context.sceneScale;
     context.painter->restore();
@@ -71,9 +71,9 @@ vrsa::common::GeometryType vrsa::graphics::PolygonFeatureDrawingPolicy::getType(
 
 QRectF vrsa::graphics::PolygonFeatureDrawingPolicy::boundingRect(const DrawingContext &context) const
 {
-    if (!mCache.isGeomValid || mCache.path.isEmpty())
+    if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
-    if (mCache.isGeomValid && context.sceneScale == mCache.sceneScale)
+    if (mCache.isGeomValid && mCache.isBoundingRectValid && context.sceneScale == mCache.sceneScale)
         return mCache.boundingRect;
 
     QRectF rect = mCache.path.boundingRect();
@@ -91,9 +91,7 @@ QRectF vrsa::graphics::PolygonFeatureDrawingPolicy::boundingRect(const DrawingCo
                                         rect.height() + scaledPenWidth);
 }
 
-void vrsa::graphics::PolygonFeatureDrawingPolicy::rebuildCache(const DrawingContext &context)
-{
-}
+
 
 
 
@@ -154,10 +152,6 @@ QRectF vrsa::graphics::MultiPolygonFeatureDrawingPolicy::boundingRect(const Draw
                                         rect.height() + scaledPenWidth);
 }
 
-void vrsa::graphics::MultiPolygonFeatureDrawingPolicy::rebuildCache(const DrawingContext &context)
-{
-
-}
 
 void vrsa::graphics::MultiPolygonFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom) const
 {

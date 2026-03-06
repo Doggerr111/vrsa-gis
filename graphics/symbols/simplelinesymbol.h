@@ -11,7 +11,7 @@ namespace graphics
 class SimpleLineSymbol: public SimpleSymbol
 {
 public:
-    SimpleLineSymbol() = default;
+    SimpleLineSymbol(): SimpleSymbol("Line Symbol"){};;
     SimpleLineSymbol(const SimpleLineSymbol&) = default;
     SimpleLineSymbol(SimpleLineSymbol&&) = default;
     SimpleLineSymbol& operator=(const SimpleLineSymbol&) = default;
@@ -21,6 +21,7 @@ public:
     // Symbol interface
 public:
     common::SymbolType type() const noexcept override { return common::SymbolType::SimpleLineSymbol; };
+    std::unique_ptr<Symbol> clone() const override { return std::make_unique<SimpleLineSymbol>(*this); };
 
     static std::unique_ptr<SimpleLineSymbol> createDefaultSymbol();
 

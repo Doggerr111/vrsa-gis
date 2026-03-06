@@ -12,7 +12,7 @@ namespace graphics
 class SimplePolygonSymbol : public SimpleSymbol
 {
 public:
-    SimplePolygonSymbol() = default;
+    SimplePolygonSymbol(): SimpleSymbol("Polygon Symbol"){};
     SimplePolygonSymbol(const SimplePolygonSymbol&) = default;
     SimplePolygonSymbol(SimplePolygonSymbol&&) = default;
     SimplePolygonSymbol& operator=(const SimplePolygonSymbol&) = default;
@@ -22,6 +22,7 @@ public:
     // Symbol interface
 public:
     common::SymbolType type() const noexcept override { return common::SymbolType::SimplePolygonSymbol; };
+    std::unique_ptr<Symbol> clone() const override { return std::make_unique<SimplePolygonSymbol>(*this); };
 
     static std::unique_ptr<SimplePolygonSymbol> createDefaultSymbol();
 

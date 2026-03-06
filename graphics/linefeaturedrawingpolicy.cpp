@@ -33,34 +33,20 @@ void vrsa::graphics::LineFeatureDrawingPolicy::paint(const DrawingContext &conte
         cacheGeometry(context.geom);
 
     QPen pen = mSymbol->pen();
+    qDebug()<<pen.widthF()/context.sceneScale;
+    //double penWidth = pen.widthF()/context.sceneScale;
+
     pen.setWidthF(pen.widthF()/context.sceneScale);
+    //qDebug()<<pen.widthF();
     context.painter->setPen(pen);
     double offsetX = mSymbol->getXOffSet() / context.sceneScale;
     double offsetY = mSymbol->getYOffSet() / context.sceneScale;
     context.painter->translate(offsetX, offsetY);
     context.painter->drawPath(mCache.path);
+    //qDebug() << "PATH" << mCache.path;
     mCache.sceneScale = context.sceneScale;
 
     context.painter->restore();
-    //}
-
-//    QVector<QPointF> points;
-//    OGRGeometry* poGeometry = context.geom;
-//    OGRwkbGeometryType geomType = wkbFlatten(poGeometry->getGeometryType());
-//    assert(geomType == wkbLineString);
-
-//    OGRLineString* line = (OGRLineString*)poGeometry;
-//    int pointCount = line->getNumPoints();
-
-//    for (int i = 0; i < pointCount; i++)
-//    {
-//        points.push_back(QPointF(line->getX(i),line->getY(i)));
-//    }
-//    QPen pen = mStyle.getPen();
-//    pen.setCapStyle(Qt::SquareCap);
-//    pen.setWidthF(calculations::UnitConversion::mmToPixels(pen.widthF())/context.sceneScale);
-//    context.painter->setPen(pen);
-//    context.painter->drawPolyline(points);
 
 }
 
@@ -73,9 +59,9 @@ vrsa::common::GeometryType vrsa::graphics::LineFeatureDrawingPolicy::getType() c
 QRectF vrsa::graphics::LineFeatureDrawingPolicy::boundingRect(const DrawingContext &context) const
 {
 
-    if (!mCache.isGeomValid || mCache.path.isEmpty())
+    if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
-    if (mCache.isGeomValid && context.sceneScale == mCache.sceneScale)
+    if (mCache.isGeomValid && mCache.isBoundingRectValid && (context.sceneScale == mCache.sceneScale))
         return mCache.boundingRect;
 
     QRectF rect = mCache.path.boundingRect();
@@ -89,10 +75,12 @@ QRectF vrsa::graphics::LineFeatureDrawingPolicy::boundingRect(const DrawingConte
     rect.translate(offsetX, offsetY);
 
     mCache.sceneScale = context.sceneScale;
+    mCache.isBoundingRectValid = true;
     return mCache.boundingRect = rect.adjusted(
                 -halfPenWidth, -halfPenWidth,
                 halfPenWidth, halfPenWidth
                 );
+    //return QRectF(-1000,-1000,100000,10000);
 
 }
 
@@ -122,7 +110,7 @@ void vrsa::graphics::MultiLineFeatureDrawingPolicy::cacheGeometry(OGRGeometry *g
     }
 
 
-        mCache.isGeomValid = true;
+    mCache.isGeomValid = true;
 }
 
 
@@ -143,39 +131,6 @@ void vrsa::graphics::MultiLineFeatureDrawingPolicy::paint(const DrawingContext &
     context.painter->drawPath(mCache.path);
     mCache.sceneScale = context.sceneScale;
     context.painter->restore();
-
-
-
-//    QVector<QPointF> points;
-//    OGRGeometry* poGeometry = context.geom;
-//    OGRwkbGeometryType geomType = wkbFlatten(poGeometry->getGeometryType());
-//    assert(geomType == wkbMultiLineString);
-
-//    OGRMultiLineString* multiLine = (OGRMultiLineString*)poGeometry;
-//    int lineCount = multiLine->getNumGeometries();
-
-//    QPen pen = mStyle.getPen();
-//    pen.setCapStyle(Qt::SquareCap);
-//    pen.setWidthF(calculations::UnitConversion::mmToPixels(pen.widthF())/context.sceneScale);
-//    context.painter->setPen(pen);
-
-//    // Рисуем каждую линию в мультилинии
-//    for (int lineIndex = 0; lineIndex < lineCount; lineIndex++)
-//    {
-//        OGRLineString* line = (OGRLineString*)multiLine->getGeometryRef(lineIndex);
-//        int pointCount = line->getNumPoints();
-
-//        points.clear(); // Очищаем массив точек для каждой новой линии
-
-//        for (int i = 0; i < pointCount; i++)
-//        {
-//            points.push_back(QPointF(line->getX(i), line->getY(i)));
-//        }
-
-//        // Рисуем отдельную линию
-//        context.painter->drawPolyline(points);
-//    }
-
 
 }
 
@@ -210,23 +165,6 @@ QRectF vrsa::graphics::MultiLineFeatureDrawingPolicy::boundingRect(const Drawing
 
 
 
-void vrsa::graphics::LineFeatureDrawingPolicy::rebuildCache(const DrawingContext &context)
-{
-}
-
-//QPainterPath vrsa::graphics::LineFeatureDrawingPolicy::geometryToPath(const DrawingContext &context) const
-//{
-//}
-
-
-
-void vrsa::graphics::MultiLineFeatureDrawingPolicy::rebuildCache(const DrawingContext &context)
-{
-}
-
-//QPainterPath vrsa::graphics::MultiLineFeatureDrawingPolicy::geometryToPath(const DrawingContext &context) const
-//{
-//}
 
 
 

@@ -18,7 +18,6 @@ public:
     void paint(const DrawingContext &context) override;
     common::GeometryType getType() const override;
     QRectF boundingRect(const DrawingContext &context) const override;
-    void rebuildCache(const DrawingContext &context) override;
     void cacheGeometry(OGRGeometry *geom) const override;
 private:
     QPainterPath path;
@@ -36,7 +35,6 @@ public:
     void paint(const DrawingContext &context) override;
     common::GeometryType getType() const override;
     QRectF boundingRect(const DrawingContext &context) const override;
-    void rebuildCache(const DrawingContext &context) override;
     void cacheGeometry(OGRGeometry *geom) const override;
 private:
     QPainterPath path;
