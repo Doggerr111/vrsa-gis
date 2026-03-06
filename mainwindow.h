@@ -24,9 +24,14 @@ private slots:
 
     void on_pushButton_addFeature_clicked();
 
+    void on_pushButtonSingleSelection_clicked(bool checked);
+
 public slots:
     void updateScaleLineEdit(int mapScale, double widgetScale);
     void updateCoordinatesLineEdit(QPointF p);
+
+    void onActiveLayerChanged(const QIcon&icon); //принимаем сигнал от контроллера
+    void onActiveLayerChanged(const QString& name); //принимаем сигнал от контроллера
 
 private:
     Ui::MainWindow *ui;

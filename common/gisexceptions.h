@@ -124,6 +124,22 @@ public:
     IntersectionException(const std::string& geom1, const std::string& geom2)
         : AnalysisException("Intersection failed between " + geom1 + " and " + geom2) {}
 };
+
+
+// 5. Исключения при работе с графикой
+class GraphicsException : public GISException {
+public:
+    explicit GraphicsException(const std::string& message)
+        : GISException("Graphics Error: " + message) {}
+};
+
+class SymbolLayerGeometryException : public GraphicsException {
+public:
+    explicit SymbolLayerGeometryException(const std::string& rootSymbolName, const std::string& childSymbolName)
+        : GraphicsException("Can't add symbol:" + childSymbolName + " to layer symbol:" +
+                            rootSymbolName+". Geometry missmatch") {}
+};
+
 }
 }
 

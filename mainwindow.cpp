@@ -1,11 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "gdal/gdalreader.h"
 #include <QDebug>
-#include "graphics/featuregraphicsitemfactory.h"
-#include "ui/vectorstylingform.h"
-#include "graphics/symbols/layerpointsymbol.h"
-#include "graphics/symbols/simplepointsymbol.h"
+#include "vectorstylingform.h"
+#include <QButtonGroup>
+#include <QSplitter>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
@@ -18,51 +16,59 @@ MainWindow::MainWindow(QWidget *parent)
         VRSA_DEBUG("Services", "GIS Controller succesfully created");
     mGisController->initializeScene(ui->graphicsView);
     mGisController->setTreeWidget(ui->LayerTree);
+    mGisController->setTabWidgets(ui->leftTabWidget, ui->rightTabWidget);
     connect(ui->graphicsView, &MapHolder::scaleChanged, this, &MainWindow::updateScaleLineEdit);
     connect(mGisController->getScene(), &vrsa::graphics::MapScene::mouseMoved, this, &MainWindow::updateCoordinatesLineEdit);
+    connect(mGisController.get(), qOverload<const QIcon&>(&vrsa::services::GISController::activeLayerChanged), this,
+            qOverload<const QIcon&>(&MainWindow::onActiveLayerChanged));
+    connect(mGisController.get(), qOverload<const QString&>(&vrsa::services::GISController::activeLayerChanged), this,
+            qOverload<const QString&>(&MainWindow::onActiveLayerChanged));
 
-    auto symbol = std::make_unique<vrsa::graphics::LayerPointSymbol>(std::make_unique<vrsa::graphics::SimplePointSymbol>());
-    VectorStylingForm form(symbol.get());
-    form.exec();
-
-//    vrsa::gdalwrapper::GDALReader reader;
-//    auto ptr=reader.readDataset("/home/doger/Documents/vrsa/VRSA/tests/data/KostromskayaBoundary.shp");
-//    auto ptr2=reader.readDataset("/home/doger/Documents/vrsa/VRSA/tests/data/testMultiLayers.gpx");
-//    auto ptr3=reader.readDataset("/home/doger/Documents/vrsa/VRSA/tests/data/place_points_osm.shp");
+    connect(ui->pushButtonSingleSelection, &QPushButton::clicked, mGisController.get(),
+            &vrsa::services::GISController::onSingleSelectionToolClicked);
 
 
-//    if (ptr != nullptr)
+    QButtonGroup* toolGroup = new QButtonGroup(this);
+    toolGroup->setExclusive(true);
+    toolGroup->addButton(ui->pushButton_addFeature);
+    toolGroup->addButton(ui->pushButtonSingleSelection);
+
+    ui->rightTabWidget->tabBar()->setExpanding(false);
+
+    //ui->left_menu_frame->setAlignment(Qt::AlignLeft);
+    //ui->right_menu_frame->setAlignment(Qt::AlignRight);
+
+    //ui->central_frame->layout()->addWidget(new QFrame());
+
+    QHBoxLayout* layout = qobject_cast<QHBoxLayout*>(ui->central_frame->layout());
+
+    //убираем из layout
+    layout->removeWidget(ui->left_menu_frame);
+    layout->removeWidget(ui->graphicsView);
+    layout->removeWidget(ui->right_menu_frame);
+
+    // и закидываем в сплиттер
+    QSplitter* splitter = new QSplitter(Qt::Horizontal, ui->central_frame);
+    splitter->setStyleSheet("QSplitter::handle { background: transparent; }");
+    splitter->setHandleWidth(1);  // толщина разделителя
+    splitter->setStyleSheet("QSplitter::handle { background: black; }");  // чтобы с рамкой совпадало
+    splitter->addWidget(ui->left_menu_frame);
+    splitter->addWidget(ui->graphicsView);
+    splitter->addWidget(ui->right_menu_frame);
+    splitter->setChildrenCollapsible(false);
+
+    layout->addWidget(splitter);
+    //toolGroup->addButton(ui->zoomButton);
+
+//    for (int i=0; i<9; i++)
 //    {
-//        VRSA_DEBUG("GDAL", "dataset not null!");
+//        VectorStylingForm form(i);
+//        form.exec();
 //    }
-//    else VRSA_DEBUG("GDAL", "dataset null!");
-//    //auto l = reader.readLayers(ptr);
-//    //qDebug()<<QString::number(l.at(0)->id());
-//    //VRSA_DEBUG("GDAL", "FeatureCount: " + std::to_string(ptr2->getLayer(0).featuresCount()));
-//    std::vector<std::unique_ptr<vrsa::graphics::FeatureGraphicsItem>> vec;
-//    auto scene = new QGraphicsScene();
-//    ui->graphicsView->setScene(scene);
-//    ui->graphicsView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
-//    ui->graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-//    ui->graphicsView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-//    double xMin = -20037508.34;
-//    double yMax = 20037508.34;
-//    double width = 40075016.68;
-//    double height = 20037508.34;
+//    std::exit(1);
 
-//    // Установка сцены в пределах EPSG:3857 координат
-//    ui->graphicsView->scale(1,-1);
-//    ui->graphicsView->setSceneRect(xMin*4, 4*yMax, 4*width, -8*height);
-////    for (int i=0; i<ptr3->getLayer(0).featuresCount(); ++i)
-////    {
 
-////        scene->addItem(&*vrsa::graphics::
-////                       FeatureGraphicsItemFactory::createForFeature(ptr3->getLayer(0).getFeatureAt(i),
-////                      vrsa::graphics::VectorFeatureStyle::createDefaultVectorStyle(vrsa::common::GeometryType::Point)));
-////        //VRSA_DEBUG("FeatureGraphicsItemFactory", "Create Feature for place_points_osm.shp #" + std::to_string(i));
-////    }
 
-    //sleep(2);
 }
 
 MainWindow::~MainWindow()
@@ -107,9 +113,28 @@ void MainWindow::updateCoordinatesLineEdit(QPointF p)
     }
 }
 
+void MainWindow::onActiveLayerChanged(const QIcon &icon)
+{
+    ui->pushButton_addFeature->setIcon(icon);
+}
+
+void MainWindow::onActiveLayerChanged(const QString &name)
+{
+    ui->labelActiveLayer->setText(tr("Активный слой:") + name);
+}
+
 
 void MainWindow::on_pushButton_addFeature_clicked()
 {
-    mGisController->startDigitizing();
+    if (ui->pushButton_addFeature->isChecked())
+        mGisController->startDigitizing();
+    else
+        mGisController->stopDigitizing();
+}
+
+
+void MainWindow::on_pushButtonSingleSelection_clicked(bool checked)
+{
+
 }
 

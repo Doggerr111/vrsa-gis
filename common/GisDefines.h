@@ -1,7 +1,7 @@
 #ifndef LIPTYPES_H
 #define LIPTYPES_H
 #include <QMetaEnum>
-
+#include <QColor>
 namespace vrsa
 {
 namespace common
@@ -25,6 +25,9 @@ namespace common
  * систем координат, типов атрибутов и общих операций.
  * @endrussian
  */
+
+
+
 enum class DatasetType {
     Vector,
     Raster,
@@ -39,7 +42,7 @@ enum class CrsFormat {
     EPSG
 };
 
-enum PointSymbolType {
+enum class PointSymbolType {
     Square,
     Circle,
     Triangle,
@@ -94,7 +97,8 @@ enum CustomRoles {
     LayerIDRole, //layer index frm dataset
     FullMetadataRole,    // для сложных структур
     AttributeTableFeatureRole,
-    AttributeTableFeatureNameRole
+    AttributeTableFeatureNameRole,
+    SymbolPtrRole //для символов на форме layerstylingform
 };
 
 
@@ -134,7 +138,12 @@ enum class MapToolType
     LineStringDigitizingTool,
     MultiLineStringDigitizingTool,
     PolygonDigitizingTool,
-    MultiPolygonDigitizingTool
+    MultiPolygonDigitizingTool,
+    SelectionTool,
+    SingleSelectionTool,
+    RectSelectionTool,
+    MoveTool,
+    InfoTool //delete maybe
 };
 
 enum class SymbolType
@@ -150,6 +159,46 @@ enum class SymbolType
     LayerPolygonSymbol,
     Unknown
 };
+
+
+enum class StyleParametr
+{
+    PenColor,
+    BrushColor,
+    PointSize,
+    PenWidth,
+    Opacity,
+    Rotation,
+    PenStyle,
+    BrushStyle,
+    JoinStyle,
+    CapStyle,
+    PointType,
+    XOffset,
+    YOffset
+
+};
+
+//====константы для графики====
+inline constexpr int MAX_Z_VALUE = 50; //максимальное z value для векторных графических обьектов на карте
+// Коэффициенты для выделения
+inline constexpr double SELECTION_SIZE_FACTOR = 1.1;      // увеличение на 10%
+inline constexpr double SELECTION_WIDTH_FACTOR = 1.2;     // толщина обводки на 20%
+inline constexpr double SELECTION_OPACITY = 1.0;          // полная непрозрачность
+inline const QColor SELECTION_COLOR = Qt::red;            // цвет выделения
+inline constexpr Qt::BrushStyle SELECTION_BRUSH_STYLE = Qt::Dense4Pattern; //тип заливки
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Types
 {
@@ -169,4 +218,6 @@ Q_DECLARE_METATYPE(vrsa::common::CustomRoles);
 Q_DECLARE_METATYPE(vrsa::common::GeometryType);
 Q_DECLARE_METATYPE(vrsa::common::DatasetType);
 Q_DECLARE_METATYPE(vrsa::common::TreeItemType);
+Q_DECLARE_METATYPE(vrsa::common::StyleParametr);
+
 #endif // LIPTYPES_H

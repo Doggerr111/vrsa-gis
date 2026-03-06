@@ -7,12 +7,13 @@
 #include <iostream>
 #include "common/logger.h"
 #include <QDir>
+#include <QRandomGenerator>
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
 
-
+    qDebug()<<QRandomGenerator::global()->bounded(0, 100);
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
     for (const QString &locale : uiLanguages) {
@@ -39,6 +40,12 @@ int main(int argc, char *argv[])
 
     //return 0;
 
+
+    qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::CustomRoles");
+    qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::GeometryType");
+    qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::DatasetType");
+    qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::TreeItemType");
+    qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::StyleParametr");
     MainWindow w;
     w.show();
     return a.exec();

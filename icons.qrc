@@ -57,5 +57,8 @@
         <file>images/icons/SymbolStyling/plus.png</file>
         <file>images/icons/SymbolStyling/document.png</file>
         <file>images/icons/SymbolStyling/delete.png</file>
+        <file>images/icons/SymbolStyling/up_green_arrow.png</file>
+        <file>images/icons/SymbolStyling/down_green_arrow.png</file>
+        <file>images/icons/SymbolStyling/diskette_green.png</file>
     </qresource>
 </RCC>
