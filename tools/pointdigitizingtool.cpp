@@ -1,6 +1,5 @@
 #include "pointdigitizingtool.h"
 #include "graphics/mapscene.h"
-#include "calculations/unitconverter.h"
 vrsa::tools::PointDigitizingTool::PointDigitizingTool(graphics::MapScene *scene, QObject *parent)
     : DigitizingTool{scene, parent}
 {
@@ -11,11 +10,12 @@ vrsa::tools::PointDigitizingTool::PointDigitizingTool(graphics::MapScene *scene,
 
 void vrsa::tools::PointDigitizingTool::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    auto scenePoint = event->scenePos();
-    double pointSize = calculations::UnitConversion::mmToPixels(1);
-    double radius = (pointSize / 2.0) / mMapScene->getMapHolderScale();
-    mMapScene->addItem(new QGraphicsEllipseItem(scenePoint.x(), scenePoint.y(), radius, radius));
-    qDebug()<< "WELL!";
+    QPointF scenePoint = event->scenePos();
+    qDebug()<<scenePoint;
+    vrsa::geometry::Geometry geometry;
+    geometry.type = common::GeometryType::Point;
+    geometry.variant = scenePoint;
+    emit geometryCreated(geometry);
 }
 
 void vrsa::tools::PointDigitizingTool::keyPressEvent(QKeyEvent *event)
@@ -36,6 +36,7 @@ QString vrsa::tools::PointDigitizingTool::toolTip() const
 
 void vrsa::tools::PointDigitizingTool::cancel()
 {
+    auto f = 1;
 }
 
 
