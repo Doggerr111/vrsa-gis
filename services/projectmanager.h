@@ -9,6 +9,7 @@ namespace vrsa
 {
 namespace services
 {
+//реестр слоев
 class ProjectManager : public QObject
 {
     //using projectDatasets = std::vector<std::unique_ptr<vrsa::gdalwrapper::Dataset>>;
@@ -74,7 +75,7 @@ public:
      */
     std::vector<std::string> getLayerNames(const std::string& src);
 
-    vrsa::vector::VectorLayer*  getLayer(const std::string src, int idx);
+    vrsa::vector::VectorLayer*  getLayer(const std::string& src, int idx); //care!!
 
     void setActiveVectorLayer(const std::string& src, int idx);
 
@@ -87,6 +88,8 @@ public:
     {
         return mActiveVectorLayer;
     }
+
+    vrsa::vector::VectorLayer* getLayerAssociatedWithFeature(const vrsa::vector::VectorFeature* feature) const;
 
 signals:
     /**

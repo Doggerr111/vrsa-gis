@@ -65,7 +65,7 @@ std::vector<std::string> vrsa::services::ProjectManager::getLayerNames(const std
     }
 }
 
-vrsa::vector::VectorLayer* vrsa::services::ProjectManager::getLayer(const std::string src, int idx)
+vrsa::vector::VectorLayer* vrsa::services::ProjectManager::getLayer(const std::string &src, int idx)
 {
     auto dS = getDatasetBySource(src);
     if (dS == nullptr)
@@ -103,4 +103,27 @@ void vrsa::services::ProjectManager::setActiveVectorLayer(const std::string &src
         return;
     }
     VRSA_ERROR("ProjectManager", "Cant set active layer with given path:" + src +" and index:" + std::to_string(idx));
+}
+
+vrsa::vector::VectorLayer *vrsa::services::ProjectManager::getLayerAssociatedWithFeature(const vector::VectorFeature *feature) const
+{
+
+    if (!feature) return nullptr;
+    if (!feature->getParentOGRLayer()) return nullptr;
+
+    for (const auto& dS: mDatasets)
+    {
+        auto dataset = dS.get();
+        if (dataset->GetDatasetType() == common::DatasetType::Vector)
+        {
+            auto vDs = static_cast<vector::VectorDataset*>(dataset);
+            for (const auto& layer: vDs->getLayers())
+            {
+                if (layer->getOGRLayer() == feature->getParentOGRLayer())
+                    return layer.get();
+            }
+        }
+    }
+    return nullptr;
+
 }
