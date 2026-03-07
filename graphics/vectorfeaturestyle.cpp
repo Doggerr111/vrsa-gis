@@ -55,11 +55,11 @@ std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatur
         return{};
     if (!baseStyle->mSymbol)
         return{};
-     qDebug()<< "baseStyleSymbol - " << baseStyle->mSymbol.get();
+     //qDebug()<< "baseStyleSymbol - " << baseStyle->mSymbol.get();
     auto selectionStyleSymbol = baseStyle->mSymbol->clone();
-    qDebug()<< "selectionStyleSymbol - " << selectionStyleSymbol.get();
+    //qDebug()<< "selectionStyleSymbol - " << selectionStyleSymbol.get();
     updateBaseSymbolToSelectionSymbol(selectionStyleSymbol.get());
-    qDebug()<< "selectionStyleSymbol - " << selectionStyleSymbol.get();
+   // qDebug()<< "selectionStyleSymbol - " << selectionStyleSymbol.get();
     return std::make_unique<VectorFeatureStyle>(std::move(selectionStyleSymbol));
 
 }
@@ -113,39 +113,7 @@ void vrsa::graphics::VectorFeatureStyle::updateBaseSymbolToSelectionSymbol(Symbo
 
     }
 }
-//std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createSelectionVectorStyle(const common::GeometryType type)
-//{
-//    using namespace vrsa::common;
-//    switch (type)
-//    {
-//    case GeometryType::Point:
-//    case GeometryType::MultiPoint:
-//    {
-//        auto layerSymbol = std::make_unique<LayerPointSymbol>();
-//        layerSymbol->addChild(SimplePointSymbol::createDefaultSymbol());
-//        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
 
-//    }
-//    case GeometryType::LineString:
-//    case GeometryType::MultiLineString:
-//    {
-//        auto layerSymbol = std::make_unique<LayerLineSymbol>();
-//        layerSymbol->addChild(SimpleLineSymbol::createDefaultSymbol());
-//        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
-
-//    }
-//    case GeometryType::Polygon:
-//    case GeometryType::MultiPolygon:
-//    {
-//        auto layerSymbol = std::make_unique<LayerPolygonSymbol>();
-//        layerSymbol->addChild(SimplePolygonSymbol::createDefaultSymbol());
-//        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
-
-//    }
-//    default:
-//        return{};
-//    }
-//}
 
 std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForDigitizing(const common::GeometryType type)
 {
@@ -192,22 +160,63 @@ std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatur
 
 std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForSelection(const common::GeometryType type)
 {
+    using namespace common;
+    switch (type)
+    {
+    case GeometryType::Point:
+    case GeometryType::MultiPoint:
+    {
+//        auto layerSymbol = std::make_unique<LayerPointSymbol>();
+//        layerSymbol->addChild(SimplePointSymbol::createDefaultSymbol());
+//        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
 
+    }
+    case GeometryType::LineString:
+    case GeometryType::MultiLineString:
+    {
+//        auto layerSymbol = std::make_unique<LayerLineSymbol>();
+//        auto lineSymbol = SimpleLineSymbol::createDefaultSymbol();
+//        lineSymbol->borderColor = Qt::red;
+//        lineSymbol->borderWidth = 0.1;
+//        lineSymbol->opacity = 0.5;
+//        layerSymbol->addChild(std::move(lineSymbol));
+//        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
+    }
+    case GeometryType::Polygon:
+    case GeometryType::MultiPolygon:
+    {
+        auto layerSymbol = std::make_unique<LayerPolygonSymbol>();
+        auto polySymbol = SimplePolygonSymbol::createDefaultSymbol();
+        polySymbol->borderColor = Qt::black;
+        polySymbol->borderWidth = 0.1;
+        polySymbol->fillColor = common::SELECTION_COLOR;
+        polySymbol->opacity = 0.5;
+        polySymbol->fillStyle = common::SELECTION_BRUSH_STYLE;
+        layerSymbol->addChild(std::move(polySymbol));
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+
+    }
+    default:
+        return{};
+    }
+    return {};
 }
 
 std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForMeasurement(const common::GeometryType type)
 {
-
+    return nullptr;
 }
 
 std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForPreview(const common::GeometryType type)
 {
-
+    return nullptr;
 }
 
 std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForRubberBands(const common::GeometryType type)
 {
-
+return nullptr;
 }
 
 
