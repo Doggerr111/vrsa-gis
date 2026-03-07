@@ -26,9 +26,8 @@ namespace graphics
  *          не имеют постоянного хранения в данных.
  * @endrussian
  */
-class TemporaryGraphicsItem : public QObject, public QGraphicsItem
+class TemporaryGraphicsItem : public QGraphicsItem
 {
-    Q_OBJECT
 
 public:
     enum class TemporaryItemRole {
@@ -71,7 +70,6 @@ private:
     std::unique_ptr<VectorFeatureStyle> mStyle;
     gdalwrapper::OgrGeometryPtr mGeom;
     double mScale;
-signals:
 
 
     // QGraphicsItem interface

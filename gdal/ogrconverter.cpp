@@ -45,7 +45,11 @@ vrsa::gdalwrapper::OgrGeometryPtr vrsa::ogr_utils::OGRConverter::toOGR_uniquePTR
         OGRLinearRing* ring = new OGRLinearRing();
 
         for (const auto& pt : *polyVariant)
+        {
             ring->addPoint(pt.x(), pt.y());
+            //qDebug()<<"OGR CONVERTER - "<< pt.x() << " " << pt.y();
+        }
+
         ring->closeRings();
 
         polygon->addRing(ring);

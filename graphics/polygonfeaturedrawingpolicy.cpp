@@ -45,6 +45,8 @@ void vrsa::graphics::PolygonFeatureDrawingPolicy::paint(const DrawingContext &co
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
 
+
+
     QPen pen = mSymbol->pen();
     pen.setWidthF(pen.widthF()/context.sceneScale);
     context.painter->setPen(pen);
@@ -85,6 +87,10 @@ QRectF vrsa::graphics::PolygonFeatureDrawingPolicy::boundingRect(const DrawingCo
     double offsetY = mSymbol->getYOffSet() / context.sceneScale;
     rect.translate(offsetX, offsetY);
 
+//    qDebug() << "bounding rect" << QRectF(rect.x() - halfPenWidth,
+//                       rect.y() - halfPenWidth,
+//                       rect.width() + scaledPenWidth,
+//                       rect.height() + scaledPenWidth);
     return mCache.boundingRect = QRectF(rect.x() - halfPenWidth,
                                         rect.y() - halfPenWidth,
                                         rect.width() + scaledPenWidth,

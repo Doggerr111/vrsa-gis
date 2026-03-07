@@ -13,25 +13,32 @@ vrsa::graphics::TemporaryGraphicsItem::TemporaryGraphicsItem(common::GeometryTyp
       mRenderer{nullptr}
 {
     setupRenderer();
+    //qDebug() << "Item:" << static_cast<void*>(this);
     setZValue(common::MAX_Z_VALUE+1);
 }
 
 void vrsa::graphics::TemporaryGraphicsItem::setGeometry(const geometry::Geometry &geom)
 {
+
+    //qDebug() << "Item: setGeometry" << static_cast<void*>(this);
+//    qDebug() << "Scene:" << scene();
+//    qDebug() << "Parent:" << parentItem();
+//    qDebug() << "Flags:" << flags();
+//    qDebug() << "Item:" << static_cast<void*>(this);
+
+    if (!scene())
+        return;
     prepareGeometryChange();
     mGeom = ogr_utils::OGRConverter::toOGR_uniquePTR(geom);
     mRenderer->update();
     update();
-    //qDebug()<< "SETTING GEOM IN TEMP ITEM - " << mGeom.get();
 }
 
 void vrsa::graphics::TemporaryGraphicsItem::setupRenderer()
 {
     if (!mRenderer)
     {
-        //VRSA_DEBUG("TemporaryGraphicsItem", "Setting renderer for temp item");
         mRenderer = std::make_unique<FeatureGraphicsItemRenderer>(generateStyle(), mGeomType);
-        //qDebug()<<"feature style:" << mStyle.get();
     }
 }
 
@@ -47,6 +54,8 @@ vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::gener
     }
     case TemporaryItemRole::Selection:
     {
+        mStyle = VectorFeatureStyle::createForSelection(mGeomType);
+        qDebug()<<"стиль " << mStyle.get();
         break;
     }
     case TemporaryItemRole::Measurement:
@@ -62,6 +71,7 @@ vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::gener
         break;
     }
     }
+    //qDebug() << "Item: style" << static_cast<void*>(this);
     return mStyle.get();
 
 }

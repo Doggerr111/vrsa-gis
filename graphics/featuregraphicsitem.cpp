@@ -36,7 +36,7 @@ void vrsa::graphics::FeatureGraphicsItem::paint(QPainter *painter, const QStyleO
 void vrsa::graphics::FeatureGraphicsItem::setSelected(const bool selected)
 {
     mIsSelected = selected;
-    qDebug()<<"FeatureGraphicsItem selected!!" << mIsSelected;
+    //qDebug()<<"FeatureGraphicsItem selected!!" << mIsSelected;
     if (mRenderer)
         mRenderer->setFeatureSelected(mIsSelected);
     update();

@@ -36,11 +36,11 @@ QRectF vrsa::graphics::FeatureGraphicsItemRenderer::boundingRect(const DrawingCo
     {
         for (const auto& policy: mPolicies)
         {
-            //qDebug()<<"calculating bounding rects for police #" << count++ << " rect - " <<policy->boundingRect(context);
+
             if (first)
             {
                 totalBoundingRect = policy->boundingRect(context);
-                //qDebug() << "BoundingRect from FeatureGraphicsItemRenderer count - " << callCount++;
+                //qDebug()<<"calculating bounding rects for police #" << count++ << " rect - " <<totalBoundingRect;
                 first = false;
             }
             else
@@ -49,6 +49,7 @@ QRectF vrsa::graphics::FeatureGraphicsItemRenderer::boundingRect(const DrawingCo
                 //qDebug() << "BoundingRect from FeatureGraphicsItemRenderer count - " << callCount++;
             }
         }
+        //qDebug()<<"total br -" << count++ << " rect - " <<totalBoundingRect;
     }
     else
     {
@@ -100,12 +101,12 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::update()
 void vrsa::graphics::FeatureGraphicsItemRenderer::setFeatureSelected(bool selected)
 {
     mIsFeatureSelected = selected;
-    qDebug()<<"FeatureGraphicsItemRenderer selected!!" << mIsFeatureSelected;
+    //qDebug()<<"FeatureGraphicsItemRenderer selected!!" << mIsFeatureSelected;
     if (mIsFeatureSelected)
     {
         mSelectStyle = VectorFeatureStyle::createSelectionVectorStyle(mStyle);
         createPolicies(mSelectStyle->getSymbol(), mSelectPolicies);
-        qDebug()<<"Создаем политики для рисования выбранного символа!!";
+        //qDebug()<<"Создаем политики для рисования выбранного символа!!";
     }
     else //не буду хранить политики и стиль для выделения, проще пересоздать при необходимости
     {
@@ -113,7 +114,7 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::setFeatureSelected(bool select
         mSelectPolicies.clear();
     }
     update();
-    qDebug()<<"Обновляем кеш политик!";
+    //qDebug()<<"Обновляем кеш политик!";
 }
 
 template<typename Container>
@@ -122,8 +123,10 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
                                                                          &container)
 {
     if (!symbol) return;
-
     if (symbol->canHaveChildren()) {
+        //qDebug() << "Symbol type:" << static_cast<int>(symbol->type());
+        //qDebug() << "Symbol is container?" << symbol->canHaveChildren();
+        //qDebug() << "Child count:" << symbol->childCount();
         for (int i = 0; i < symbol->childCount(); ++i) {
             createPolicies(symbol->child(i), container);
         }
@@ -134,6 +137,7 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
     {
     case common::SymbolType::SimplePointSymbol:
     {
+        //qDebug()<<"SimplePointSymbol";
         if (mFeatureType == common::GeometryType::Point)
             container.push_back(std::make_unique<PointFeatureDrawingPolicy>(symbol));
         else if (mFeatureType == common::GeometryType::MultiPoint)
@@ -143,6 +147,7 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
     }
     case common::SymbolType::SimpleLineSymbol:
     {
+        //qDebug()<<"SimpleLineSymbol";
         if (mFeatureType == common::GeometryType::LineString)
             container.push_back(std::make_unique<LineFeatureDrawingPolicy>(symbol));
         else if (mFeatureType == common::GeometryType::MultiLineString)
@@ -151,11 +156,13 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
     }
     case common::SymbolType::SimplePolygonSymbol:
     {
+        //qDebug()<<"SimplePolygonSymbol";
         if (mFeatureType == common::GeometryType::Polygon)
             container.push_back(std::make_unique<PolygonFeatureDrawingPolicy>(symbol));
         else if (mFeatureType == common::GeometryType::MultiPolygon)
             container.push_back(std::make_unique<MultiPolygonFeatureDrawingPolicy>(symbol));
         break;
+
     }
     default:
         return;
