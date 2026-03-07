@@ -42,6 +42,8 @@ public:
     void deselectCurrentMapTool();
     void setViewCursor(QCursor cursor);
 
+    void setPanningEnable(bool enable) noexcept { mPanningForViewEnabled = enable; }
+
 
     FeatureGraphicsItem* asFeatureItem(QGraphicsItem* item) const {
         return dynamic_cast<FeatureGraphicsItem*>(item);
@@ -61,6 +63,7 @@ protected:
 signals:
     void mouseMoved(QPointF);
     void toolChanged(tools::MapTool*);
+    void panningRequested(bool enable);
 public slots:
     void onMapHolderScaleChanged(int mapScale, double widgetScale);
 
@@ -69,10 +72,12 @@ public slots:
 
     void onNewFeatureGraphicsItemCreated(std::unique_ptr<graphics::FeatureGraphicsItem>& item);
 
+    void onMapHolderMousePressed(QMouseEvent* event);
+
 private:
     double mMapScale;
     double mMapHolderScale;
-
+    double mPanningForViewEnabled;
     std::vector<std::unique_ptr<graphics::FeatureGraphicsItem>> mFeatures;
     std::vector<std::unique_ptr<graphics::TemporaryGraphicsItem>> mTempItems;
 

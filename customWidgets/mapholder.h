@@ -36,6 +36,8 @@ public slots:
     void onCrsChanged(vrsa::gdalwrapper::SpatialReference &crs);
 
     void recalculateScale();
+    //для блокирования перемещения по сцене
+    void onPanningRequested(bool enable) { mPanningEnabled = enable; };
 
 signals:
     /** Сигнал вызывается при изменении размеров виджета*/
@@ -48,6 +50,9 @@ signals:
     void CRSChanged(OGRSpatialReference*);
 
     void scaleChanged(int, double);
+
+    //для перехвата его быстрее view в сцене, чтобы например заблокировать перемещение сцены
+    void mousePressed(QMouseEvent *event);
     // QWidget interface
 protected:
     //слоты для обработки различных событий с виджетом
@@ -75,7 +80,7 @@ private:
     int mCurrentScale;
     vrsa::calculations::MapCalculator mMapCalculator;
     OGRSpatialReference* mCRS;
-
+    bool mPanningEnabled{true};
 };
 
 #endif // LIPMAPHOLDER_H

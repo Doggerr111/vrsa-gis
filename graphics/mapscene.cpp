@@ -3,6 +3,7 @@
 #include "gdal/gdalreader.h"
 #include "graphics/featuregraphicsitemfactory.h"
 #include <QGraphicsView>
+#include <QMessageBox>
 
 vrsa::graphics::MapScene::MapScene(QObject *parent)
     : QGraphicsScene{parent},
@@ -99,13 +100,19 @@ void vrsa::graphics::MapScene::addTemporaryItem(std::unique_ptr<TemporaryGraphic
     if (!item)
         return;
     item->setScale(mMapHolderScale);
+    qDebug()<<"adding temp item";
     addItem(item.get());
+    auto itemf = item.get();
+    qDebug()<<"item added";
+    qDebug()<<item->scene();
     mTempItems.push_back(std::move(item));
+    qDebug()<<itemf->scene();
     //update();
 }
 
 void vrsa::graphics::MapScene::removeTemporaryItems()
 {
+    qDebug()<< "we're about to remove temp items..";
     mTempItems.clear();
 }
 
@@ -113,8 +120,7 @@ void vrsa::graphics::MapScene::setMapTool(std::unique_ptr<tools::MapTool> tool)
 {
     if (mCurrentMapTool)
         mCurrentMapTool->cancel();
-    deselectCurrentMapTool();
-
+    //QMessageBox::warning(nullptr, "we still save !", "we still save yey!!!");
     mCurrentMapTool = std::move(tool);
     setViewCursor(mCurrentMapTool->cursor());
     emit toolChanged(mCurrentMapTool.get());
@@ -122,9 +128,11 @@ void vrsa::graphics::MapScene::setMapTool(std::unique_ptr<tools::MapTool> tool)
 
 void vrsa::graphics::MapScene::deselectCurrentMapTool()
 {
+    //QMessageBox::warning(nullptr, "WTF!!", "WTF!!");
     setViewCursor(Qt::ArrowCursor);
     mCurrentMapTool.reset();
     removeTemporaryItems();
+
 }
 
 void vrsa::graphics::MapScene::setViewCursor(QCursor cursor)
@@ -140,6 +148,9 @@ void vrsa::graphics::MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     emit mouseMoved(event->scenePos());
     if (mCurrentMapTool)
         mCurrentMapTool->mouseMoveEvent(event);
+
+    if (event->isAccepted())
+        return;
     QGraphicsScene::mouseMoveEvent(event);
 }
 
@@ -152,8 +163,13 @@ void vrsa::graphics::MapScene::wheelEvent(QGraphicsSceneWheelEvent *event)
 
 void vrsa::graphics::MapScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+
     if (mCurrentMapTool)
         mCurrentMapTool->mousePressEvent(event);
+
+    if (event->isAccepted())
+        return;
+
     QGraphicsScene::mousePressEvent(event);
 
 }
@@ -162,6 +178,9 @@ void vrsa::graphics::MapScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event
 {
     if (mCurrentMapTool)
         mCurrentMapTool->mouseReleaseEvent(event);
+    if (event->isAccepted()) {
+                return;
+            }
     QGraphicsScene::mouseReleaseEvent(event);
 }
 
@@ -208,6 +227,14 @@ void vrsa::graphics::MapScene::onNewFeatureGraphicsItemCreated(std::unique_ptr<F
     mFeatures.push_back(std::move(item));
     //item->update();
     update();
+}
+
+void vrsa::graphics::MapScene::onMapHolderMousePressed(QMouseEvent *event)
+{
+    emit panningRequested(mPanningForViewEnabled);
+
+
+
 }
 
 

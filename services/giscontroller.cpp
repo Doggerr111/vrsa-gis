@@ -26,6 +26,8 @@ void vrsa::services::GISController::initializeScene(MapHolder *view)
     mMapScene->setMapHolderScale(mMapView->getMapHolderScale());
     mMapView->setScene(mMapScene);
     connect(mMapView, &MapHolder::scaleChanged, mMapScene, &graphics::MapScene::onMapHolderScaleChanged);
+    connect(mMapScene, &graphics::MapScene::panningRequested, mMapView, &MapHolder::onPanningRequested);
+    connect(mMapView, &MapHolder::mousePressed, mMapScene, &graphics::MapScene::onMapHolderMousePressed);
     mMapView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
     mMapView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     mMapView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
@@ -701,6 +703,7 @@ void vrsa::services::GISController::addMapTool(common::MapToolType type)
 {
     mMapScene->deselectCurrentMapTool();
     mDigitizingManager->onDigitizingFinished();
+    QMessageBox::warning(nullptr, "we save yet!", "we save yey!!!");
     auto tool = tools::SelectionToolFactory::createForScene(mMapScene, type);
     if (tool)
     {
@@ -712,7 +715,14 @@ void vrsa::services::GISController::addMapTool(common::MapToolType type)
 
 void vrsa::services::GISController::onSingleSelectionToolClicked(bool checked)
 {
+    qDebug()<<"single";
     addMapTool(common::MapToolType::SingleSelectionTool);
+}
+
+void vrsa::services::GISController::onRectSelectionToolClicked(bool checked)
+{
+    qDebug()<<"rect";
+    addMapTool(common::MapToolType::RectSelectionTool);
 }
 
 void vrsa::services::GISController::onToolEvent(tools::MapTool::ToolEventType type, const QVariant &data)
@@ -723,16 +733,21 @@ void vrsa::services::GISController::onToolEvent(tools::MapTool::ToolEventType ty
     case MapTool::ToolEventType::FeatureSelected:
     {
         if (auto selectedFeatureGraphicsItem = data.value<graphics::FeatureGraphicsItem*>())
-            handleFeatureSelected(selectedFeatureGraphicsItem);
+            handleFeatureSelected(selectedFeatureGraphicsItem, true);
         break;
     }
+    case MapTool::ToolEventType::MultipleFeaturesSelected:
+        if (data.canConvert<std::vector<graphics::FeatureGraphicsItem*>>())
+            handleMultipleFeaturesSelected(data.value<std::vector<graphics::FeatureGraphicsItem*>>());
     default:
         break;
     }
 }
 
-void vrsa::services::GISController::handleFeatureSelected(graphics::FeatureGraphicsItem *item)
+void vrsa::services::GISController::handleFeatureSelected(graphics::FeatureGraphicsItem *item, bool shouldClearTree)
 {
+    if (shouldClearTree)
+        getSelectionTreeWidget()->clear();
     if (!item)
         return;
     auto feature = item->getFeature();
@@ -750,29 +765,14 @@ void vrsa::services::GISController::handleFeatureSelected(graphics::FeatureGraph
         root->addChild(child);
     }
 
-//    for (const auto& name: feature->getAttributeNames())
-//    {
-//        auto attr = feature->getAttribute(name);
-//        std::visit([](auto&& arg) {
-//                using T = std::decay_t<decltype(arg)>;
 
-//                if constexpr (std::is_same_v<T, std::string>) {
-//                    qDebug() << "  value (string):" << QString::fromStdString(arg);
-//                }
-//                else if constexpr (std::is_same_v<T, int>) {
-//                    qDebug() << "  value (int):" << arg;
-//                }
-//                else if constexpr (std::is_same_v<T, double>) {
-//                    qDebug() << "  value (double):" << arg;
-//                }
-//                else if constexpr (std::is_same_v<T, bool>) {
-//                    qDebug() << "  value (bool):" << (arg ? "true" : "false");
-//                }
-//                else if constexpr (std::is_same_v<T, std::nullptr_t>) {
-//                    qDebug() << "  value: NULL";
-//                }
-//            }, attr);
-//    }
+}
+
+void vrsa::services::GISController::handleMultipleFeaturesSelected(const std::vector<graphics::FeatureGraphicsItem *>& items)
+{
+    getSelectionTreeWidget()->clear();
+    for (const auto& item: items)
+        handleFeatureSelected(item, false);
 }
 
 

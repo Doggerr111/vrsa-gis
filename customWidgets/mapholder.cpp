@@ -102,7 +102,7 @@ void MapHolder::wheelEvent(QWheelEvent *event)
     {
         scaleFactor=0.3;
 
-       scale(scaleFactor, scaleFactor);
+        scale(scaleFactor, scaleFactor);
     }
     else if (event->angleDelta().y()>0) {
         scaleFactor=2;
@@ -118,7 +118,18 @@ void MapHolder::wheelEvent(QWheelEvent *event)
 }
 
 void MapHolder::mousePressEvent(QMouseEvent* event) {
-    if (event->button() == Qt::LeftButton) {
+    //чтобы знать можно ли перемещать или нет
+    emit mousePressed(event);
+    if (event->button() == Qt::LeftButton || event->button() == Qt::MiddleButton)
+    {
+        if (!mPanningEnabled && event->button() == Qt::LeftButton)
+        {
+
+            isDraging = false;
+            QGraphicsView::mousePressEvent(event);
+            return;
+        }
+
         isDraging = true;
         clickPos = event->pos();
         m_lastPos = event->pos();
@@ -181,7 +192,8 @@ void MapHolder::mouseReleaseEvent(QMouseEvent* event) {
     QGraphicsView::mouseReleaseEvent(event);
 }
 
-void MapHolder::paintEvent(QPaintEvent* event) {
+void MapHolder::paintEvent(QPaintEvent* event)
+{
     if (isDraging && !m_dragPixmap.isNull()) {
         QPainter painter(viewport());
         //painter.fillRect(viewport()->rect(), Qt::lightGray);

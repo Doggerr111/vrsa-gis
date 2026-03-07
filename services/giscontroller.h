@@ -80,11 +80,13 @@ public slots:
     void onItemDropped(QDropEvent* event, bool* accepted);
     //обработка кликов с mainwindow
     void onSingleSelectionToolClicked(bool checked);
+    void onRectSelectionToolClicked(bool checked);
 
     //обработка всех событий с инструментов карты
     void onToolEvent(tools::MapTool::ToolEventType type, const QVariant& data); //вся информация с инструментов
     //специфичные методы для обработки данных с инструментов
-    void handleFeatureSelected(graphics::FeatureGraphicsItem* item);
+    void handleFeatureSelected(graphics::FeatureGraphicsItem* item, bool shouldClearTree);
+    void handleMultipleFeaturesSelected(const std::vector<graphics::FeatureGraphicsItem *> &items);
 
 signals:
     void DatasetAdded(std::string src);
