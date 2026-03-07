@@ -27,37 +27,107 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButtonSingleSelection, &QPushButton::clicked, mGisController.get(),
             &vrsa::services::GISController::onSingleSelectionToolClicked);
 
+    connect(ui->pushButtonRectSelection, &QPushButton::clicked, mGisController.get(),
+            &vrsa::services::GISController::onRectSelectionToolClicked);
+
 
     QButtonGroup* toolGroup = new QButtonGroup(this);
     toolGroup->setExclusive(true);
     toolGroup->addButton(ui->pushButton_addFeature);
     toolGroup->addButton(ui->pushButtonSingleSelection);
+     toolGroup->addButton(ui->pushButtonRectSelection);
 
     ui->rightTabWidget->tabBar()->setExpanding(false);
 
-    //ui->left_menu_frame->setAlignment(Qt::AlignLeft);
-    //ui->right_menu_frame->setAlignment(Qt::AlignRight);
 
-    //ui->central_frame->layout()->addWidget(new QFrame());
+    showMaximized();
 
-    QHBoxLayout* layout = qobject_cast<QHBoxLayout*>(ui->central_frame->layout());
+    QHBoxLayout* layoutold = qobject_cast<QHBoxLayout*>(ui->central_frame->layout());
 
     //убираем из layout
-    layout->removeWidget(ui->left_menu_frame);
-    layout->removeWidget(ui->graphicsView);
-    layout->removeWidget(ui->right_menu_frame);
+    layoutold->removeWidget(ui->left_menu_frame);
+    layoutold->removeWidget(ui->graphicsView);
+    layoutold->removeWidget(ui->right_menu_frame);
 
-    // и закидываем в сплиттер
-    QSplitter* splitter = new QSplitter(Qt::Horizontal, ui->central_frame);
+    delete ui->central_frame->layout();
+
+    // Создаем новый layout
+    QHBoxLayout* layout = new QHBoxLayout(ui->central_frame);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    // Создаем сплиттер
+    QSplitter* splitter = new QSplitter(Qt::Horizontal);
     splitter->setStyleSheet("QSplitter::handle { background: transparent; }");
-    splitter->setHandleWidth(1);  // толщина разделителя
-    splitter->setStyleSheet("QSplitter::handle { background: black; }");  // чтобы с рамкой совпадало
+    splitter->setStyleSheet("QSplitter::handle { background: black; }");
     splitter->addWidget(ui->left_menu_frame);
     splitter->addWidget(ui->graphicsView);
     splitter->addWidget(ui->right_menu_frame);
     splitter->setChildrenCollapsible(false);
+    splitter->setHandleWidth(1);
 
+    // Добавляем сплиттер в layout
     layout->addWidget(splitter);
+
+
+
+
+
+
+
+
+    // и закидываем в сплиттер
+//    QSplitter* splitter = new QSplitter(Qt::Horizontal, ui->central_frame);
+//    splitter->setStyleSheet("QSplitter::handle { background: transparent; }");
+//    splitter->setHandleWidth(1);  // толщина разделителя
+//    splitter->setStyleSheet("QSplitter::handle { background: black; }");  // чтобы с рамкой совпадало
+//    splitter->addWidget(ui->left_menu_frame);
+//    splitter->addWidget(ui->graphicsView);
+//    splitter->addWidget(ui->right_menu_frame);
+//    splitter->setChildrenCollapsible(false);
+//    splitter->setFrameShape(QFrame::NoFrame);
+
+
+//    //splitter->setSizes({200, 800, 200});
+
+
+//    qDebug() << "central_frame margins:"
+//             << ui->central_frame->contentsMargins();
+//    qDebug() << "layout spacing:" << layout->spacing();
+//    qDebug() << "layout margins:" << layout->contentsMargins();
+
+
+//    splitter->setStyleSheet(
+//        "QSplitter::handle {"
+//        "   background: red;"
+//        "   height: 10px;"  // для вертикального
+//        "   width: 10px;"   // для горизонтального
+//        "}"
+//        "QSplitter {"
+//        "   border: 3px solid blue;"
+//        "}"
+//    );
+
+//    //layout->setStretchFactor(splitter, 1);
+//    layout->setAlignment(Qt::Alignment());  // сброс
+//    layout->setContentsMargins(0, 0, 0, 0);  // убрать отступы
+//    layout->setMargin(0);
+//    layout->setSpacing(0);
+//    splitter->setContentsMargins(0, 0, 0, 0);
+
+//    ui->centralwidget->layout()->setMargin(0);
+//    ui->centralwidget->layout()->setContentsMargins(0, 0, 0, 0);
+
+//    layout->setSpacing(0);
+//    splitter->setContentsMargins(0, 0, 0, 0);
+//    ui->central_frame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    //layout->addStretch(0);  // пружина справа
+    //layout->addWidget(splitter);
+   // splitter->setGeometry(0, 0, ui->central_frame->width(), ui->central_frame->height());
+
+
+    //layout->addStretch(0);  // пружина справа
     //toolGroup->addButton(ui->zoomButton);
 
 //    for (int i=0; i<9; i++)

@@ -36,6 +36,6 @@ public slots:
 private:
     Ui::MainWindow *ui;
     std::unique_ptr<vrsa::services::GISController> mGisController;
-
+    //QSplitter *spliter;
 };
 #endif // MAINWINDOW_H
