@@ -19,6 +19,8 @@ public:
         : SelectionTool(scene, parent),
           mCurrentSelectedFeatureItem{nullptr} {};
 
+    ~SingleSelectionTool() override;
+
     // MapTool interface
 public:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

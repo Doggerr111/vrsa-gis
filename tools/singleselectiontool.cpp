@@ -2,6 +2,12 @@
 #include "mapscene.h"
 
 
+vrsa::tools::SingleSelectionTool::~SingleSelectionTool()
+{
+    if (mCurrentSelectedFeatureItem)
+        mCurrentSelectedFeatureItem->setSelected(false);
+}
+
 void vrsa::tools::SingleSelectionTool::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (!mMapScene)

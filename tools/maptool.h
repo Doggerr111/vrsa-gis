@@ -54,6 +54,7 @@ public:
     //GisController для обмена данными при необходимости (сигнал - toolEvent), например, для обновления ui
     enum class ToolEventType {
         FeatureSelected,
+        MultipleFeaturesSelected,
         FeatureDoubleClicked,
         SelectionCleared,
         DigitizingFinished,
