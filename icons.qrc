@@ -60,5 +60,7 @@
         <file>images/icons/SymbolStyling/up_green_arrow.png</file>
         <file>images/icons/SymbolStyling/down_green_arrow.png</file>
         <file>images/icons/SymbolStyling/diskette_green.png</file>
+        <file>images/icons/rectangleSelection.png</file>
+        <file>images/icons/rectangle.png</file>
     </qresource>
 </RCC>
