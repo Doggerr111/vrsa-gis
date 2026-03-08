@@ -10,6 +10,7 @@ namespace vrsa
 {
 namespace graphics
 {
+enum class VertexState: uint8_t;
 
 class VectorFeatureStyle
 {
@@ -38,6 +39,7 @@ public:
     static std::unique_ptr<VectorFeatureStyle> createForMeasurement(const common::GeometryType type);
     static std::unique_ptr<VectorFeatureStyle> createForPreview(const common::GeometryType type);
     static std::unique_ptr<VectorFeatureStyle> createForRubberBands(const common::GeometryType type);
+    static std::unique_ptr<VectorFeatureStyle> createForVertexHandles(const VertexState state);
 
 
 private:

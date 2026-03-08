@@ -3,6 +3,7 @@
 #include "simplelinesymbol.h"
 #include "simplepolygonsymbol.h"
 #include "layersymbol.h"
+#include "graphics/vertexhandle.h"
 vrsa::graphics::VectorFeatureStyle::VectorFeatureStyle()
 {
 
@@ -216,8 +217,103 @@ std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatur
 
 std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForRubberBands(const common::GeometryType type)
 {
-return nullptr;
+    using namespace common;
+    switch (type)
+    {
+    case GeometryType::Point:
+    case GeometryType::MultiPoint:
+    {
+        auto layerSymbol = std::make_unique<LayerPointSymbol>();
+        auto point = SimplePointSymbol::createDefaultSymbol();
+        point->fillColor = Qt::black;
+        layerSymbol->addChild(std::move(point));
+
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
+
+    }
+    case GeometryType::LineString:
+    case GeometryType::MultiLineString:
+    {
+        auto layerSymbol = std::make_unique<LayerLineSymbol>();
+        auto outlineSymbol = SimpleLineSymbol::createDefaultSymbol();
+        outlineSymbol->borderColor = Qt::black;
+        outlineSymbol->borderWidth = 1;
+        outlineSymbol->opacity = 1;
+        layerSymbol->addChild(std::move(outlineSymbol));
+
+        auto lineSymbol = SimpleLineSymbol::createDefaultSymbol();
+        lineSymbol->borderColor = QColor(255, 255, 0);
+        lineSymbol->borderWidth = 0.3;
+        lineSymbol->opacity = 1;
+        layerSymbol->addChild(std::move(lineSymbol));
+
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
+    }
+    case GeometryType::Polygon:
+    case GeometryType::MultiPolygon:
+    {
+        auto layerSymbol = std::make_unique<LayerPolygonSymbol>();
+
+        auto outPolySymbol = SimplePolygonSymbol::createDefaultSymbol();
+        outPolySymbol->borderColor = Qt::black;
+        outPolySymbol->borderWidth = 1;
+        outPolySymbol->opacity = 1;
+        outPolySymbol->fillStyle = Qt::NoBrush;
+        layerSymbol->addChild(std::move(outPolySymbol));
+
+        auto polySymbol = SimplePolygonSymbol::createDefaultSymbol();
+        polySymbol->borderColor = QColor(255, 255, 0);
+        polySymbol->borderWidth = 0.3;
+        polySymbol->opacity = 1;
+        polySymbol->fillStyle = Qt::NoBrush;
+        layerSymbol->addChild(std::move(polySymbol));
+
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+
+    }
+    default:
+        return{};
+    }
+    return {};
 }
+
+std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForVertexHandles(const VertexState state)
+{
+    switch(state)
+    {
+    case VertexState::Normal:
+    case VertexState::Disabled:
+    {
+        auto layerSymbol = std::make_unique<LayerPointSymbol>();
+        auto vertexSymbol = SimplePointSymbol::createDefaultSymbol();
+        vertexSymbol->fillColor = common::VERTEX_COLOR_NORMAL;
+        layerSymbol->addChild(std::move(vertexSymbol));
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
+    }
+    case VertexState::Pressed:
+    {
+        auto layerSymbol = std::make_unique<LayerPointSymbol>();
+        auto vertexSymbol = SimplePointSymbol::createDefaultSymbol();
+        vertexSymbol->fillColor = common::VERTEX_COLOR_PRESSED;
+        layerSymbol->addChild(std::move(vertexSymbol));
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
+    }
+    case VertexState::Hover:
+    {
+        auto layerSymbol = std::make_unique<LayerPointSymbol>();
+        auto vertexSymbol = SimplePointSymbol::createDefaultSymbol();
+        vertexSymbol->fillColor = common::VERTEX_COLOR_HOVER;
+        layerSymbol->addChild(std::move(vertexSymbol));
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
+    }
+    }
+}
+
 
 
 
