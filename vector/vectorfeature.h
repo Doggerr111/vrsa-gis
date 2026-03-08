@@ -44,6 +44,7 @@ public:
     VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr feature, OGRLayer* layer = nullptr);
 
     void setGeometry(vrsa::gdalwrapper::OgrGeometryPtr ptr);
+    bool setGeometry(const geometry::Geometry& geometry);
     void setName(const std::string& name);
     void setAttribute(const std::string& name, const AttributeValue& value);
     void setVisible(bool visible);
@@ -96,7 +97,7 @@ public:
 //        GeometryVariant variant;
 //    };
 
-    bool setGeometry(const geometry::Geometry& geometry);
+    //bool setGeometry(const geometry::Geometry& geometry);
 
 private:
     // ===== РЕАЛИЗАЦИИ ДЛЯ РАЗНЫХ ТИПОВ =====

@@ -15,6 +15,53 @@ void vrsa::vector::VectorFeature::setGeometry(gdalwrapper::OgrGeometryPtr ptr)
     //    emit featureChanged();
 }
 
+bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry)
+{
+
+    qDebug()<< "VECTOR FEATURE OLD GEOM - " << mFeature->GetGeometryRef();
+    char* wkt = nullptr;
+    mFeature->GetGeometryRef()->exportToWkt(&wkt);
+    qDebug() << "OLD GEOM WKT:" << wkt;
+    CPLFree(wkt);
+    auto ogrGeomUPtr = ogr_utils::OGRConverter::toOGR_uniquePTR(geometry);
+    if (!ogrGeomUPtr)
+    {
+        VRSA_DEBUG("VectorFeature", "Can't convert new geometry to OGRGeometry.");
+        return false;
+    }
+    auto setGeomError = mFeature->SetGeometry(ogrGeomUPtr.get());
+    if (setGeomError != OGRERR_NONE)
+    {
+        VRSA_DEBUG("VectorFeature", "Can't set new geometry to OGRFeature. "
+                                    "OGR error: " + std::to_string(setGeomError) + " " + CPLGetLastErrorMsg());
+        return false;
+    }
+    else if (!mParentLayer)
+    {
+        VRSA_DEBUG("VectorFeature", "Geometry was successfully setted to the feature, but parent layer wasn't found");
+        return true;
+    }
+
+    auto setFeatureError = mParentLayer->SetFeature(mFeature.get());
+    if (setFeatureError != OGRERR_NONE)
+    {
+        const char* errorMsg = CPLGetLastErrorMsg();
+        qDebug()<<"vectorfeature " << errorMsg;
+        VRSA_DEBUG("VectorFeature", "Geometry was successfully set to the feature, but failed to update in OGRLayer."
+                   "The feature may not have been added to the layer yet. OGR error: " + std::to_string(setFeatureError)
+                   + " " + CPLGetLastErrorMsg() );
+
+        return true;
+    }
+    VRSA_DEBUG("VectorFeature", "Geometry was successfully set to the feature and updated in OGRLayer.");
+    qDebug()<< "VECTOR FEATURE NEW GEOM - " << mFeature->GetGeometryRef();
+    char* WKTNEW = nullptr;
+    mFeature->GetGeometryRef()->exportToWkt(&WKTNEW);
+    qDebug() << "OLD GEOM WKT:" << WKTNEW;
+    CPLFree(WKTNEW);
+    return true;
+}
+
 
 
 void vrsa::vector::VectorFeature::setName(const std::string& name) {
@@ -344,21 +391,21 @@ std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::create
     return std::make_unique<VectorFeature>(std::move(ptrFeat), ogrL);
 }
 
-bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry)
-{
-    //получаем сырой указатель, т.к геометрией будет управлять сама фича
-    auto ogrGeomRawPtr = ogr_utils::OGRConverter::toOGR(geometry);
-    auto error = mFeature->SetGeometry(ogrGeomRawPtr);
-    if (error!= OGRERR_NONE)
-    {
-        VRSA_ERROR("VectorFeature", "Can't set geometry to Vector Feature, OGR error:" + std::to_string(error));
-        OGRGeometryFactory::destroyGeometry(ogrGeomRawPtr); //очищаем самостоятельно
-        return false;
-    }
-    VRSA_DEBUG("VectorFeature", "Geometry has been successfully set to vector feature");
-    return true;
+//bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry)
+//{
+//    //получаем сырой указатель, т.к геометрией будет управлять сама фича
+//    auto ogrGeomRawPtr = ogr_utils::OGRConverter::toOGR(geometry);
+//    auto error = mFeature->SetGeometry(ogrGeomRawPtr);
+//    if (error!= OGRERR_NONE)
+//    {
+//        VRSA_ERROR("VectorFeature", "Can't set geometry to Vector Feature, OGR error:" + std::to_string(error));
+//        OGRGeometryFactory::destroyGeometry(ogrGeomRawPtr); //очищаем самостоятельно
+//        return false;
+//    }
+//    VRSA_DEBUG("VectorFeature", "Geometry has been successfully set to vector feature");
+//    return true;
 
-}
+//}
 
 //void vrsa::vector::VectorFeature::setGeometry(const GeometryVariant &geometry)
 //{
