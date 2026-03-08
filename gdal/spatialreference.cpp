@@ -92,5 +92,6 @@ vrsa::gdalwrapper::SpatialReference &vrsa::gdalwrapper::SpatialReference::operat
 vrsa::gdalwrapper::SpatialReference vrsa::gdalwrapper::SpatialReference::fromWKT(const std::string &wkt)
 {
     //return SpatialReference(wkt);
+    return{};
 }
 
