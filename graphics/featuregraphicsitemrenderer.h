@@ -20,12 +20,12 @@ public:
 //    void createPolicy(Symbol* symbol);
 //    void createSelectPolicy(Symbol* symbol);
     void update(); //вызывать каждый раз при изменении графического объекта,
+    void updateStyle(VectorFeatureStyle *newStyle); //вызывает перестроение политик для рисования!!!
     //например, при изменении геометрии для перестройки кеша политик
 
     //разбирает символ на составные простые и добавляет для соответсвующие политики, сохраняя их в контейнере
     template<typename Container>
     void createPolicies(Symbol* symbol, Container& container);
-
 
     VectorFeatureStyle* getStyle() const noexcept { return mStyle; };
     void setFeatureSelected(bool selected);

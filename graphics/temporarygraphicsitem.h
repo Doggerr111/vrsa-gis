@@ -23,23 +23,25 @@ namespace graphics
  * @brief Временный графический объект, не связанный с векторным слоем или объектом
  * @details Используется для резиновых нитей, предпросмотра и других временных
  *          элементов при оцифровке. Эти объекты существуют только на сцене и
- *          не имеют постоянного хранения в данных.
+ *          не имеют постоянного хранения.
  * @endrussian
  */
-class TemporaryGraphicsItem : public QGraphicsItem
+class TemporaryGraphicsItem : public QObject, public QGraphicsItem
 {
-
+    Q_OBJECT
 public:
     enum class TemporaryItemRole {
         Digitizing,
         Selection,
         Measurement,
         Preview,
-        RubberBand
+        RubberBand,
+        VertexHandle
     };
 using Renderer = std::unique_ptr<FeatureGraphicsItemRenderer>;
 public:
     explicit TemporaryGraphicsItem(common::GeometryType geomType, TemporaryItemRole role = TemporaryItemRole::Digitizing);
+    virtual ~TemporaryGraphicsItem();
     /**
      * @english
      * @brief Sets new geometry for temporary item
@@ -55,15 +57,17 @@ public:
      * @endrussian
      */
     void setGeometry(const geometry::Geometry& geom);
-    void setScale(const double scale) noexcept
+    void updateStyle() { if (mRenderer) mRenderer->updateStyle(mStyle.get()); };
+    virtual void setScale(const double scale)
     {
         mScale = scale;
     }
-private:
+protected:
     void setupRenderer();
-    VectorFeatureStyle* generateStyle();
+    virtual VectorFeatureStyle* generateStyle();
 
-private:
+
+protected:
     Renderer mRenderer;
     TemporaryItemRole mRole;
     common::GeometryType mGeomType;

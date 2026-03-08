@@ -1,6 +1,6 @@
 #include "featuregraphicsitem.h"
 
-vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(Renderer renderer, const Feature *feature)
+vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(Renderer renderer, Feature *feature)
     : QGraphicsItem(),
       mRenderer{std::move(renderer)},
       mFeature{feature},
@@ -52,4 +52,15 @@ void vrsa::graphics::FeatureGraphicsItem::onZValueChanged(int zValue)
     //qDebug()<<zValue;
     //qDebug()<<static_cast<double>(zValue);
     setZValue(static_cast<double>(zValue));
+}
+
+void vrsa::graphics::FeatureGraphicsItem::onGeometryChanged(const geometry::Geometry &geometry)
+{
+    bool flag = mFeature->setGeometry(geometry);
+    if (flag || scene())
+    {
+        prepareGeometryChange();
+        mRenderer->update();
+        update();
+    }
 }

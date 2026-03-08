@@ -20,8 +20,10 @@ public:
     FeatureGraphicsItemFactory();
 
 public:
+    //TODO ПЕРЕНЕСТИ СОЗДАНИЕ РЕНДЕРЕРА ВНУТРЬ ГРАФИЧЕСКОГО ОБЪЕКТА, А В ЕГО КОНСТРУКТОР ПЕРЕДАВАТЬ СТИЛЬ И ХРАНИТЬ!!!
+    //КАК ВО ВРЕМЕННЫХ ОБЪЕКТАХ!!!!! И ДОБАВИТЬ ФУНКЦИЮ ОБНОВЛЕНИЯ СТИЛЯ С ПЕРЕСТРОЕНИЕМ ПОЛИТИК !!!
     static std::unique_ptr<FeatureGraphicsItem> createForFeature(
-            const vrsa::vector::VectorFeature* feature, vrsa::graphics::VectorFeatureStyle* style)
+            vrsa::vector::VectorFeature* feature, vrsa::graphics::VectorFeatureStyle* style)
     {
         auto renderer = std::make_unique<FeatureGraphicsItemRenderer>(style, feature->getType());
         auto item = std::make_unique<FeatureGraphicsItem>(std::move(renderer), feature);

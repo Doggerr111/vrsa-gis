@@ -98,6 +98,15 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::update()
     }
 }
 
+void vrsa::graphics::FeatureGraphicsItemRenderer::updateStyle(VectorFeatureStyle* newStyle)
+{
+    if (!newStyle)
+        return;
+    mStyle = newStyle;
+    mPolicies.clear();
+    createPolicies(mStyle->getSymbol(), mPolicies);
+}
+
 void vrsa::graphics::FeatureGraphicsItemRenderer::setFeatureSelected(bool selected)
 {
     mIsFeatureSelected = selected;

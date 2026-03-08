@@ -15,7 +15,7 @@ class FeatureGraphicsItem: public QObject, public QGraphicsItem
     using Renderer = std::unique_ptr<FeatureGraphicsItemRenderer>;
     using Feature = vrsa::vector::VectorFeature;
 public:
-    FeatureGraphicsItem(Renderer renderer,const Feature* feature);
+    FeatureGraphicsItem(Renderer renderer, Feature *feature);
     inline void setScale(double s)
     {
         mWidgetScale = s;
@@ -28,14 +28,28 @@ public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
     const inline Feature* getFeature() const noexcept {return mFeature; };
+    const inline OGRGeometry* getFeatureGeometry() const
+    {
+        if (mFeature)
+            return mFeature->getOGRGeometry();
+        return nullptr;
+    };
+    const inline common::GeometryType getFeatureGeometryType() const
+    {
+        if (mFeature)
+            return mFeature->getType();
+        return common::GeometryType::Unknown;
+    };
 
 public slots:
     void setVisible(bool);
     void onZValueChanged(int zValue);
+    //пока что сигнал используется именно при работе с "резиновыми" линиями
+    void onGeometryChanged(const geometry::Geometry& geometry);
 
 private:
     Renderer mRenderer;
-    const Feature* mFeature;
+    Feature* mFeature;
     double mWidgetScale;
     bool mIsSelected;
 };

@@ -12,10 +12,13 @@ vrsa::graphics::TemporaryGraphicsItem::TemporaryGraphicsItem(common::GeometryTyp
       mRole{role},
       mRenderer{nullptr}
 {
-    setupRenderer();
+    if (mRole != TemporaryItemRole::VertexHandle)
+        setupRenderer();
     //qDebug() << "Item:" << static_cast<void*>(this);
     setZValue(common::MAX_Z_VALUE+1);
 }
+
+vrsa::graphics::TemporaryGraphicsItem::~TemporaryGraphicsItem() = default;
 
 void vrsa::graphics::TemporaryGraphicsItem::setGeometry(const geometry::Geometry &geom)
 {
@@ -29,6 +32,7 @@ void vrsa::graphics::TemporaryGraphicsItem::setGeometry(const geometry::Geometry
     if (!scene())
         return;
     prepareGeometryChange();
+    //qDebug()<<std::get_if<QPointF>(&geom.variant);
     mGeom = ogr_utils::OGRConverter::toOGR_uniquePTR(geom);
     mRenderer->update();
     update();
@@ -45,6 +49,7 @@ void vrsa::graphics::TemporaryGraphicsItem::setupRenderer()
 vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::generateStyle()
 {
 
+    //qDebug()<<"TemporaryGraphicsItem generateStyle()";
     switch (mRole)
     {
     case TemporaryItemRole::Digitizing:
@@ -55,7 +60,13 @@ vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::gener
     case TemporaryItemRole::Selection:
     {
         mStyle = VectorFeatureStyle::createForSelection(mGeomType);
-        qDebug()<<"стиль " << mStyle.get();
+        //qDebug()<<"стиль " << mStyle.get();
+        break;
+    }
+    case TemporaryItemRole::RubberBand:
+    {
+        mStyle = VectorFeatureStyle::createForRubberBands(mGeomType);
+        //qDebug()<<"стиль " << mStyle.get();
         break;
     }
     case TemporaryItemRole::Measurement:
@@ -63,10 +74,6 @@ vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::gener
         break;
     }
     case TemporaryItemRole::Preview:
-    {
-        break;
-    }
-    case TemporaryItemRole::RubberBand:
     {
         break;
     }
