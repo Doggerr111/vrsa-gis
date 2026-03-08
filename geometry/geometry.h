@@ -10,8 +10,10 @@ namespace geometry
 using GeometryVariant = std::variant<
     QPointF,
     std::vector<QPointF>,
-    std::vector<std::vector<QPointF>>
+    std::vector<std::vector<QPointF>>,
+    std::vector<std::vector<std::vector<QPointF>>>
     >;
+
 
 struct Geometry {
     common::GeometryType type;
