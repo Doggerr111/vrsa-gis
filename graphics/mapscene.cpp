@@ -130,7 +130,9 @@ void vrsa::graphics::MapScene::deselectCurrentMapTool()
 {
     //QMessageBox::warning(nullptr, "WTF!!", "WTF!!");
     setViewCursor(Qt::ArrowCursor);
+    mCurrentMapTool->deactivate();
     mCurrentMapTool.reset();
+    mCurrentMapTool = nullptr;
     removeTemporaryItems();
 
 }

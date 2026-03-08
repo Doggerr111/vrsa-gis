@@ -19,7 +19,7 @@ void vrsa::graphics::PointFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom)
 
 
 
-void vrsa::graphics::PointFeatureDrawingPolicy::cachePath(const DrawingContext &context)
+void vrsa::graphics::PointFeatureDrawingPolicy::cachePath(const DrawingContext &context) const
 {
     switch (mSymbol->pointType)
     {
@@ -107,9 +107,15 @@ void vrsa::graphics::PointFeatureDrawingPolicy::paint(const DrawingContext &cont
 {
     context.painter->save();
     if (!mCache.isGeomValid)
+    {
         cacheGeometry(context.geom);
-    if (mCache.sceneScale != context.sceneScale)
         cachePath(context);
+
+    }
+    if (mCache.sceneScale != context.sceneScale)
+    {
+        cachePath(context);
+    }
 
     QBrush brush = mSymbol->brush();
     brush.setTransform(QTransform(context.painter->worldTransform().inverted())); //обязательно для корректного применения стилей кисти
@@ -147,9 +153,12 @@ vrsa::common::GeometryType vrsa::graphics::PointFeatureDrawingPolicy::getType() 
 QRectF vrsa::graphics::PointFeatureDrawingPolicy::boundingRect(const DrawingContext& context) const
 {
     if (!mCache.isGeomValid)
+    {
         cacheGeometry(context.geom);
+        cachePath(context);
+    }
 
-    if (mCache.isGeomValid && context.sceneScale == mCache.sceneScale)
+    if (mCache.isGeomValid && mCache.isBoundingRectValid && context.sceneScale == mCache.sceneScale)
         return mCache.boundingRect;
 
     double scale = context.sceneScale;
