@@ -3,7 +3,7 @@
 #include "attributetableform.h"
 #include "vectorstylingform.h"
 #include "tools/digitizingtoolfactory.h"
-#include "tools/selectiontoolfactory.h"
+#include "tools/maptoolfactory.h"
 vrsa::services::GISController::GISController(QObject *parent)
     : QObject{parent},
       mMapView{nullptr},
@@ -308,7 +308,7 @@ void vrsa::services::GISController::startDigitizing() const
 void vrsa::services::GISController::stopDigitizing() const
 {
     mDigitizingManager->onDigitizingFinished();
-    mMapScene->deselectCurrentMapTool();
+    //mMapScene->deselectCurrentMapTool();
 }
 
 void vrsa::services::GISController::syncZOrderWithTree()
@@ -702,12 +702,15 @@ void vrsa::services::GISController::onItemDropped(QDropEvent* event, bool *accep
 void vrsa::services::GISController::addMapTool(common::MapToolType type)
 {
     mMapScene->deselectCurrentMapTool();
+
     mDigitizingManager->onDigitizingFinished();
     QMessageBox::warning(nullptr, "we save yet!", "we save yey!!!");
-    auto tool = tools::SelectionToolFactory::createForScene(mMapScene, type);
+    auto tool = tools::MapToolFactory::createForScene(mMapScene, type);
     if (tool)
     {
         connect(tool.get(), &tools::MapTool::toolEvent, this, &GISController::onToolEvent);
+        if (mStatusBar)
+            connect(tool.get(), &tools::MapTool::statusMessage, mStatusBar, &QStatusBar::showMessage);
         mMapScene->setMapTool(std::move(tool));
     }
 
@@ -723,6 +726,15 @@ void vrsa::services::GISController::onRectSelectionToolClicked(bool checked)
 {
     qDebug()<<"rect";
     addMapTool(common::MapToolType::RectSelectionTool);
+}
+
+void vrsa::services::GISController::onGeometryEditToolClicked(bool checked)
+{
+    qDebug()<<"geom edit";
+//    if (checked)
+    addMapTool(common::MapToolType::EditGeometryTool);
+//    else
+//        mMapScene->deselectCurrentMapTool();
 }
 
 void vrsa::services::GISController::onToolEvent(tools::MapTool::ToolEventType type, const QVariant &data)

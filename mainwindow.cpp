@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     mGisController->initializeScene(ui->graphicsView);
     mGisController->setTreeWidget(ui->LayerTree);
     mGisController->setTabWidgets(ui->leftTabWidget, ui->rightTabWidget);
+    mGisController->setStatusBar(ui->statusbar);
     connect(ui->graphicsView, &MapHolder::scaleChanged, this, &MainWindow::updateScaleLineEdit);
     connect(mGisController->getScene(), &vrsa::graphics::MapScene::mouseMoved, this, &MainWindow::updateCoordinatesLineEdit);
     connect(mGisController.get(), qOverload<const QIcon&>(&vrsa::services::GISController::activeLayerChanged), this,
@@ -29,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->pushButtonRectSelection, &QPushButton::clicked, mGisController.get(),
             &vrsa::services::GISController::onRectSelectionToolClicked);
+
+    connect(ui->pushButtonGeometryEdit, &QPushButton::clicked, mGisController.get(),
+            &vrsa::services::GISController::onGeometryEditToolClicked);
 
 
     QButtonGroup* toolGroup = new QButtonGroup(this);

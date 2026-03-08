@@ -18,6 +18,7 @@
 #include "digitizingmanager.h"
 #include "graphics/symbols/symbolrenderer.h"
 #include "tools/maptool.h"
+#include <QStatusBar>
 
 
 
@@ -52,6 +53,7 @@ public:
     void setTreeWidget(TreeWidget* treeWidget);
     void setTabWidgets(QTabWidget* lhs, QTabWidget* rhs) noexcept;
     QTreeWidget* getSelectionTreeWidget() const;
+    void setStatusBar(QStatusBar* statusBar) noexcept {mStatusBar=statusBar; };
 private:
     //std::unique_ptr<vrsa::calculations::MapCalculator> mMapCalculator;
     vrsa::gdalwrapper::SpatialReference mProjCrs;
@@ -61,6 +63,7 @@ private:
     graphics::MapScene* mMapScene;
     QTabWidget* mRightTabWidget;
     QTabWidget* mLeftTabWidget;
+    QStatusBar* mStatusBar;
 
     std::unique_ptr<DigitizingManager> mDigitizingManager;
     graphics::SymbolRenderer mRenderer;
@@ -81,6 +84,7 @@ public slots:
     //обработка кликов с mainwindow
     void onSingleSelectionToolClicked(bool checked);
     void onRectSelectionToolClicked(bool checked);
+    void onGeometryEditToolClicked(bool checked);
 
     //обработка всех событий с инструментов карты
     void onToolEvent(tools::MapTool::ToolEventType type, const QVariant& data); //вся информация с инструментов
