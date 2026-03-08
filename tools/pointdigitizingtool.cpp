@@ -11,7 +11,7 @@ vrsa::tools::PointDigitizingTool::PointDigitizingTool(graphics::MapScene *scene,
 void vrsa::tools::PointDigitizingTool::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     QPointF scenePoint = event->scenePos();
-    qDebug()<<scenePoint;
+    //qDebug()<<scenePoint;
     vrsa::geometry::Geometry geometry;
     geometry.type = common::GeometryType::Point;
     geometry.variant = scenePoint;

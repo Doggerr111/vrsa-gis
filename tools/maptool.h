@@ -45,7 +45,7 @@ public:
 
     virtual bool canCancel() const noexcept { return false; }
     virtual void cancel() {};
-
+    virtual void deactivate() {};
     graphics::MapScene* scene() const noexcept { return mMapScene; };
 //    virtual void setScene(graphics::MapScene* scene) { mMapScene = scene; };
 
@@ -66,7 +66,7 @@ signals:
     void activated();
     void deactivated();
     void cancelled();
-    void statusMessage(const QString& message);
+    void statusMessage(const QString& message, int timeout_ms = 0);
     void geometryCreated(geometry::Geometry&);
     void toolEvent(ToolEventType type, const QVariant& data = QVariant());
 protected:

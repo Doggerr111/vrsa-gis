@@ -73,3 +73,10 @@ void vrsa::tools::SingleSelectionTool::selectVectorFeature(graphics::FeatureGrap
     mCurrentSelectedFeatureItem = featureItem;
 
 }
+
+void vrsa::tools::SingleSelectionTool::deselectCurrentVectorFeature()
+{
+    if (mCurrentSelectedFeatureItem)
+        //if (mCurrentSelectedFeatureItem->isSelected())
+        mCurrentSelectedFeatureItem->setSelected(false);
+}

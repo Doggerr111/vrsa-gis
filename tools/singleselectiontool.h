@@ -34,6 +34,7 @@ public:
 
 public:
     void selectVectorFeature(graphics::FeatureGraphicsItem* featureItem);
+    void deselectCurrentVectorFeature();
 
 private:
     graphics::FeatureGraphicsItem* mCurrentSelectedFeatureItem;
