@@ -2,6 +2,7 @@
 #define LIPTYPES_H
 #include <QMetaEnum>
 #include <QColor>
+#include <QDebug>
 namespace vrsa
 {
 namespace common
@@ -75,6 +76,30 @@ enum class GeometryType {
     Triangle = 17         // Треугольник
 };
 
+inline QDebug operator<<(QDebug debug, GeometryType type) {
+    switch (type) {
+        case GeometryType::Unknown: debug << "Unknown"; break;
+        case GeometryType::Point: debug << "Point"; break;
+        case GeometryType::LineString: debug << "LineString"; break;
+        case GeometryType::Polygon: debug << "Polygon"; break;
+        case GeometryType::MultiPoint: debug << "MultiPoint"; break;
+        case GeometryType::MultiLineString: debug << "MultiLineString"; break;
+        case GeometryType::MultiPolygon: debug << "MultiPolygon"; break;
+        case GeometryType::GeometryCollection: debug << "GeometryCollection"; break;
+        case GeometryType::CircularString: debug << "CircularString"; break;
+        case GeometryType::CompoundCurve: debug << "CompoundCurve"; break;
+        case GeometryType::CurvePolygon: debug << "CurvePolygon"; break;
+        case GeometryType::MultiCurve: debug << "MultiCurve"; break;
+        case GeometryType::MultiSurface: debug << "MultiSurface"; break;
+        case GeometryType::Curve: debug << "Curve"; break;
+        case GeometryType::Surface: debug << "Surface"; break;
+        case GeometryType::PolyhedralSurface: debug << "PolyhedralSurface"; break;
+        case GeometryType::TIN: debug << "TIN"; break;
+        case GeometryType::Triangle: debug << "Triangle"; break;
+        default: debug << "Unknown(" << static_cast<int>(type) << ")"; break;
+    }
+    return debug;
+}
 
 enum class StyleUnit{
     Millimeters,
@@ -143,6 +168,7 @@ enum class MapToolType
     SingleSelectionTool,
     RectSelectionTool,
     MoveTool,
+    EditGeometryTool,
     InfoTool //delete maybe
 };
 
@@ -181,12 +207,18 @@ enum class StyleParametr
 
 //====константы для графики====
 inline constexpr int MAX_Z_VALUE = 50; //максимальное z value для векторных графических обьектов на карте
-// Коэффициенты для выделения
+//коэффициенты для выделения
 inline constexpr double SELECTION_SIZE_FACTOR = 1.1;      // увеличение на 10%
 inline constexpr double SELECTION_WIDTH_FACTOR = 1.2;     // толщина обводки на 20%
 inline constexpr double SELECTION_OPACITY = 1.0;          // полная непрозрачность
 inline const QColor SELECTION_COLOR = Qt::red;            // цвет выделения
 inline constexpr Qt::BrushStyle SELECTION_BRUSH_STYLE = Qt::Dense4Pattern; //тип заливки
+
+//параметры для маркеров резиновых линий
+inline const QColor VERTEX_COLOR_NORMAL = QColor(100, 180, 255, 200);
+inline const QColor VERTEX_COLOR_HOVER = QColor(255, 220, 80, 230);
+inline const QColor VERTEX_COLOR_PRESSED = QColor(255, 120, 120, 255);
+inline const QColor VERTEX_OUTLINE_COLOR = QColor(40, 40, 40, 180);
 
 
 
