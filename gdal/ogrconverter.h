@@ -14,6 +14,7 @@ public:
     OGRConverter() = default;
     static gdalwrapper::OgrGeometryPtr toOGR_uniquePTR(const geometry::Geometry& geom);
     static OGRGeometry* toOGR(const geometry::Geometry& geom);
+    static geometry::Geometry fromOGR(const OGRGeometry* geom);
 };
 
 }
