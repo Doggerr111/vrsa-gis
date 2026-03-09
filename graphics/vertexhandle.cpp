@@ -1,9 +1,10 @@
 #include "vertexhandle.h"
 #include <QGraphicsSceneMouseEvent>
-vrsa::graphics::VertexHandle::VertexHandle(TemporaryGraphicsItem *parent)
+vrsa::graphics::VertexHandle::VertexHandle(TemporaryGraphicsItem *parent, VertexType type)
     : TemporaryGraphicsItem(common::GeometryType::Point, TemporaryGraphicsItem::TemporaryItemRole::VertexHandle),
       mParentItem{parent},
-      mCurrentState{VertexState::Normal}
+      mCurrentState{VertexState::Normal},
+      mType{type}
 {
     setZValue(common::MAX_Z_VALUE+2);
     setAcceptHoverEvents(true);
@@ -13,11 +14,13 @@ vrsa::graphics::VertexHandle::VertexHandle(TemporaryGraphicsItem *parent)
 
 void vrsa::graphics::VertexHandle::updateGeometry()
 {
+    qDebug()<<"vertex handle updateGeometry() called";
     geometry::Geometry geom;
     geom.type = common::GeometryType::Point;
     geom.variant = mCurrentPos;
     TemporaryGraphicsItem::setGeometry(geom);
     emit geometryChanged(mCurrentPos);
+
 }
 
 void vrsa::graphics::VertexHandle::setPoint(const QPointF &point)
@@ -28,8 +31,8 @@ void vrsa::graphics::VertexHandle::setPoint(const QPointF &point)
 
 void vrsa::graphics::VertexHandle::onStateChanged()
 {
-    qDebug()<< mCurrentState;
-    mCurrentStyle = VectorFeatureStyle::createForVertexHandles(mCurrentState);
+    qDebug()<< "VertexHandle onStateChanged() Current state:" <<mCurrentState;
+    generateStyle();
     updateStyle();
     update();
 }
@@ -52,7 +55,6 @@ void vrsa::graphics::VertexHandle::hoverEnterEvent(QGraphicsSceneHoverEvent *eve
 {
     mCurrentState = VertexState::Hover;
     emit hovered();
-
     emit stateChanged();
 }
 
@@ -69,10 +71,10 @@ void vrsa::graphics::VertexHandle::hoverLeaveEvent(QGraphicsSceneHoverEvent *eve
 
 void vrsa::graphics::VertexHandle::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    mType = VertexType::Vertex;
     mCurrentState = VertexState::Pressed;
-    auto pos = event->scenePos();
-    emit clicked(pos);
-
+    emit clicked();
+    emit clicked(event->scenePos());
     emit stateChanged();
 }
 
@@ -97,7 +99,9 @@ void vrsa::graphics::VertexHandle::mouseReleaseEvent(QGraphicsSceneMouseEvent *e
 
 vrsa::graphics::VectorFeatureStyle *vrsa::graphics::VertexHandle::generateStyle()
 {
-    qDebug()<<"VertexHandle generateStyle()";
-    mStyle = VectorFeatureStyle::createForVertexHandles(mCurrentState);
+    if (mType == VertexType::Vertex)
+        mStyle = VectorFeatureStyle::createForVertexHandles(mCurrentState);
+    else if (mType == VertexType::MiddlePoint)
+        mStyle = VectorFeatureStyle::createForVertexMiddlePoints(mCurrentState);
     return mStyle.get();
 }

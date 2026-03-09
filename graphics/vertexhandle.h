@@ -18,6 +18,11 @@ enum class VertexState: uint8_t
     Disabled
 };
 
+enum class VertexType: uint8_t
+{
+    Vertex, //обычная точка по координатам оригинальной геометрии
+    MiddlePoint //точка посередине для создания новых сегментов
+};
 
 //"якоря" для резинок
 class VertexHandle : public TemporaryGraphicsItem
@@ -26,12 +31,14 @@ class VertexHandle : public TemporaryGraphicsItem
 
     Q_OBJECT
 public:
-    VertexHandle(TemporaryGraphicsItem* parent);
+    VertexHandle(TemporaryGraphicsItem* parent, VertexType type = VertexType::Vertex);
+    ~VertexHandle() override {qDebug()<< "~VertexHandle() destructor called"; };
 
     VertexState getCurrentState() const noexcept {  return mCurrentState; };
     void updateGeometry();
     void setPoint(const QPointF& point);
     QPointF getPoint() const noexcept { return mCurrentPos; };
+    VertexType getType() const noexcept { return mType; };
 private slots:
     void onStateChanged();
 
@@ -40,10 +47,11 @@ private:
     VertexState mCurrentState;
     std::unique_ptr<VectorFeatureStyle>& mCurrentStyle = TemporaryGraphicsItem::mStyle;
     QPointF mCurrentPos;
-
+    VertexType mType;
 signals:
     void moved(const QPointF& newPos);
     void clicked(const QPointF& pos);
+    void clicked();
     void released();
     void hovered();
     void stateChanged();

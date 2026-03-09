@@ -21,7 +21,7 @@ vrsa::tools::MapToolFactory::createForScene(graphics::MapScene *scene, common::M
         qDebug()<<"factory rect";
         return std::make_unique<tools::RectSelectionTool>(scene);
     case common::MapToolType::EditGeometryTool:
-        qDebug()<<"factory rect";
+        qDebug()<<"factory geom tool";
         return std::make_unique<tools::EditGeometryTool>(scene);
         //digitizing
     case common::MapToolType::PointDigitizingTool:

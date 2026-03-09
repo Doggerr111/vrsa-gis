@@ -22,6 +22,7 @@ vrsa::tools::EditGeometryTool::EditGeometryTool(graphics::MapScene *scene, QObje
 
 vrsa::tools::EditGeometryTool::~EditGeometryTool()
 {
+    qDebug()<< "~EditGeometryTool() called";
     if (mRubberBand)
         mRubberBand->clearVertexes();
 
@@ -40,7 +41,8 @@ void vrsa::tools::EditGeometryTool::onFeatureSelected(ToolEventType type, const 
     mSelectedFeature = selectedFeatureGraphicsItem;
     qDebug() << "EditGeometryTool: selected feature address:" << static_cast<void*>(mSelectedFeature);
     mCurrentState = Editing;
-
+    mMapScene->removeTemporaryItems();
+    mRubberBand = nullptr;
     if (!mRubberBand)
     {
         auto rubberBandUPtr = std::make_unique<graphics::RubberBandItem>(mSelectedFeature->getFeatureGeometryType());
@@ -102,6 +104,7 @@ void vrsa::tools::EditGeometryTool::keyPressEvent(QKeyEvent *event)
         mRubberBand->hide();
         if (mSelectionTool)
             mSelectionTool->deselectCurrentVectorFeature();
+        mSelectedFeature = nullptr;
     }
 }
 
@@ -160,8 +163,12 @@ void vrsa::tools::EditGeometryTool::undoAll()
 
 void vrsa::tools::EditGeometryTool::deactivate()
 {
-    if (QMessageBox::question(nullptr, tr("Сохранение изменений"), tr("Желаете сохранить изменения?")) == QMessageBox::No)
+    qDebug()<< "EditGeometryTool deactivate() called";
+    if (!mUndoStack.empty())
     {
-        undoAll();
+        if (QMessageBox::question(nullptr, tr("Сохранение изменений"), tr("Желаете сохранить изменения?")) == QMessageBox::No)
+        {
+            undoAll();
+        }
     }
 }
