@@ -35,11 +35,12 @@ MainWindow::MainWindow(QWidget *parent)
             &vrsa::services::GISController::onGeometryEditToolClicked);
 
 
-    QButtonGroup* toolGroup = new QButtonGroup(this);
-    toolGroup->setExclusive(true);
-    toolGroup->addButton(ui->pushButton_addFeature);
-    toolGroup->addButton(ui->pushButtonSingleSelection);
-     toolGroup->addButton(ui->pushButtonRectSelection);
+    mMapToolExclusiveGroup = new QButtonGroup(this);
+    mMapToolExclusiveGroup->setExclusive(true);
+    mMapToolExclusiveGroup->addButton(ui->pushButton_addFeature);
+    mMapToolExclusiveGroup->addButton(ui->pushButtonSingleSelection);
+    mMapToolExclusiveGroup->addButton(ui->pushButtonRectSelection);
+    mMapToolExclusiveGroup->addButton(ui->pushButtonGeometryEdit);
 
     ui->rightTabWidget->tabBar()->setExpanding(false);
 
@@ -190,6 +191,11 @@ void MainWindow::updateCoordinatesLineEdit(QPointF p)
 void MainWindow::onActiveLayerChanged(const QIcon &icon)
 {
     ui->pushButton_addFeature->setIcon(icon);
+    mMapToolExclusiveGroup->setExclusive(false);
+    ui->pushButton_addFeature->setChecked(false);
+    mMapToolExclusiveGroup->setExclusive(true);
+    mGisController->removeMapTool();
+    ui->pushButton_addFeature->setAttribute(Qt::WA_UnderMouse, false);
 }
 
 void MainWindow::onActiveLayerChanged(const QString &name)
@@ -203,7 +209,7 @@ void MainWindow::on_pushButton_addFeature_clicked()
     if (ui->pushButton_addFeature->isChecked())
         mGisController->startDigitizing();
     else
-        mGisController->stopDigitizing();
+        mGisController->removeMapTool();
 }
 
 

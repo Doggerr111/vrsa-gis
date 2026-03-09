@@ -9,6 +9,8 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+
+class QButtonGroup;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -36,6 +38,7 @@ public slots:
 private:
     Ui::MainWindow *ui;
     std::unique_ptr<vrsa::services::GISController> mGisController;
+    QButtonGroup* mMapToolExclusiveGroup;
     //QSplitter *spliter;
 };
 #endif // MAINWINDOW_H
