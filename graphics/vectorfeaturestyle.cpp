@@ -314,6 +314,44 @@ std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatur
     }
 }
 
+std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForVertexMiddlePoints(const VertexState state)
+{
+    switch(state)
+    {
+    case VertexState::Normal:
+    case VertexState::Disabled:
+    {
+        auto layerSymbol = std::make_unique<LayerPointSymbol>();
+        auto vertexSymbol = SimplePointSymbol::createDefaultSymbol();
+        vertexSymbol->borderColor = common::VERTEX_COLOR_NORMAL;
+        vertexSymbol->pointType = common::VERTEX_MIDDLE_POINT_TYPE;
+        layerSymbol->addChild(std::move(vertexSymbol));
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
+    }
+    case VertexState::Pressed:
+    {
+        auto layerSymbol = std::make_unique<LayerPointSymbol>();
+        auto vertexSymbol = SimplePointSymbol::createDefaultSymbol();
+        vertexSymbol->borderColor = common::VERTEX_COLOR_PRESSED;
+        vertexSymbol->pointType = common::VERTEX_MIDDLE_POINT_TYPE;
+        layerSymbol->addChild(std::move(vertexSymbol));
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
+    }
+    case VertexState::Hover:
+    {
+        auto layerSymbol = std::make_unique<LayerPointSymbol>();
+        auto vertexSymbol = SimplePointSymbol::createDefaultSymbol();
+        vertexSymbol->borderColor = common::VERTEX_COLOR_HOVER;
+        vertexSymbol->pointType = common::VERTEX_MIDDLE_POINT_TYPE;
+        layerSymbol->addChild(std::move(vertexSymbol));
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+        break;
+    }
+    }
+}
+
 
 
 

@@ -40,6 +40,7 @@ public:
     static std::unique_ptr<VectorFeatureStyle> createForPreview(const common::GeometryType type);
     static std::unique_ptr<VectorFeatureStyle> createForRubberBands(const common::GeometryType type);
     static std::unique_ptr<VectorFeatureStyle> createForVertexHandles(const VertexState state);
+    static std::unique_ptr<VectorFeatureStyle> createForVertexMiddlePoints(const VertexState state);
 
 
 private:
