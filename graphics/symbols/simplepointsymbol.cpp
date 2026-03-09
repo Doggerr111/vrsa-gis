@@ -10,7 +10,7 @@ std::unique_ptr<vrsa::graphics::SimplePointSymbol> vrsa::graphics::SimplePointSy
     pointSymbol->borderColor = GraphicsUtils::generateColor();
     pointSymbol->fillColor = GraphicsUtils::generateColor();
     pointSymbol->pointSize = 5;
-//    pointSymbol->pointType = common::PointSymbolType::Square;
+    //pointSymbol->pointType = common::PointSymbolType::Plus;
     return pointSymbol;
 }
 

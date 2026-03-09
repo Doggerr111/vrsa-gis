@@ -47,7 +47,10 @@ enum class PointSymbolType {
     Square,
     Circle,
     Triangle,
-    Rhombus
+    Rhombus,
+    Cross,
+    Plus
+
 };
 
 enum class BandRenderType {
@@ -219,6 +222,8 @@ inline const QColor VERTEX_COLOR_NORMAL = QColor(100, 180, 255, 200);
 inline const QColor VERTEX_COLOR_HOVER = QColor(255, 220, 80, 230);
 inline const QColor VERTEX_COLOR_PRESSED = QColor(255, 120, 120, 255);
 inline const QColor VERTEX_OUTLINE_COLOR = QColor(40, 40, 40, 180);
+
+inline constexpr PointSymbolType VERTEX_MIDDLE_POINT_TYPE = PointSymbolType::Plus;
 
 
 

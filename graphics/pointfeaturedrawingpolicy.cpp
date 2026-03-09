@@ -99,6 +99,43 @@ void vrsa::graphics::PointFeatureDrawingPolicy::cachePath(const DrawingContext &
         mCache.sceneScale = context.sceneScale;
         break;
     }
+    case common::PointSymbolType::Cross: // диагональный крест (X)
+    {
+        double pointSize = mSymbol->getPointSize() / context.sceneScale;
+        double halfPointSize = pointSize / 2;
+        double xOffsetScaled = mX + (mSymbol->getXOffSet() / context.sceneScale);
+        double yOffsetScaled = mY + (mSymbol->getYOffSet() / context.sceneScale);
+
+        mCache.path = QPainterPath();
+
+
+        mCache.path.moveTo(xOffsetScaled - halfPointSize, yOffsetScaled - halfPointSize);
+        mCache.path.lineTo(xOffsetScaled + halfPointSize, yOffsetScaled + halfPointSize);
+        mCache.path.moveTo(xOffsetScaled + halfPointSize, yOffsetScaled - halfPointSize);
+        mCache.path.lineTo(xOffsetScaled - halfPointSize, yOffsetScaled + halfPointSize);
+
+        mCache.sceneScale = context.sceneScale;
+        break;
+    }
+
+    case common::PointSymbolType::Plus:  // плюс (горизонтальная и вертикальная линии)
+    {
+        double pointSize = mSymbol->getPointSize() / context.sceneScale;
+        double halfPointSize = pointSize / 2;
+        double xOffsetScaled = mX + (mSymbol->getXOffSet() / context.sceneScale);
+        double yOffsetScaled = mY + (mSymbol->getYOffSet() / context.sceneScale);
+
+        mCache.path = QPainterPath();
+
+        mCache.path.moveTo(xOffsetScaled - halfPointSize, yOffsetScaled);
+        mCache.path.lineTo(xOffsetScaled + halfPointSize, yOffsetScaled);
+        mCache.path.moveTo(xOffsetScaled, yOffsetScaled - halfPointSize);
+        mCache.path.lineTo(xOffsetScaled, yOffsetScaled + halfPointSize);
+
+        mCache.sceneScale = context.sceneScale;
+        break;
+    }
+
     }
 }
 
