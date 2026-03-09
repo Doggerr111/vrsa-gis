@@ -79,6 +79,35 @@ enum class GeometryType {
     Triangle = 17         // Треугольник
 };
 
+
+enum class FieldType {
+    Integer,      // целые числа (32-bit)
+    Integer64,    // длинные целые (64-bit)
+    Real,         // числа с плавающей точкой
+    String,       // строки
+    Date,         // дата
+    Time,         // время
+    DateTime,     // дата и время
+    Binary,       // бинарные данные
+    Boolean,      // булевы значения (true/false)
+    Unknown       // неизвестный тип
+};
+
+inline const char* fieldTypeToString(FieldType type) {
+    switch(type) {
+        case FieldType::Integer: return "Integer";
+        case FieldType::Integer64: return "Integer64";
+        case FieldType::Real: return "Real";
+        case FieldType::String: return "String";
+        case FieldType::Date: return "Date";
+        case FieldType::Time: return "Time";
+        case FieldType::DateTime: return "DateTime";
+        case FieldType::Binary: return "Binary";
+        case FieldType::Boolean: return "Boolean";
+        default: return "Unknown";
+    }
+}
+
 inline QDebug operator<<(QDebug debug, GeometryType type) {
     switch (type) {
         case GeometryType::Unknown: debug << "Unknown"; break;
