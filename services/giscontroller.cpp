@@ -176,6 +176,7 @@ void vrsa::services::GISController::LoadDataSet(std::string &source)
 
 //            }
 
+            qDebug()<<"GIS CONTROLLER. LAYER GEOM TYPE - " << layer->getGeomType();
             if (auto layerStyle = layer->getStyle(layer->getGeomType()))
             {
                 QIcon icon = QIcon();
@@ -266,7 +267,7 @@ void vrsa::services::GISController::syncZOrderWithTree()
             QString path = topLevelItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             for (auto& layer: static_cast<vector::VectorDataset*>(pM.getDatasetBySource(path.toStdString()))->getLayers())
             {
-                qDebug()<<layer.get()<< " has z value =" << baseZ;
+                //qDebug()<<layer.get()<< " has z value =" << baseZ;
                 layer->setZValue(baseZ--);
 
             }
@@ -276,7 +277,7 @@ void vrsa::services::GISController::syncZOrderWithTree()
         {
             QString path = topLevelItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             auto rasterDataset = static_cast<raster::RasterDataset*>(pM.getDatasetBySource(path.toStdString()));
-            qDebug()<<rasterDataset<< " has z value =" << baseZ;
+            //qDebug()<<rasterDataset<< " has z value =" << baseZ;
             rasterDataset->setZValue(baseZ--);
             break;
         }

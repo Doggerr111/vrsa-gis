@@ -148,13 +148,41 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+
+
     delete ui;
+
 }
+
 
 
 void MainWindow::on_actionLoad_vector_layer_triggered()
 {
     std::string fileName=QFileDialog::getOpenFileName(this,"","").toStdString();
+
+
+//    std::string fileName = "PG:host=localhost port=5432 dbname=test user=postgres password=1234";
+
+//    int count = GDALGetDriverCount();
+//        bool pgFound = false;
+
+//        for(int i = 0; i < count; i++) {
+//            GDALDriverH driver = GDALGetDriver(i);
+//            const char* name = GDALGetDriverShortName(driver);
+//            const char* longName = GDALGetDriverLongName(driver);
+
+//            qDebug() << "Driver:" << name << "-" << longName;
+
+//            if (QString(name).contains("PG", Qt::CaseInsensitive) ||
+//                QString(longName).contains("PostgreSQL", Qt::CaseInsensitive)) {
+//                pgFound = true;
+//            }
+//        }
+
+//        if (!pgFound) {
+//            qDebug() << "PostgreSQL driver not found! GDAL built without PostgreSQL support?";
+//        }
+
     mGisController->LoadDataSet(fileName);
 
 }

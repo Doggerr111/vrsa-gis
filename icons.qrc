@@ -63,5 +63,6 @@
         <file>images/icons/rectangleSelection.png</file>
         <file>images/icons/rectangle.png</file>
         <file>images/icons/Tools/node.png</file>
+        <file>images/icons/Tools/digitize.png</file>
     </qresource>
 </RCC>

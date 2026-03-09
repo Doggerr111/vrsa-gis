@@ -62,6 +62,7 @@ file(GLOB CORE_SOURCES
     "tools/*.cpp"
     "test_utils/*.cpp"
     "geometry/*.cpp"
+    "vectorlayertools/*.cpp"
 )
 file(GLOB_RECURSE GRAPHICS_SOURCES "graphics/*.cpp")
 file(GLOB_RECURSE GRAPHICS_HEADERS "graphics/*.h")
@@ -79,6 +80,7 @@ file(GLOB CORE_HEADERS
     "tools/*.h"
     "test_utils/*.h"
     "geometry/*.h"
+    "vectorlayertools/*.h"
 )
 add_library(vrsa_core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
 #добавляем тестовые функции в ядре
@@ -96,6 +98,7 @@ target_include_directories(vrsa_core PUBLIC
     tools
     test_utils
     geometry
+    vectorlayertools
 
 )
 

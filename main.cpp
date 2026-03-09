@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     vrsa::common::Logger::getInstance().setLogFile(QDir::currentPath().toStdString()+"/application.log");
     vrsa::common::Logger::getInstance().setLogLevel(vrsa::common::LogLevel::TRACE);
 //    VRSA_DEBUG("GDAL", "Opening file");
-//    VRSA_LOG_MEMORY("Start");
+    //VRSA_LOG_MEMORY("Start");
 
 //    std::vector<int*> arrays;
 //    for(int i = 0; i < 10; i++) {
@@ -49,4 +49,5 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
     return a.exec();
+
 }
