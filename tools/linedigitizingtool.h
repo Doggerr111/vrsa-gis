@@ -10,7 +10,7 @@ class LineDigitizingTool : public DigitizingTool
 {
     using ItemRole = graphics::TemporaryGraphicsItem::TemporaryItemRole;
 public:
-    explicit LineDigitizingTool(graphics::MapScene* scene, QObject *parent = nullptr);
+    explicit LineDigitizingTool(graphics::MapScene* scene, vector::VectorLayer* activeLayer, QObject *parent = nullptr);
     virtual ~LineDigitizingTool() = default;
 
     //для обновления  айтема

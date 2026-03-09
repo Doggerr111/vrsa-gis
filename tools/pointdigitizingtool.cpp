@@ -1,7 +1,8 @@
 #include "pointdigitizingtool.h"
 #include "graphics/mapscene.h"
-vrsa::tools::PointDigitizingTool::PointDigitizingTool(graphics::MapScene *scene, QObject *parent)
-    : DigitizingTool{scene, parent}
+vrsa::tools::PointDigitizingTool::PointDigitizingTool(graphics::MapScene *scene,
+                                                      vector::VectorLayer* activeLayer, QObject *parent)
+    : DigitizingTool{scene, activeLayer, parent}
 {
 
 }

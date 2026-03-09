@@ -11,7 +11,7 @@ namespace tools
 class PointDigitizingTool : public DigitizingTool
 {
 public:
-    explicit PointDigitizingTool(graphics::MapScene* scene, QObject *parent = nullptr);
+    explicit PointDigitizingTool(graphics::MapScene* scene, vector::VectorLayer *activeLayer, QObject *parent = nullptr);
     virtual ~PointDigitizingTool() = default;
     // MapTool interface
 public:

@@ -4,6 +4,10 @@
 
 namespace vrsa
 {
+//namespace vector
+//{
+//class VectorLayer;
+//}
 namespace graphics
 {
 class MapScene;
@@ -16,7 +20,7 @@ class MapToolFactory
 {
 public:
     MapToolFactory() = delete;
-    static std::unique_ptr<MapTool> createForScene(graphics::MapScene* scene, common::MapToolType);
+    static std::unique_ptr<MapTool> createForScene(graphics::MapScene* scene, common::MapToolType, vector::VectorLayer* activeLayer = nullptr);
 };
 
 }

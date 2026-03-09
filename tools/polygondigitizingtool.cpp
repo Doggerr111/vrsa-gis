@@ -1,8 +1,8 @@
 #include "polygondigitizingtool.h"
 #include "graphics/mapscene.h"
 
-vrsa::tools::PolygonDigitizingTool::PolygonDigitizingTool(graphics::MapScene *scene, QObject *parent)
-    : DigitizingTool{scene, parent},
+vrsa::tools::PolygonDigitizingTool::PolygonDigitizingTool(graphics::MapScene *scene, vector::VectorLayer *activeLayer, QObject *parent)
+    : DigitizingTool{scene, activeLayer, parent},
       mItem{nullptr}
 
 {

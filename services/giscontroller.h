@@ -15,7 +15,7 @@
 #include <QTreeWidget>
 #include <QAction>
 #include <QMenu>
-#include "digitizingmanager.h"
+
 #include "graphics/symbols/symbolrenderer.h"
 #include "tools/maptool.h"
 #include <QStatusBar>
@@ -40,13 +40,12 @@ public:
     {
         return mMapScene;
     }
-    void startDigitizing() const;
-    void stopDigitizing() const;
+    void startDigitizing();
     void syncZOrderWithTree();
 
     QIcon getIconForGeometryType(common::GeometryType type); //например для изменения иконки оцифровки в ui
-    void addMapTool(common::MapToolType type);
-
+    void addMapTool(common::MapToolType type, vector::VectorLayer *layer = nullptr);
+    void removeMapTool();
 
     //некоторые компоненты интерфейса придется хранить... надеюсь когда-нибудь перейду просто на сигналы и слоты
     void initializeScene(MapHolder* view);
@@ -65,7 +64,7 @@ private:
     QTabWidget* mLeftTabWidget;
     QStatusBar* mStatusBar;
 
-    std::unique_ptr<DigitizingManager> mDigitizingManager;
+    //std::unique_ptr<DigitizingManager> mDigitizingManager;
     graphics::SymbolRenderer mRenderer;
     const int DATA_COLUMN = 0;
 

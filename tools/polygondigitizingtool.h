@@ -12,7 +12,7 @@ class PolygonDigitizingTool : public DigitizingTool
 {
     using ItemRole = graphics::TemporaryGraphicsItem::TemporaryItemRole;
 public:
-    explicit PolygonDigitizingTool(graphics::MapScene* scene, QObject *parent = nullptr);
+    explicit PolygonDigitizingTool(graphics::MapScene* scene, vector::VectorLayer* activeLayer, QObject *parent = nullptr);
     virtual ~PolygonDigitizingTool() = default;
 
     //для обновления  айтема

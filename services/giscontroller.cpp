@@ -7,7 +7,7 @@
 vrsa::services::GISController::GISController(QObject *parent)
     : QObject{parent},
       mMapView{nullptr},
-      mDigitizingManager{std::make_unique<DigitizingManager>()},
+      //mDigitizingManager{std::make_unique<DigitizingManager>()},
       mRenderer{}
 {
     connect(this, &GISController::updateLegendIconsRequired, &mRenderer, &graphics::SymbolRenderer::renderToIcon);
@@ -56,8 +56,7 @@ void vrsa::services::GISController::initializeScene(MapHolder *view)
     mMapView->setSceneRect(xMin*4, 4*yMax, 4*width, -8*height);
     mMapView->recalculateScale();
 
-    connect(mDigitizingManager.get(), &DigitizingManager::featureGraphicsItemCreated, mMapScene,
-            &vrsa::graphics::MapScene::onNewFeatureGraphicsItemCreated);
+
 }
 
 void vrsa::services::GISController::setTreeWidget(TreeWidget *treeWidget)
@@ -251,65 +250,7 @@ bool vrsa::services::GISController::isCurrentCRSGeographic() const
     return mProjCrs.GetOGRSpatialRef()->IsGeographic();
 }
 
-void vrsa::services::GISController::startDigitizing() const
-{
-    auto& pM = ProjectManager::instance();
-    auto activeLayer = pM.getActiveVectorLayer();
-    if (!activeLayer)
-        return;
-    mDigitizingManager->setActiveLayer(activeLayer);
-    auto digitizingTool = tools::DigitizingToolFactory::createForScene(mMapScene, activeLayer->getGeomType());
-    if (!digitizingTool)
-        return;
 
-    auto toolPtr = digitizingTool.get();
-    connect(toolPtr, &tools::PointDigitizingTool::cancelled, mDigitizingManager.get(),
-            &DigitizingManager::onDigitizingCanceled);
-    connect(toolPtr, &tools::PointDigitizingTool::geometryCreated, mDigitizingManager.get(),
-            &DigitizingManager::onGeometryCreated);
-    mMapScene->setMapTool(std::move(digitizingTool));
-    mDigitizingManager->setActiveDigitizingTool(toolPtr);
-//    switch (activeLayer->getGeomType())
-//    {
-//    case common::GeometryType::Point:
-//    case common::GeometryType::MultiPoint:
-//    {
-//        auto pointTool = std::make_unique<tools::PointDigitizingTool>(mMapScene);
-//        auto pointToolPtr = pointTool.get();
-//        connect(pointTool.get(), &tools::PointDigitizingTool::cancelled, mDigitizingManager.get(),
-//                &DigitizingManager::onDigitizingCanceled);
-//        connect(pointTool.get(), &tools::PointDigitizingTool::geometryCreated, mDigitizingManager.get(),
-//                &DigitizingManager::onGeometryCreated);
-//        mMapScene->setMapTool(std::move(pointTool));
-//        mDigitizingManager->setActiveDigitizingTool(pointToolPtr);
-//        break;
-//    }
-//    case common::GeometryType::LineString:
-//    case common::GeometryType::MultiLineString:
-//    {
-//        auto lineTool = std::make_unique<tools::LineDigitizingTool>(mMapScene);
-//        auto lineToolPtr = lineTool.get();
-//        connect(lineTool.get(), &tools::LineDigitizingTool::cancelled, mDigitizingManager.get(),
-//                &DigitizingManager::onDigitizingCanceled);
-//        connect(lineTool.get(), &tools::LineDigitizingTool::geometryCreated, mDigitizingManager.get(),
-//                &DigitizingManager::onGeometryCreated);
-//        mMapScene->setMapTool(std::move(lineTool));
-//        mDigitizingManager->setActiveDigitizingTool(lineToolPtr);
-//        break;
-//    }
-//    default:
-//    {
-//        break;
-//    }
-//    }
-
-}
-
-void vrsa::services::GISController::stopDigitizing() const
-{
-    mDigitizingManager->onDigitizingFinished();
-    //mMapScene->deselectCurrentMapTool();
-}
 
 void vrsa::services::GISController::syncZOrderWithTree()
 {
@@ -699,13 +640,44 @@ void vrsa::services::GISController::onItemDropped(QDropEvent* event, bool *accep
 
 }
 
-void vrsa::services::GISController::addMapTool(common::MapToolType type)
+
+void vrsa::services::GISController::startDigitizing() //onpbAddFeature
+{
+    auto& pM = ProjectManager::instance();
+    auto activeLayer = pM.getActiveVectorLayer();
+    if (!activeLayer)
+    {
+        //emit activeLayerChanged(getIconForGeometryType(common::GeometryType::Unknown));//for digitizing tool button
+        VRSA_DEBUG("GIS Controller", "Please choose active layer before digitizing");
+        return;
+    }
+    switch (activeLayer->getGeomType())
+    {
+    case common::GeometryType::Point:
+        addMapTool(common::MapToolType::PointDigitizingTool, activeLayer);
+        break;
+    case common::GeometryType::LineString:
+        addMapTool(common::MapToolType::LineStringDigitizingTool, activeLayer);
+        break;
+    case common::GeometryType::Polygon:
+        addMapTool(common::MapToolType::PolygonDigitizingTool, activeLayer);
+        break;
+    default:
+        VRSA_DEBUG("GIS Controller", "Digitizing for active layer geometry type currently not supported");
+    }
+
+
+
+}
+
+
+
+void vrsa::services::GISController::addMapTool(common::MapToolType type, vector::VectorLayer* layer)
 {
     mMapScene->deselectCurrentMapTool();
-
-    mDigitizingManager->onDigitizingFinished();
+    //mDigitizingManager->onDigitizingFinished();
     QMessageBox::warning(nullptr, "we save yet!", "we save yey!!!");
-    auto tool = tools::MapToolFactory::createForScene(mMapScene, type);
+    auto tool = tools::MapToolFactory::createForScene(mMapScene, type, layer);
     if (tool)
     {
         connect(tool.get(), &tools::MapTool::toolEvent, this, &GISController::onToolEvent);
@@ -714,6 +686,11 @@ void vrsa::services::GISController::addMapTool(common::MapToolType type)
         mMapScene->setMapTool(std::move(tool));
     }
 
+}
+
+void vrsa::services::GISController::removeMapTool()
+{
+    mMapScene->deselectCurrentMapTool();
 }
 
 void vrsa::services::GISController::onSingleSelectionToolClicked(bool checked)
