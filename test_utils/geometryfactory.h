@@ -35,12 +35,12 @@ public:
 };
 
 // Генерация случайной точки
-OGRPoint* createRandomPoint(RandomGenerator& gen) {
+inline OGRPoint* createRandomPoint(RandomGenerator& gen) {
     return new OGRPoint(gen.randomCoord(), gen.randomCoord());
 }
 
 // Генерация случайной линии
-OGRLineString* createRandomLineString(RandomGenerator& gen, int numPoints = -1) {
+inline OGRLineString* createRandomLineString(RandomGenerator& gen, int numPoints = -1) {
     if (numPoints < 0) numPoints = gen.randomCount() + 2; // минимум 2 точки
 
     auto* line = new OGRLineString();
@@ -51,7 +51,7 @@ OGRLineString* createRandomLineString(RandomGenerator& gen, int numPoints = -1) 
 }
 
 // Генерация случайного полигона (простой, без отверстий)
-OGRPolygon* createRandomPolygon(RandomGenerator& gen, int numPoints = -1) {
+inline OGRPolygon* createRandomPolygon(RandomGenerator& gen, int numPoints = -1) {
     if (numPoints < 0) numPoints = gen.randomCount() + 3; // минимум 3 точки
 
     auto* ring = new OGRLinearRing();
@@ -89,7 +89,7 @@ OGRPolygon* createRandomPolygon(RandomGenerator& gen, int numPoints = -1) {
 }
 
 // Генерация мультиточки
-OGRMultiPoint* createRandomMultiPoint(RandomGenerator& gen, int numPoints = -1) {
+inline OGRMultiPoint* createRandomMultiPoint(RandomGenerator& gen, int numPoints = -1) {
     if (numPoints < 0) numPoints = gen.randomCount();
 
     auto* multiPoint = new OGRMultiPoint();
@@ -100,7 +100,7 @@ OGRMultiPoint* createRandomMultiPoint(RandomGenerator& gen, int numPoints = -1) 
 }
 
 // Генерация мультилинии
-OGRMultiLineString* createRandomMultiLineString(RandomGenerator& gen, int numLines = -1) {
+inline OGRMultiLineString* createRandomMultiLineString(RandomGenerator& gen, int numLines = -1) {
     if (numLines < 0) numLines = gen.randomCount();
 
     auto* multiLine = new OGRMultiLineString();
@@ -111,7 +111,7 @@ OGRMultiLineString* createRandomMultiLineString(RandomGenerator& gen, int numLin
 }
 
 // Генерация мультиполигона
-OGRMultiPolygon* createRandomMultiPolygon(RandomGenerator& gen, int numPolys = -1) {
+inline OGRMultiPolygon* createRandomMultiPolygon(RandomGenerator& gen, int numPolys = -1) {
     if (numPolys < 0) numPolys = gen.randomCount();
 
     auto* multiPoly = new OGRMultiPolygon();
@@ -122,7 +122,7 @@ OGRMultiPolygon* createRandomMultiPolygon(RandomGenerator& gen, int numPolys = -
 }
 
 // Генерация геометрии по типу
-OGRGeometry* createRandomGeometry(OGRwkbGeometryType type, RandomGenerator& gen) {
+inline OGRGeometry* createRandomGeometry(OGRwkbGeometryType type, RandomGenerator& gen) {
     switch(wkbFlatten(type)) {
         case wkbPoint:
             return createRandomPoint(gen);
