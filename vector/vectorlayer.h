@@ -26,7 +26,7 @@ public:
         return mFeatures.size();
     }
     common::GeometryType getGeomType() const;
-    const char* getName();
+    const char* getName() const;
 
     /** возвращает путь к слою*/
     QString returnFileName();
@@ -58,6 +58,29 @@ public:
         }
         return nullptr;
     };
+
+
+
+    std::vector<std::string> getFieldNames() const;
+       vrsa::common::FieldType getFieldType(const std::string& fieldName) const;
+       bool hasField(const std::string& fieldName) const;
+       int getFieldCount() const;
+
+       // НОВЫЕ МЕТОДЫ для работы с мультигеометриями
+       bool hasMultiGeometry() const;
+       std::unique_ptr<VectorLayer> createExplodedLayer(const std::string& newLayerName = "") const;
+
+       // НОВЫЙ МЕТОД для экспорта в GDALDataset
+       GDALDataset* exportToGDALDataset(const std::string& format = "ESRI Shapefile",
+                                        const std::string& outputPath = "",
+                                        bool explodeMultiGeometries = true) const;
+
+   private:
+       // Кэш для типов полей (для оптимизации)
+       mutable std::unordered_map<std::string, vrsa::common::FieldType> mFieldTypesCache;
+       mutable bool mFieldTypesCacheValid = false;
+
+       void buildFieldTypesCache() const;
 
 signals:
     void featureAdded(VectorFeature*);

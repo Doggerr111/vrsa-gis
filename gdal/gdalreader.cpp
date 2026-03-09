@@ -9,7 +9,7 @@ vrsa::gdalwrapper::GDALReader::GDALReader()
 
 std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readDataset(const std::string &source)
 {
-    auto dS = vrsa::gdalwrapper::createDataset(source, GDAL_OF_VERBOSE_ERROR | GDAL_OF_UPDATE);
+    auto dS = vrsa::gdalwrapper::createDataset(source, GDAL_OF_VECTOR | GDAL_OF_UPDATE);
     if (!dS)
     {
         throw vrsa::common::DataSetOpenException(source);

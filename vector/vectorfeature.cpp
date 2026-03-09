@@ -5,7 +5,18 @@ vrsa::vector::VectorFeature::VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr feat
     : mFeature{std::move(feature)},
       mParentLayer{layer}
 {
+    if (mFeature)
+    {
+        mGeometry = mFeature->GetGeometryRef();
 
+        // Заполняем информацию о типах полей
+        OGRFeatureDefn* poDefn = mFeature->GetDefnRef();
+        for (int i = 0; i < poDefn->GetFieldCount(); i++) {
+            OGRFieldDefn* poFieldDefn = poDefn->GetFieldDefn(i);
+            std::string fieldName = poFieldDefn->GetNameRef();
+            mFieldTypes[fieldName] = determineFieldType(poFieldDefn);
+        }
+    }
 }
 
 void vrsa::vector::VectorFeature::setGeometry(gdalwrapper::OgrGeometryPtr ptr)
@@ -18,11 +29,11 @@ void vrsa::vector::VectorFeature::setGeometry(gdalwrapper::OgrGeometryPtr ptr)
 bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry)
 {
 
-    qDebug()<< "VECTOR FEATURE OLD GEOM - " << mFeature->GetGeometryRef();
-    char* wkt = nullptr;
-    mFeature->GetGeometryRef()->exportToWkt(&wkt);
-    qDebug() << "OLD GEOM WKT:" << wkt;
-    CPLFree(wkt);
+//    qDebug()<< "VECTOR FEATURE OLD GEOM - " << mFeature->GetGeometryRef();
+//    char* wkt = nullptr;
+//    mFeature->GetGeometryRef()->exportToWkt(&wkt);
+//    qDebug() << "OLD GEOM WKT:" << wkt;
+//    CPLFree(wkt);
     auto ogrGeomUPtr = ogr_utils::OGRConverter::toOGR_uniquePTR(geometry);
     if (!ogrGeomUPtr)
     {
@@ -47,8 +58,9 @@ bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry
     {
         const char* errorMsg = CPLGetLastErrorMsg();
         qDebug()<<"vectorfeature " << errorMsg;
-        VRSA_DEBUG("VectorFeature", "Geometry was successfully set to the feature, but failed to update in OGRLayer."
-                   "The feature may not have been added to the layer yet. OGR error: " + std::to_string(setFeatureError)
+        VRSA_WARNING("VectorFeature", "Geometry was successfully set to the feature, but failed to update in OGRLayer."
+                   "The feature may not have been added to the layer yet. If you digitizing, ignore this warning. "
+                                    "OGR error: " + std::to_string(setFeatureError)
                    + " " + CPLGetLastErrorMsg() );
 
         return true;
@@ -57,7 +69,7 @@ bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry
     qDebug()<< "VECTOR FEATURE NEW GEOM - " << mFeature->GetGeometryRef();
     char* WKTNEW = nullptr;
     mFeature->GetGeometryRef()->exportToWkt(&WKTNEW);
-    qDebug() << "OLD GEOM WKT:" << WKTNEW;
+    qDebug() << "NEW GEOM WKT:" << WKTNEW;
     CPLFree(WKTNEW);
     return true;
 }
@@ -542,5 +554,111 @@ void vrsa::vector::VectorFeature::setMultiPolygonGeometry(const std::vector<std:
 
     mFeature->SetGeometry(&multiPolygon);
 }
+
+
+
+std::vector<std::string> vrsa::vector::VectorFeature::getFieldNames() const
+{
+    std::vector<std::string> names;
+    for (const auto& [name, _] : mAttributes) {
+        names.push_back(name);
+    }
+    return names;
+}
+
+vrsa::common::FieldType vrsa::vector::VectorFeature::getFieldType(const std::string& name) const
+{
+    auto it = mFieldTypes.find(name);
+    if (it != mFieldTypes.end()) {
+        return it->second;
+    }
+
+    // Если тип не найден, пытаемся определить по значению
+    auto attrIt = mAttributes.find(name);
+    if (attrIt != mAttributes.end()) {
+        return determineTypeFromValue(attrIt->second);
+    }
+
+    return vrsa::common::FieldType::String; // по умолчанию
+}
+
+bool vrsa::vector::VectorFeature::hasField(const std::string& name) const
+{
+    return mAttributes.find(name) != mAttributes.end();
+}
+
+int vrsa::vector::VectorFeature::getFieldCount() const
+{
+    return static_cast<int>(mAttributes.size());
+}
+
+bool vrsa::vector::VectorFeature::isMultiGeometry() const
+{
+    if (!mGeometry) return false;
+
+    OGRwkbGeometryType type = wkbFlatten(mGeometry->getGeometryType());
+    return type == wkbMultiPoint ||
+           type == wkbMultiLineString ||
+           type == wkbMultiPolygon ||
+           type == wkbGeometryCollection;
+}
+
+std::vector<std::unique_ptr<vrsa::vector::VectorFeature>> vrsa::vector::VectorFeature::explodeToSimpleFeatures() const
+{
+    std::vector<std::unique_ptr<VectorFeature>> result;
+
+    if (!isMultiGeometry()) {
+        // Если уже простая геометрия, возвращаем копию
+        result.push_back(clone());
+        return result;
+    }
+
+    auto* collection = dynamic_cast<OGRGeometryCollection*>(mGeometry);
+    if (!collection) return result;
+
+    for (int i = 0; i < collection->getNumGeometries(); i++) {
+        OGRGeometry* subGeom = collection->getGeometryRef(i);
+        if (!subGeom) continue;
+
+        // Создаем новую фичу
+        auto newFeature = std::make_unique<VectorFeature>(nullptr, mParentLayer);
+
+        // Копируем геометрию
+        newFeature->setGeometry(vrsa::gdalwrapper::OgrGeometryPtr(subGeom->clone()));
+
+        // Копируем все атрибуты
+        for (const auto& [name, value] : mAttributes) {
+            newFeature->setAttribute(name, value);
+        }
+
+        // Добавляем служебные атрибуты
+        newFeature->setAttribute("_original_index", i);
+        newFeature->setAttribute("_original_fid", (int)this->getOGRFeature()->GetFID());
+
+        result.push_back(std::move(newFeature));
+    }
+
+    return result;
+}
+
+std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::clone() const
+{
+    auto newFeature = std::make_unique<VectorFeature>(nullptr, mParentLayer);
+
+    if (mGeometry) {
+        newFeature->setGeometry(vrsa::gdalwrapper::OgrGeometryPtr(mGeometry->clone()));
+    }
+
+    for (const auto& [name, value] : mAttributes) {
+        newFeature->setAttribute(name, value);
+    }
+
+    newFeature->setName(mName);
+    newFeature->setVisible(mVisible);
+
+    return newFeature;
+}
+
+
 
 

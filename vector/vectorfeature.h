@@ -86,6 +86,75 @@ public:
     using MultiPolygonType = std::vector<std::vector<std::vector<QPointF>>>;
 
 
+    //09.03
+    std::vector<std::string> getFieldNames() const;
+    vrsa::common::FieldType getFieldType(const std::string& name) const;
+    bool hasField(const std::string& name) const;
+    int getFieldCount() const;
+
+    // НОВЫЕ МЕТОДЫ для геометрии
+    bool isMultiGeometry() const;
+    std::vector<std::unique_ptr<VectorFeature>> explodeToSimpleFeatures() const;
+    std::unique_ptr<VectorFeature> clone() const;
+
+
+
+    vrsa::common::FieldType determineFieldType(OGRFieldDefn* fieldDefn) const
+    {
+        switch(fieldDefn->GetType()) {
+            case OFTInteger: return vrsa::common::FieldType::Integer;
+            case OFTInteger64: return vrsa::common::FieldType::Integer64;
+            case OFTReal: return vrsa::common::FieldType::Real;
+            case OFTString: return vrsa::common::FieldType::String;
+            case OFTDate: return vrsa::common::FieldType::Date;
+            case OFTTime: return vrsa::common::FieldType::Time;
+            case OFTDateTime: return vrsa::common::FieldType::DateTime;
+            case OFTBinary: return vrsa::common::FieldType::Binary;
+            default: return vrsa::common::FieldType::Unknown;
+        }
+    }
+
+
+
+    OGRFieldType convertToOGRFieldType(vrsa::common::FieldType type) const {
+        switch(type) {
+            case vrsa::common::FieldType::Integer: return OFTInteger;
+            case vrsa::common::FieldType::Integer64: return OFTInteger64;
+            case vrsa::common::FieldType::Real: return OFTReal;
+            case vrsa::common::FieldType::String: return OFTString;
+            case vrsa::common::FieldType::Date: return OFTDate;
+            case vrsa::common::FieldType::Time: return OFTTime;
+            case vrsa::common::FieldType::DateTime: return OFTDateTime;
+            case vrsa::common::FieldType::Binary: return OFTBinary;
+            case vrsa::common::FieldType::Boolean: return OFTInteger; // Boolean как Integer
+            default: return OFTString;
+        }
+    }
+
+
+    vrsa::common::FieldType determineTypeFromValue(const AttributeValue& value) const {
+        if (std::holds_alternative<int>(value)) {
+            return vrsa::common::FieldType::Integer;
+        } else if (std::holds_alternative<double>(value)) {
+            return vrsa::common::FieldType::Real;
+        } else if (std::holds_alternative<bool>(value)) {
+            return vrsa::common::FieldType::Boolean;
+        } else if (std::holds_alternative<std::string>(value)) {
+            return vrsa::common::FieldType::String;
+        } else {
+            return vrsa::common::FieldType::Unknown;
+        }
+    }
+
+
+private:
+    // Новое поле для хранения информации о типах полей
+    std::unordered_map<std::string, vrsa::common::FieldType> mFieldTypes;
+
+    // Метод для определения типа поля из OGR
+    //vrsa::common::FieldType determineFieldType(OGRFieldDefn* fieldDefn) const;
+
+
 //    using GeometryVariant = std::variant<
 //        QPointF,
 //        std::vector<QPointF>,
