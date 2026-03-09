@@ -42,7 +42,7 @@ void vrsa::graphics::MapScene::addLayer(std::unique_ptr<vector::VectorLayer> &l)
         {
             graphicsItem = vrsa::graphics::
                     FeatureGraphicsItemFactory::createForFeature(feature, pointStyle.get());
-            qDebug()<<feature->getOGRGeometry()->toPoint()->getX();
+            //qDebug()<<feature->getOGRGeometry()->toPoint()->getX();
             break;
         }
         case common::GeometryType::LineString:
@@ -103,10 +103,10 @@ void vrsa::graphics::MapScene::addTemporaryItem(std::unique_ptr<TemporaryGraphic
     qDebug()<<"adding temp item";
     addItem(item.get());
     auto itemf = item.get();
-    qDebug()<<"item added";
-    qDebug()<<item->scene();
+    //qDebug()<<"item added";
+    //qDebug()<<item->scene();
     mTempItems.push_back(std::move(item));
-    qDebug()<<itemf->scene();
+    //qDebug()<<itemf->scene();
     //update();
 }
 
@@ -129,11 +129,14 @@ void vrsa::graphics::MapScene::setMapTool(std::unique_ptr<tools::MapTool> tool)
 void vrsa::graphics::MapScene::deselectCurrentMapTool()
 {
     //QMessageBox::warning(nullptr, "WTF!!", "WTF!!");
-    setViewCursor(Qt::ArrowCursor);
-    mCurrentMapTool->deactivate();
-    mCurrentMapTool.reset();
-    mCurrentMapTool = nullptr;
-    removeTemporaryItems();
+    if (mCurrentMapTool)
+    {
+        setViewCursor(Qt::ArrowCursor);
+        mCurrentMapTool->deactivate();
+        mCurrentMapTool.reset();
+        mCurrentMapTool = nullptr;
+        removeTemporaryItems();
+    }
 
 }
 

@@ -33,7 +33,7 @@ void vrsa::graphics::LineFeatureDrawingPolicy::paint(const DrawingContext &conte
         cacheGeometry(context.geom);
 
     QPen pen = mSymbol->pen();
-    qDebug()<<pen.widthF()/context.sceneScale;
+    //qDebug()<<pen.widthF()/context.sceneScale;
     //double penWidth = pen.widthF()/context.sceneScale;
 
     pen.setWidthF(pen.widthF()/context.sceneScale);

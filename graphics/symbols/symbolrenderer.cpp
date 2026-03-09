@@ -448,8 +448,8 @@ QRectF vrsa::graphics::SymbolRenderer::getSymbolBounds(const Symbol *symbol)
         {
             auto pointS = static_cast<const SimplePointSymbol*>(symbol);
             penWidth = pointS->pen().widthF();
-            qDebug()<<"Толщина пера точки в пикелях:" + QString::number(penWidth);
-            qDebug()<<"Толщина пера точки в мм:" + QString::number(pointS->borderWidth);
+//            qDebug()<<"Толщина пера точки в пикелях:" + QString::number(penWidth);
+//            qDebug()<<"Толщина пера точки в мм:" + QString::number(pointS->borderWidth);
             break;
         }
         case common::SymbolType::SimpleLineSymbol:

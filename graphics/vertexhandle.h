@@ -32,15 +32,30 @@ class VertexHandle : public TemporaryGraphicsItem
     Q_OBJECT
 public:
     VertexHandle(TemporaryGraphicsItem* parent, VertexType type = VertexType::Vertex);
-    ~VertexHandle() override {qDebug()<< "~VertexHandle() destructor called"; };
+    ~VertexHandle() override = default;
 
     VertexState getCurrentState() const noexcept {  return mCurrentState; };
     void updateGeometry();
     void setPoint(const QPointF& point);
     QPointF getPoint() const noexcept { return mCurrentPos; };
     VertexType getType() const noexcept { return mType; };
-private slots:
-    void onStateChanged();
+
+
+    // QGraphicsItem interface
+public:
+    QRectF boundingRect() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+protected:
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+
+    // TemporaryGraphicsItem interface
+private:
+    VectorFeatureStyle *generateStyle() override;
 
 private:
     TemporaryGraphicsItem* mParentItem;
@@ -56,24 +71,9 @@ signals:
     void hovered();
     void stateChanged();
     void geometryChanged(const QPointF& pos);
+private slots:
+    void onStateChanged();
 
-    // QGraphicsItem interface
-public:
-    QRectF boundingRect() const override;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-
-
-protected:
-    void hoverEnterEvent(QGraphicsSceneHoverEvent *event) override;
-    void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override;
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-
-    // TemporaryGraphicsItem interface
-private:
-    VectorFeatureStyle *generateStyle() override;
 };
 
 inline QDebug operator<<(QDebug debug, VertexState state) {

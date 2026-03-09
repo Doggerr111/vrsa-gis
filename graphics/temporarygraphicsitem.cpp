@@ -29,9 +29,8 @@ void vrsa::graphics::TemporaryGraphicsItem::setGeometry(const geometry::Geometry
 //    qDebug() << "Flags:" << flags();
 //    qDebug() << "Item:" << static_cast<void*>(this);
 
-    if (!scene())
-        return;
-    prepareGeometryChange();
+    if (scene())
+        prepareGeometryChange();
     //qDebug()<<std::get_if<QPointF>(&geom.variant);
     mGeom = ogr_utils::OGRConverter::toOGR_uniquePTR(geom);
     mRenderer->update();
@@ -49,7 +48,7 @@ void vrsa::graphics::TemporaryGraphicsItem::setupRenderer()
 vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::generateStyle()
 {
 
-    //qDebug()<<"TemporaryGraphicsItem generateStyle()";
+    qDebug()<<"TemporaryGraphicsItem generateStyle()";
     switch (mRole)
     {
     case TemporaryItemRole::Digitizing:
