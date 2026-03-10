@@ -5,58 +5,42 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include "vector/vectorlayer.h"
-#include "vector/vectordataset.h"
-#include "raster/rasterdataset.h"
-#include "common/GisDefines.h"
-#include "common/GisTypes.h"
 #include <gdal_priv.h>
-#include "gdal/gdalresourcehandles.h"
-#include "common/logger.h"
-#include "common/gisexceptions.h"
-
-
-
-
 
 namespace vrsa
 {
+namespace common
+{
+enum class DatasetType : int;
+}
+namespace vector
+{
+    class VectorDataset;
+    class VectorLayer;
+    class VectorFeature;
+}
+namespace raster
+{
+    class RasterChannel;
+}
 namespace gdalwrapper
 {
+    class Dataset;
 
 /**
  * @english
- * @brief GDAL Reader - provides functionality for reading both vector and raster datasets
- * through GDAL library. Supports multiple formats (Shapefile, GeoJSON, GPKG, GeoTIFF, JPEG, etc.)
- * @details The reader can handle both vector data (points, lines, polygons) and raster data (images, DEMs).
+ * @brief GDAL Reader - provides functionality to convert GDAL data structures to internal ones
+ * @details The reader can handle both vector and raster data.
  * @endenglish
  * @russian
- * @brief Чтение данных через GDAL - предоставляет функциональность для чтения
- * как векторных, так и растровых наборов данных через библиотеку GDAL.
- * Поддерживает множественные форматы (Shapefile, GeoJSON, GPKG, GeoTIFF, JPEG и др.)
- * @details Может обрабатывать как векторные данные (точки, линии, полигоны),
- * так и растровые данные (изображения, ЦМР).
+ * @brief GDAL Reader - конвертирует структуры GDAL во внутренний формат
+ * @details Поддерживает векторные и растровые данные.
  * @endrussian
  */
 class GDALReader {
 public:
-    /**
-    * @english
-    * @brief Default constructor
-    * @endenglish
-    * @russian
-    * @brief Конструктор по умолчанию
-    * @endrussian
-    */
+
     GDALReader();
-    /**
-    * @english
-    * @brief Default destructor
-    * @endenglish
-    * @russian
-    * @brief Деструктор по умолчанию
-    * @endrussian
-    */
     ~GDALReader() = default;
 
 
@@ -80,7 +64,7 @@ public:
     std::unique_ptr<vrsa::gdalwrapper::Dataset> readDataset(const std::string& source);
 
 
-    std::vector<std::unique_ptr<vrsa::raster::RasterChannel>> readChannels(const vrsa::gdalwrapper::GdalDatasetPtr &uPtrDs);
+    std::vector<std::unique_ptr<vrsa::raster::RasterChannel>> readChannels(GDALDataset* ds);
     /**
     * @english
     * @brief Reads all vector layers from opened GDAL dataset
@@ -95,7 +79,7 @@ public:
     * @throws GISException если слои не могут быть прочитаны
     * @endrussian
     */
-    std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> readLayers(const vrsa::gdalwrapper::GdalDatasetPtr &uPtrDs);
+    std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> readLayers(GDALDataset* ds);
     /**
      * @english
      * @brief Converts OGR layer to internal VectorLayer representation
@@ -113,14 +97,14 @@ public:
     std::unique_ptr<vrsa::vector::VectorLayer>  convertOGRLayerToVectorLayer(OGRLayer* layer);
 
 
-    std::unique_ptr<vrsa::vector::VectorFeature> convertOGRFeatureToVectorFeature(OgrFeaturePtr &ogrFeature, OGRLayer* layer);
+    std::unique_ptr<vrsa::vector::VectorFeature> convertOGRFeatureToVectorFeature(OGRFeature* rawOgrFeature, OGRLayer* layer);
 
-    vrsa::vector::VectorFeature::AttributeValue convertOGRFieldValue(OGRFeature *feature,
-                                                                   OGRFieldDefn* fieldDef,
-                                                                   int fieldIndex);
+//    vrsa::vector::VectorFeature::AttributeValue convertOGRFieldValue(OGRFeature *feature,
+//                                                                   OGRFieldDefn* fieldDef,
+//                                                                   int fieldIndex);
 
 
-    static OGRGeometry* getOGRGeometry(const OgrFeaturePtr &feature);
+
 
 /**
     * @english
@@ -134,7 +118,7 @@ public:
     * @return DatasetType, указывающий является ли набор данных векторным, растровым или смешанным
     * @endrussian
     */
-    vrsa::common::DatasetType detectDatasetType(const vrsa::gdalwrapper::GdalDatasetPtr &uPtrDs) const;
+    vrsa::common::DatasetType detectDatasetType(GDALDataset *GdalDs) const;
 
 
 
@@ -154,10 +138,10 @@ public:
 
 
 private:
-    std::string mSource;
-    vrsa::common::BoundingBox mBounding_box_;
-    int mFeatureCount;
-    vrsa::common::GeometryType mGeometryType;
+    //    std::string mSource;
+    //    vrsa::common::BoundingBox mBounding_box;
+    //    int mFeatureCount;
+    //    vrsa::common::GeometryType mGeometryType;
 
 };
 }
