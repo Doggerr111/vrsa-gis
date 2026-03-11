@@ -11,7 +11,7 @@
 vrsa::gdalwrapper::GDALReader::GDALReader() = default;
 
 
-std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readDataset(const std::string &source)
+std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readDataset(const std::string &source) const
 {
     //создаем уникальный указатель с кастомным удалителем
     auto dS = gdalwrapper::createDataset(source, GDAL_OF_VECTOR | GDAL_OF_UPDATE);
@@ -48,7 +48,7 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readD
 }
 //TODO REFACTOR THIS....
 std::vector<std::unique_ptr<vrsa::raster::RasterChannel> > vrsa::gdalwrapper::GDALReader::readChannels
-                                                                        (GDALDataset* ds)
+                                                                        (GDALDataset* ds) const
 {
     if (!ds)
         return {};
@@ -82,7 +82,7 @@ std::vector<std::unique_ptr<vrsa::raster::RasterChannel> > vrsa::gdalwrapper::GD
 
 }
 
-std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALReader::readLayers(GDALDataset *ds)
+std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALReader::readLayers(GDALDataset *ds) const
 {
     std::string source = ds->GetDescription();
     int layerCount = ds->GetLayerCount();
@@ -130,96 +130,21 @@ std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALR
     return layers;
 }
 
-std::unique_ptr<vrsa::vector::VectorLayer> vrsa::gdalwrapper::GDALReader::convertOGRLayerToVectorLayer(OGRLayer *layer)
+std::unique_ptr<vrsa::vector::VectorLayer> vrsa::gdalwrapper::GDALReader::convertOGRLayerToVectorLayer(OGRLayer *layer) const
 {
     layer->ResetReading(); //читаем с 1 объекта (на всякий случай)
-    OGRFeature* rawOGRFeature;
-    int featureCount = 0;
+    OgrFeaturePtr ogrFeature;
     std::vector<std::unique_ptr<vector::VectorFeature>> mFeatures;
     //конвертируем во внутренние фичи
-    while ((rawOGRFeature = layer->GetNextFeature()) != nullptr)
-    {
-        mFeatures.push_back(std::make_unique<vector::VectorFeature>(OgrFeaturePtr(rawOGRFeature), layer));
-        featureCount++;
-    }
+    while ((ogrFeature = OgrFeaturePtr(layer->GetNextFeature())) != nullptr)
+        mFeatures.emplace_back(std::make_unique<vector::VectorFeature>(std::move(ogrFeature), layer));
+
 
     auto vL = std::make_unique<vector::VectorLayer>(layer);
     vL->setFeatures(std::move(mFeatures));
     return vL;
 
 }
-
-std::unique_ptr<vrsa::vector::VectorFeature> vrsa::gdalwrapper::GDALReader::convertOGRFeatureToVectorFeature
-(OGRFeature *rawOgrFeature, OGRLayer *layer)
-{
-    if (!rawOgrFeature)
-        return nullptr;
-    // передаем фичу с кастомным удалителем
-    return std::make_unique<vector::VectorFeature>(OgrFeaturePtr(rawOgrFeature), layer);
-
-
-    //TODO перенести в конструктор фичи!!!!!!!!!!!!!!!!!
-
-    //    auto ogrFeature = vectorFeature->getOGRFeature();
-    //    vectorFeature->setName(std::to_string(ogrFeature->GetFID()));
-    //    // Атрибуты
-    //    OGRFeatureDefn* featureDefn = ogrFeature->GetDefnRef();
-    //    if (featureDefn)
-    //    {
-    //        for (int i = 0; i < featureDefn->GetFieldCount(); ++i)
-    //        {
-    //            OGRFieldDefn* fieldDef = featureDefn->GetFieldDefn(i);
-    //            std::string fieldName = fieldDef->GetNameRef();
-
-    //            // Конвертируем значение поля
-    //            vector::VectorFeature::AttributeValue value = convertOGRFieldValue(ogrFeature, fieldDef, i);
-    //            vectorFeature->setAttribute(fieldName, value);
-    //        }
-    //    }
-
-    //    vectorFeature->setVisible(true);
-    //    return vectorFeature;
-}
-
-//vrsa::vector::VectorFeature::AttributeValue vrsa::gdalwrapper::GDALReader::convertOGRFieldValue(OGRFeature* ogrFeature, OGRFieldDefn *fieldDef, int fieldIndex)
-//{
-//    if (!ogrFeature->IsFieldSet(fieldIndex)) {
-//        return nullptr; // NULL значение
-//    }
-
-//    switch (fieldDef->GetType()) {
-//    case OFTInteger:
-//        return ogrFeature->GetFieldAsInteger(fieldIndex);
-
-//    case OFTInteger64:
-//        // Приводим к int (или можно использовать int64_t в variant)
-//        return static_cast<int>(ogrFeature->GetFieldAsInteger64(fieldIndex));
-
-//    case OFTReal:
-//        return ogrFeature->GetFieldAsDouble(fieldIndex);
-
-//    case OFTString:
-//        return std::string(ogrFeature->GetFieldAsString(fieldIndex));
-
-//    case OFTDate:
-//    case OFTTime:
-//    case OFTDateTime:
-//        // Даты/время конвертируем в строку
-//        return std::string(ogrFeature->GetFieldAsString(fieldIndex));
-
-//        //        case OFTIntegerList:
-//        //        case OFTInteger64List:
-//        //        case OFTRealList:
-//        //        case OFTStringList:
-//        //            // Списки конвертируем в строку
-//        //            return convertOGRListToString(ogrFeature, fieldIndex);
-
-//    default:
-//        // Для неподдерживаемых типов возвращаем строковое представление
-//        return std::string(ogrFeature->GetFieldAsString(fieldIndex));
-//    }
-//}
-
 
 vrsa::common::DatasetType vrsa::gdalwrapper::GDALReader::detectDatasetType(GDALDataset* GdalDs) const
 {
@@ -239,5 +164,9 @@ vrsa::common::DatasetType vrsa::gdalwrapper::GDALReader::detectDatasetType(GDALD
         return DatasetType::Empty;
 
 }
+
+
+
+
 
 
