@@ -63,6 +63,7 @@ file(GLOB CORE_SOURCES
     "test_utils/*.cpp"
     "geometry/*.cpp"
     "vectorlayertools/*.cpp"
+    "spatialref/*.cpp"
 )
 file(GLOB_RECURSE GRAPHICS_SOURCES "graphics/*.cpp")
 file(GLOB_RECURSE GRAPHICS_HEADERS "graphics/*.h")
@@ -81,6 +82,7 @@ file(GLOB CORE_HEADERS
     "test_utils/*.h"
     "geometry/*.h"
     "vectorlayertools/*.h"
+    "spatialref/*.h"
 )
 add_library(vrsa_core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
 #добавляем тестовые функции в ядре
@@ -99,6 +101,7 @@ target_include_directories(vrsa_core PUBLIC
     test_utils
     geometry
     vectorlayertools
+    spatialref
 
 )
 
@@ -229,12 +232,12 @@ if(BUILD_TESTS)
     )
     FetchContent_MakeAvailable(googletest)
 
-    add_executable(test_vector_feature tests/unit/test_vector_feature.cpp
+    add_executable(test_gdal_wrapper tests/unit/test_vector_feature.cpp
          tests/unit/test_vector_reader.cpp)
 
     add_executable(test_raster tests/unit/test_raster.cpp )
 
-    target_link_libraries(test_vector_feature PRIVATE
+    target_link_libraries(test_gdal_wrapper PRIVATE
         vrsa_core
         GTest::gtest_main
     )
@@ -245,7 +248,7 @@ target_link_libraries(test_raster PRIVATE
     GTest::gtest_main
 )
 
-    target_include_directories(test_vector_feature PRIVATE
+    target_include_directories(test_gdal_wrapper PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/tests
     )
 
@@ -254,7 +257,7 @@ target_include_directories(test_raster PRIVATE
 )
 
     include(GoogleTest)
-    gtest_discover_tests(test_vector_feature)
+    gtest_discover_tests(test_gdal_wrapper)
     gtest_discover_tests(test_raster)
 
     add_custom_target(run_tests
