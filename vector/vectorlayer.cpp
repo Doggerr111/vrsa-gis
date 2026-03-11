@@ -1,90 +1,77 @@
 #include "vectorlayer.h"
-
-vrsa::vector::VectorLayer::VectorLayer(OGRLayer *l)
-    :mOGRLayer{l}
+#include "gdal/ogrconverter.h"
+#include "gdal/typeconversions.h"
+#include "gdal/geometrytypeconverter.h"
+#include "graphics/vectorfeaturestyle.h"
+vrsa::vector::VectorLayer::VectorLayer(OGRLayer* ogrLayer)
+    : mOGRLayer{ogrLayer},
+      mFeatures{},
+      mZValue{-1},
+      mIsSelected{false},
+      geomType{common::GeometryType::Unknown},
+      mStyle{},
+      mStyles{}
 {
 
 }
 
-OGRLayer *vrsa::vector::VectorLayer::getOGRLayer()
-{
-    return mOGRLayer;
-}
+vrsa::vector::VectorLayer::~VectorLayer() = default;
 
-QRectF vrsa::vector::VectorLayer::getBoundingBox()
+
+QRectF vrsa::vector::VectorLayer::getBoundingBox() const
 {
     OGREnvelope envelope;
     auto er=mOGRLayer->GetExtent(&envelope, true);
     if (er!=OGRERR_NONE)
+    {
+        VRSA_LOG_GDAL_ERROR("VectorLayer", "Can't get bounding box from OGRLayer");
         return QRectF();
-    qreal minX = envelope.MinX;
-    qreal minY = envelope.MinY;
-    qreal maxX = envelope.MaxX;
-    qreal maxY = envelope.MaxY;
+    }
+    double minX = envelope.MinX;
+    double minY = envelope.MinY;
+    double maxX = envelope.MaxX;
+    double maxY = envelope.MaxY;
     return QRectF(QPointF(minX, minY), QSizeF(maxX - minX, maxY - minY));
+}
+
+OGREnvelope vrsa::vector::VectorLayer::getOGRBoundingBox() const
+{
+    OGREnvelope envelope;
+    auto er = mOGRLayer->GetExtent(&envelope, true);
+    if (er!=OGRERR_NONE)
+    {
+        VRSA_LOG_GDAL_ERROR("VectorLayer", "Can't get bounding box from OGRLayer");
+        return {};
+    }
+    return envelope;
 }
 
 std::vector<vrsa::vector::VectorFeature *> vrsa::vector::VectorLayer::getFeatures()
 {
     std::vector<VectorFeature*> ftrPtrs;
     ftrPtrs.reserve(mFeatures.size());
-    for (const auto& layer : mFeatures)
-    {
-        ftrPtrs.push_back(layer.get());
-    }
+    for (const auto& feature : mFeatures)
+        ftrPtrs.emplace_back(feature.get());
     return ftrPtrs;
 }
 
-std::vector<std::string> vrsa::vector::VectorLayer::getAttributesNames() const
-{
-    OGRFeatureDefn* defn = mOGRLayer->GetLayerDefn();
-    std::vector<std::string> names;
-    names.reserve(defn->GetFieldCount());
-    for (int i = 0; i < defn->GetFieldCount(); ++i)
-    {
-        names.push_back(defn->GetFieldDefn(i)->GetNameRef());
-    }
-    return names;
 
+vrsa::vector::VectorFeature* vrsa::vector::VectorLayer::getFeatureAt(size_t idx) noexcept
+{
+    return (idx < mFeatures.size()) ? mFeatures[idx].get() : nullptr;
 }
 
-vrsa::vector::VectorFeature* vrsa::vector::VectorLayer::getFeatureAt(size_t idx)
+const vrsa::vector::VectorFeature *vrsa::vector::VectorLayer::getFeatureAt(size_t idx) const noexcept
 {
-    return mFeatures.at(idx).get();
+    return (idx < mFeatures.size()) ? mFeatures[idx].get() : nullptr;
 }
-
-void vrsa::vector::VectorLayer::setVisible(bool visible)
-{
-    for (auto& feat : mFeatures)
-    {
-        feat->setVisible(visible);
-    }
-
-}
-
-int vrsa::vector::VectorLayer::id()
-{
-    return 2;
-}
-
-void vrsa::vector::VectorLayer::setFeatures(featuresVec features)
-{
-    mFeatures = std::move(features);
-}
-
-vrsa::common::GeometryType vrsa::vector::VectorLayer::getGeomType() const
-{
-    return gdalwrapper::GeometryTypeConverter::FromOGR(mOGRLayer->GetGeomType());
-}
-
-
 
 bool vrsa::vector::VectorLayer::addFeature(std::unique_ptr<VectorFeature> feature)
 {
     auto ogrF = feature->getOGRFeature();
     if (!ogrF)
     {
-        VRSA_ERROR("VectorLayer", "NUFeature added!");
+        VRSA_ERROR("VectorLayer", "Vector feature on input has nullptr OGRfeature");
         return false;
     }
     auto err = mOGRLayer->CreateFeature(ogrF);
@@ -98,12 +85,12 @@ bool vrsa::vector::VectorLayer::addFeature(std::unique_ptr<VectorFeature> featur
     }
     else
     {
-        VRSA_ERROR("VectorLayer", "Can't add vector feature to layer, OgrError:" + std::to_string(err));
+        VRSA_LOG_GDAL_ERROR("VectorLayer", "Can't add vector feature to layer");
         return false;
     }
 }
 
-bool vrsa::vector::VectorLayer::deleteFeature(GIntBig fid)
+bool vrsa::vector::VectorLayer::deleteFeature(int64_t fid)
 {
     if (!mOGRLayer)
     {
@@ -120,10 +107,13 @@ bool vrsa::vector::VectorLayer::deleteFeature(GIntBig fid)
     auto it = std::remove_if(mFeatures.begin(), mFeatures.end(),
                              [fid](const auto& f) {
         auto ogrF = f->getOGRFeature();
-        if (ogrF)
-            return ogrF->GetFID() == fid;
+        return ogrF && ogrF->GetFID() == fid;
     });
-    mFeatures.erase(it, mFeatures.end());
+    if (it != mFeatures.end())
+    {
+        mFeatures.erase(it, mFeatures.end());
+        emit featureRemoved(fid);
+    }
     mOGRLayer->SyncToDisk();
     return true;
 }
@@ -131,44 +121,64 @@ bool vrsa::vector::VectorLayer::deleteFeature(GIntBig fid)
 bool vrsa::vector::VectorLayer::deleteFeature(VectorFeature *feature)
 {
     if (!feature) return false;
-    return deleteFeature(feature->getOGRFeature()->GetFID());
+    if (auto ogrFeat = feature->getOGRFeature())
+        return deleteFeature(ogrFeat->GetFID());
+    return false;
 }
 
-
-
-const char *vrsa::vector::VectorLayer::getName() const
+void vrsa::vector::VectorLayer::setVisible(bool visible)
 {
-    return mOGRLayer->GetName();
+    for (const auto& feat : mFeatures)
+    {
+        if (feat)
+            feat->setVisible(visible);
+    }
+    emit visibilityChanged(visible);
 }
+
+void vrsa::vector::VectorLayer::setZValue(int zValue) noexcept
+{
+    mZValue = zValue;
+    emit ZValueChanged(mZValue);
+}
+vrsa::common::GeometryType vrsa::vector::VectorLayer::getGeomType() const
+{
+    return mOGRLayer ? gdalwrapper::FromOGR(mOGRLayer->GetGeomType()) : common::GeometryType::Unknown;
+}
+
+OGRwkbGeometryType vrsa::vector::VectorLayer::getOGRGeomType() const
+{
+    return mOGRLayer ? mOGRLayer->GetGeomType() : OGRwkbGeometryType::wkbUnknown;
+}
+
+
+
+
+
 
 
 std::vector<std::string> vrsa::vector::VectorLayer::getFieldNames() const
 {
-    if (!mFeatures.empty()) {
+    if (!mFeatures.empty())
         return mFeatures[0]->getFieldNames();
-    }
-
-    // Если нет фич, берем из OGR слоя
     std::vector<std::string> names;
-    if (mOGRLayer) {
+    if (mOGRLayer)
+    {
         OGRFeatureDefn* poDefn = mOGRLayer->GetLayerDefn();
-        for (int i = 0; i < poDefn->GetFieldCount(); i++) {
+        for (int i = 0; i < poDefn->GetFieldCount(); ++i)
             names.push_back(poDefn->GetFieldDefn(i)->GetNameRef());
-        }
     }
     return names;
 }
 
 vrsa::common::FieldType vrsa::vector::VectorLayer::getFieldType(const std::string& fieldName) const
 {
-    if (!mFieldTypesCacheValid) {
+    if (!mFieldTypesCacheValid)
         buildFieldTypesCache();
-    }
 
     auto it = mFieldTypesCache.find(fieldName);
-    if (it != mFieldTypesCache.end()) {
+    if (it != mFieldTypesCache.end())
         return it->second;
-    }
 
     return vrsa::common::FieldType::String; // по умолчанию
 }
@@ -179,10 +189,304 @@ bool vrsa::vector::VectorLayer::hasField(const std::string& fieldName) const
     return std::find(names.begin(), names.end(), fieldName) != names.end();
 }
 
-int vrsa::vector::VectorLayer::getFieldCount() const
+int vrsa::vector::VectorLayer::getFieldCount() const noexcept
 {
     return static_cast<int>(getFieldNames().size());
 }
+
+
+void vrsa::vector::VectorLayer::buildFieldTypesCache() const
+{
+    mFieldTypesCache.clear();
+
+    //собираем типы из всех фич
+    for (const auto& feature : mFeatures)
+    {
+        if (!feature) continue;
+        auto fieldNames = feature->getFieldNames();
+        for (const auto& fieldName : fieldNames)
+        {
+            auto fieldType = feature->getFieldType(fieldName);
+            mFieldTypesCache[fieldName] = fieldType;
+        }
+    }
+
+    mFieldTypesCacheValid = true;
+}
+
+void vrsa::vector::VectorLayer::setStyle(std::unique_ptr<graphics::VectorFeatureStyle> style, common::GeometryType geomType)
+{
+    mStyles.emplace(geomType, std::move(style));
+}
+
+vrsa::graphics::VectorFeatureStyle *vrsa::vector::VectorLayer::getStyle(common::GeometryType geomType) const noexcept
+{
+    auto it = mStyles.find(geomType);
+    if (it != mStyles.end()) {
+        return it->second.get();
+    }
+    return nullptr;
+};
+
+
+
+std::vector<vrsa::gdalwrapper::OgrFeaturePtr> vrsa::vector::VectorLayer::getClonedFilteredOGRFeatures(OGRGeometry *filter)
+{
+    if (!filter)
+        return {};
+
+    std::vector<vrsa::gdalwrapper::OgrFeaturePtr> result;
+    //применяем фильтр к OGR слою
+    mOGRLayer->SetSpatialFilter(filter);
+    getClonedOGRFeatures();
+    mOGRLayer->SetSpatialFilter(nullptr);
+    //mOGRLayer->SetAttributeFilter(nullptr);
+    return result;
+}
+
+std::vector<std::unique_ptr<vrsa::vector::VectorFeature> > vrsa::vector::VectorLayer::getClonedFilteredFeatures(OGRGeometry *filter)
+{
+    if (!filter)
+        return {};
+    std::vector<std::unique_ptr<VectorFeature>> result;
+
+    mOGRLayer->SetSpatialFilter(filter);
+    result = getClonedFeatures();
+    mOGRLayer->SetSpatialFilter(nullptr);
+    return result;
+}
+
+std::vector<std::unique_ptr<vrsa::vector::VectorFeature> > vrsa::vector::VectorLayer::getClonedFilteredFeatures(const geometry::Geometry &filter)
+{
+    return getClonedFilteredFeatures(ogr_utils::OGRConverter::toOGR(filter));
+}
+
+std::vector<std::unique_ptr<vrsa::vector::VectorFeature>> vrsa::vector::VectorLayer::
+                        getClonedAttributeFilteredFeatures(const std::string &attributeFilter)
+{
+    if (!mOGRLayer)
+        return {};
+    if (attributeFilter.empty())
+        return {};
+    //устанавливаем атрибутный фильтр на OGR слой
+    if (mOGRLayer->SetAttributeFilter(attributeFilter.c_str()) != OGRERR_NONE)
+        VRSA_LOG_GDAL_ERROR("VectorLayer", "Invalid attribute filter: " + attributeFilter);
+
+    auto result = getClonedFeatures();
+    mOGRLayer->SetAttributeFilter(nullptr);
+    return result;
+}
+
+std::vector<vrsa::gdalwrapper::OgrFeaturePtr> vrsa::vector::VectorLayer::getClonedAttributeFilteredOGRFeatures(const std::string &attributeFilter)
+{
+    if (!mOGRLayer)
+        return {};
+    if (attributeFilter.empty())
+        return {};
+    //устанавливаем атрибутный фильтр на OGR слой
+    if (mOGRLayer->SetAttributeFilter(attributeFilter.c_str()) != OGRERR_NONE)
+        VRSA_LOG_GDAL_ERROR("VectorLayer", "Invalid attribute filter: " + attributeFilter);
+
+    auto result = getClonedOGRFeatures();
+    mOGRLayer->SetAttributeFilter(nullptr);
+    return result;
+}
+
+std::vector<vrsa::vector::VectorFeature*> vrsa::vector::VectorLayer::getOriginalAttributeFilteredFeatures(const std::string &attributeFilter)
+{
+    if (!mOGRLayer)
+        return {};
+    if (attributeFilter.empty())
+        return {};
+    //устанавливаем атрибутный фильтр на OGR слой
+    if (mOGRLayer->SetAttributeFilter(attributeFilter.c_str()) != OGRERR_NONE)
+        VRSA_LOG_GDAL_ERROR("VectorLayer", "Invalid attribute filter: " + attributeFilter);
+
+    auto result = getOriginalFeatures();
+    mOGRLayer->SetAttributeFilter(nullptr);
+    return result;
+}
+
+std::vector<std::unique_ptr<vrsa::vector::VectorFeature> > vrsa::vector::VectorLayer::getClonedFeatures(bool reset)
+{
+    if (!mOGRLayer)
+        return{};
+    std::vector<std::unique_ptr<VectorFeature>> result;
+    if (!hasFilters()) //если нет пространственного или атрибутивного фильтра - просто отдаем сырые указатели на VectorFeature
+    {
+        result.reserve(mFeatures.size());
+        for (const auto& feat : mFeatures)
+        {
+            if (feat)
+                result.push_back(feat.get()->clone());
+            else
+                VRSA_DEBUG("VectorLayer", "Nullptr feature in mFeatures!");
+        }
+        return result;
+    }
+    result.reserve(mOGRLayer->GetFeatureCount()); //возможно учитывает пространственный фильтр поэтому вызываем через mOGRLayer
+    // Проходим по всем фичам
+    if (reset)
+        mOGRLayer->ResetReading();
+    //т.к. GetNextFeature() возвращает КОПИЮ, оборачиваем в умный указатель, чтобы не вызывать вручную DestroyFeature()
+    gdalwrapper::OgrFeaturePtr ogrFeat;
+    while ((ogrFeat = gdalwrapper::OgrFeaturePtr(mOGRLayer->GetNextFeature())) != nullptr)
+    {
+        GIntBig fid = ogrFeat->GetFID(); //fid фичи под фильтром
+        //находим совпадающие с пространственным фильтром VectorFeature
+        auto it = std::find_if(mFeatures.begin(), mFeatures.end(),
+                               [fid](const auto& feature) {
+            return feature->getOGRFeature() && feature->getOGRFeature()->GetFID() == fid;
+        });
+
+        if (it != mFeatures.end())
+            result.push_back((*it)->clone());
+    }
+
+    //mOGRLayer->SetSpatialFilter(nullptr);
+    return result;
+}
+
+std::vector<vrsa::gdalwrapper::OgrFeaturePtr> vrsa::vector::VectorLayer::getClonedOGRFeatures(bool reset)
+{
+    if (!mOGRLayer)
+        return{};
+    std::vector<vrsa::gdalwrapper::OgrFeaturePtr> result;
+    if (!hasFilters()) //если нет пространственного или атрибутивного фильтра - просто отдаем сырые указатели на VectorFeature
+    {
+        result.reserve(mFeatures.size());
+        for (const auto& feat : mFeatures)
+        {
+            if (feat)
+            {
+                if (auto ogrFeat = feat->getOGRFeature())
+                    result.emplace_back(gdalwrapper::OgrFeaturePtr(ogrFeat->Clone()));
+            }
+            else
+                VRSA_DEBUG("VectorLayer", "Nullptr OGRfeature in mFeatures!");
+        }
+        return result;
+    }
+    result.reserve(mOGRLayer->GetFeatureCount()); //возможно учитывает пространственный фильтр поэтому вызываем через mOGRLayer
+    if (reset)
+        mOGRLayer->ResetReading();
+    //т.к. GetNextFeature() возвращает КОПИЮ, оборачиваем в умный указатель и добавляем
+    gdalwrapper::OgrFeaturePtr ogrFeat;
+    while ((ogrFeat = gdalwrapper::OgrFeaturePtr(mOGRLayer->GetNextFeature())) != nullptr)
+        result.push_back(std::move(ogrFeat));
+    return result;
+}
+
+std::vector<vrsa::vector::VectorFeature*> vrsa::vector::VectorLayer::getOriginalFeatures(bool reset)
+{
+    if (!mOGRLayer)
+        return{};
+    std::vector<VectorFeature*> result;
+    if (!hasFilters()) //если нет пространственного или атрибутивного фильтра - просто отдаем сырые указатели на VectorFeature
+    {
+        result.reserve(mFeatures.size());
+        for (const auto& feat : mFeatures)
+            if (feat)
+                result.push_back(feat.get());
+            else
+                VRSA_DEBUG("VectorLayer", "Nullptr feature in mFeatures!");
+        return result;
+    }
+    // если есть фильтр проходим по фичам через gdal api
+    result.reserve(mOGRLayer->GetFeatureCount());
+    if (reset)
+        mOGRLayer->ResetReading();
+    //т.к. GetNextFeature() возвращает КОПИЮ, оборачиваем в умный указатель, чтобы не вызывать вручную DestroyFeature()
+    gdalwrapper::OgrFeaturePtr ogrFeat;
+    while ((ogrFeat = gdalwrapper::OgrFeaturePtr(mOGRLayer->GetNextFeature())) != nullptr)
+    {
+        GIntBig fid = ogrFeat->GetFID(); //fid фичи под фильтром
+        //находим совпадающие с пространственным фильтром VectorFeature
+        auto it = std::find_if(mFeatures.begin(), mFeatures.end(),
+                               [fid](const auto& feature) {
+            return feature->getOGRFeature() && feature->getOGRFeature()->GetFID() == fid;
+        });
+
+        if (it != mFeatures.end())
+            result.push_back(it->get());
+    }
+    return result;
+
+}
+
+bool vrsa::vector::VectorLayer::hasSpatialFilter() const
+{
+    if (!mOGRLayer)
+        return false;
+    return mOGRLayer->GetSpatialFilter() != nullptr;
+}
+
+bool vrsa::vector::VectorLayer::hasAttributeFilter() const
+{
+    if (!mOGRLayer)
+        return false;
+    return mOGRLayer->GetAttrQueryString() != nullptr;
+}
+
+bool vrsa::vector::VectorLayer::hasFilters() const
+{
+    return hasSpatialFilter() || hasAttributeFilter();
+}
+
+bool vrsa::vector::VectorLayer::setSpatialFilter(OGRGeometry *filter)
+{
+    if (!mOGRLayer || !filter)
+        return false;
+    mOGRLayer->SetSpatialFilter(filter);
+    return true;
+}
+
+bool vrsa::vector::VectorLayer::setSpatialFilter(geometry::Geometry filter)
+{
+    auto ogrGeom = ogr_utils::OGRConverter::toOGR(filter);
+    if (!mOGRLayer || !ogrGeom)
+        return false;
+    mOGRLayer->SetSpatialFilter(ogrGeom);
+    return true;
+
+}
+
+bool vrsa::vector::VectorLayer::setAttributeFilter(const std::string &filter)
+{
+    if(!mOGRLayer && filter.empty())
+        return false;
+    if (mOGRLayer->SetAttributeFilter(filter.c_str()) != OGRERR_NONE)
+    {
+        VRSA_LOG_GDAL_ERROR("VectorLayer", "Invalid attribute filter: " + filter);
+        return false;
+    }
+    return true;
+}
+
+OGRGeometry *vrsa::vector::VectorLayer::getSpatialOGRFilter()
+{
+    if (hasSpatialFilter())
+        return mOGRLayer->GetSpatialFilter();
+    return nullptr;
+}
+
+vrsa::geometry::Geometry vrsa::vector::VectorLayer::getSpatialFilter()
+{
+    if (hasSpatialFilter())
+        return ogr_utils::OGRConverter::fromOGR(mOGRLayer->GetSpatialFilter());
+    geometry::Geometry unknown;
+    unknown.type = common::GeometryType::Unknown;
+    return unknown;
+}
+
+std::string vrsa::vector::VectorLayer::getAttributeFilter(const std::string &filter)
+{
+    if (hasAttributeFilter())
+        return mOGRLayer->GetAttrQueryString();
+    return {};
+}
+
+
 
 bool vrsa::vector::VectorLayer::hasMultiGeometry() const
 {
@@ -197,7 +501,7 @@ bool vrsa::vector::VectorLayer::hasMultiGeometry() const
 std::unique_ptr<vrsa::vector::VectorLayer> vrsa::vector::VectorLayer::createExplodedLayer(const std::string& newLayerName) const
 {
     std::string layerName = newLayerName.empty() ?
-                           std::string(getName()) + "_exploded" : newLayerName;
+                std::string(getName()) + "_exploded" : newLayerName;
 
     auto newLayer = std::make_unique<VectorLayer>(nullptr);
     // Здесь нужно создать новый слой без OGRLayer или с новым OGRLayer
@@ -224,8 +528,8 @@ std::unique_ptr<vrsa::vector::VectorLayer> vrsa::vector::VectorLayer::createExpl
 }
 
 GDALDataset* vrsa::vector::VectorLayer::exportToGDALDataset(const std::string& format,
-                                              const std::string& outputPath,
-                                              bool explodeMultiGeometries) const
+                                                            const std::string& outputPath,
+                                                            bool explodeMultiGeometries) const
 {
     GDALAllRegister();
 
@@ -258,11 +562,11 @@ GDALDataset* vrsa::vector::VectorLayer::exportToGDALDataset(const std::string& f
 
     // Создаем слой
     OGRLayer* poLayer = poDS->CreateLayer(
-        getName(),
-        nullptr,
-        targetGeomType,
-        NULL
-    );
+                getName(),
+                nullptr,
+                targetGeomType,
+                NULL
+                );
 
     if (!poLayer) {
         VRSA_DEBUG("ERROR", "Failed to create layer");
@@ -353,29 +657,11 @@ GDALDataset* vrsa::vector::VectorLayer::exportToGDALDataset(const std::string& f
     }
 
     VRSA_DEBUG("INFO", "Exported " + std::to_string(featureCount) +
-              " features to dataset");
+               " features to dataset");
 
     return poDS;
 }
 
-// Вспомогательные методы
-void vrsa::vector::VectorLayer::buildFieldTypesCache() const
-{
-    mFieldTypesCache.clear();
-
-    // Собираем типы из всех фич
-    for (const auto& feature : mFeatures) {
-        if (!feature) continue;
-
-        auto fieldNames = feature->getFieldNames();
-        for (const auto& fieldName : fieldNames) {
-            auto fieldType = feature->getFieldType(fieldName);
-            mFieldTypesCache[fieldName] = fieldType;
-        }
-    }
-
-    mFieldTypesCacheValid = true;
-}
 
 //OGRwkbGeometryType vrsa::vector::VectorLayer::convertToOGRGeometryType(vrsa::common::GeometryType type) const
 //{
@@ -414,4 +700,17 @@ void vrsa::vector::VectorLayer::buildFieldTypesCache() const
 //        case wkbGeometryCollection: return wkbUnknown;
 //        default: return flat;
 //    }
+//}
+
+//std::vector<std::string> vrsa::vector::VectorLayer::getAttributesNames() const
+//{
+//    OGRFeatureDefn* defn = mOGRLayer->GetLayerDefn();
+//    std::vector<std::string> names;
+//    names.reserve(defn->GetFieldCount());
+//    for (int i = 0; i < defn->GetFieldCount(); ++i)
+//    {
+//        names.push_back(defn->GetFieldDefn(i)->GetNameRef());
+//    }
+//    return names;
+
 //}
