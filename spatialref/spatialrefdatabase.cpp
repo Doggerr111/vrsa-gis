@@ -227,7 +227,7 @@ std::vector<vrsa::spatialref::SpatialReferenceDatabase::CRSInfo> vrsa::spatialre
 
     //PZ-90.11 Ellipsoidal 3D CS
     list.emplace_back(
-                "PZ-90.11 Ellipsoidal 3D CS ",
+                "PZ-90.11 Ellipsoidal 3D CS",
                 "EPSG",
                 7680,
                 "+proj=longlat +a=6378136 +rf=298.257839303 +no_defs +type=crs",
@@ -255,9 +255,6 @@ std::vector<vrsa::spatialref::SpatialReferenceDatabase::CRSInfo> vrsa::spatialre
                 BBOX[-90,-180,90,180]],
                 ID["EPSG",7680]] )WKT_Delimiter",
                 false);
-
-
-
-
+    return list;
 
 }
