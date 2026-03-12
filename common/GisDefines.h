@@ -37,7 +37,7 @@ enum class DatasetType {
     Empty
 };
 
-enum class CrsFormat {
+enum class CRSDesctiptionFormat {
     WKT,
     Proj,
     EPSG
@@ -93,7 +93,8 @@ enum class FieldType {
     Unknown       // неизвестный тип
 };
 
-inline const char* fieldTypeToString(FieldType type) {
+inline const char* fieldTypeToString(FieldType type)
+{
     switch(type) {
         case FieldType::Integer: return "Integer";
         case FieldType::Integer64: return "Integer64";
@@ -108,7 +109,14 @@ inline const char* fieldTypeToString(FieldType type) {
     }
 }
 
-inline QDebug operator<<(QDebug debug, GeometryType type) {
+inline QDebug operator<<(QDebug debug, FieldType type)
+{
+    debug << fieldTypeToString(type);
+    return debug;
+}
+
+inline QDebug operator<<(QDebug debug, GeometryType type)
+{
     switch (type) {
         case GeometryType::Unknown: debug << "Unknown"; break;
         case GeometryType::Point: debug << "Point"; break;
@@ -254,29 +262,22 @@ inline const QColor VERTEX_OUTLINE_COLOR = QColor(40, 40, 40, 180);
 
 inline constexpr PointSymbolType VERTEX_MIDDLE_POINT_TYPE = PointSymbolType::Plus;
 
-
-
-
-
-
-
-
-
-
-
-
-
-class Types
+//====константы для векторных данных=====
+inline const std::vector<std::string> CORE_VECTOR_FORMATS =
 {
-public:
-    enum class Crs {};
-
-    enum class Drivers{
-        ESRIShapefile
-    };
-
-    Types();
+    "ESRI Shapefile",  // это база
+    "GeoJSON",         // веб-формат
+    "GPKG",            // современный стандарт
+    "Memory"           // данные хранятся в оперативной памяти (для тестов и временных данных)
 };
+
+
+//====константы для тестирования====
+#ifdef VRSA_ENABLE_TEST_UTILS
+inline const std::string TEST_VECTOR_DATA_FOLDER("/TEST/TEST_VECTOR_DATA");
+inline const std::string TEST_RASTER_DATA_FOLDER("/TEST/TEST_RASTER_DATA");
+#endif //VRSA_ENABLE_TEST_UTILS
+
 
 }
 }
