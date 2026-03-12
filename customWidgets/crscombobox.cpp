@@ -1,38 +1,12 @@
 #include "crscombobox.h"
 #include <QDebug>
-
+#include "spatialref/spatialrefdatabase.h"
 CRSComboBox::CRSComboBox(QWidget* parent)
     : QComboBox(parent)
 {
+    int index = 0;
+    for (const auto& crsInfo: vrsa::spatialref::SpatialReferenceDatabase::instance().getPredefinedCRSs())
+        addItem(QString::fromStdString(crsInfo.name), index++);
 
-    for (const auto& crs: vrsa::georef::SpatialReferenceLibrary::getInstance().GetAvaliableSystems())
-        addItem(QString::fromStdString(crs));
-
-    //connect(&vrsa::georef::SpatialReferenceLibrary::getInstance(),SIGNAL(newCRS()),this,SLOT(updateCRS()));
-    //QObject::connect(LIPProject::getInstance(), &LIPProject::newCRS, this, &LIPCRSComboBox::updateCRS);
-    //connect(LIPProject::getInstance(), &LIPProject::newCRS, this, &LIPCRSComboBox::updateCRS);
-}
-
-/*LIPCoordinateSystem *LIPCRSComboBox::getCurrentCRS()
-{
-    for (LIPCoordinateSystem *crs: LIPProject::getInstance().getCoordinateSystems())
-    {
-        if (crs->getName()==currentText())
-        {
-            return crs;
-        }
-    }
-    return nullptr;
-}*/
-
-void CRSComboBox::updateCRS()
-{
-//    clear();
-//    foreach(LIPCoordinateSystem *crs, LIPProject::getInstance().getCoordinateSystems())
-//    {
-//        addItem(crs->getName());
-//        //setItemData(index, layer->returnFileName());
-//        //index++;
-//    }
 }
 
