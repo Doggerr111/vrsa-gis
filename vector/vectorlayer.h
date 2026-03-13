@@ -38,7 +38,7 @@ public:
     VectorLayer& operator=(VectorLayer&&)      = delete;
     ~VectorLayer();
     
-    void setFeatures(featuresVec features) { mFeatures = std::move(features); };
+    void setFeatures(featuresVec features);
     inline std::size_t getFeaturesCount() const noexcept { return mFeatures.size(); }
 
     const char * getName()         const { return mOGRLayer ? mOGRLayer->GetName() : "Unknown"; };
@@ -144,10 +144,10 @@ public:
 
 
     void setStyle(std::unique_ptr<graphics::VectorFeatureStyle> style, common::GeometryType geomType);
-    graphics::VectorFeatureStyle* getStyle(common::GeometryType geomType) const noexcept;
-
+    graphics::VectorFeatureStyle* getStyle() const noexcept;
     void setVisible(bool visible);
     void setZValue(int zValue) noexcept;
+    int getZValue() const noexcept {return mZValue; };
 
 
 
@@ -211,12 +211,16 @@ public:
 
 private:
     void buildFieldTypesCache() const;
+    void applyStyleToFeatures();
+    void applyZValueToFeatures();
 
 signals:
     void featureAdded(VectorFeature*);
     void featureRemoved(int64_t);
     void visibilityChanged(bool);
     void ZValueChanged(int);
+
+    void styleChanged(graphics::VectorFeatureStyle* newStyle);
 
 private:
     OGRLayer *mOGRLayer;

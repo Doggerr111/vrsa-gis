@@ -9,10 +9,17 @@ vrsa::vector::VectorLayer::VectorLayer(OGRLayer* ogrLayer)
       mZValue{-1},
       mIsSelected{false},
       geomType{common::GeometryType::Unknown},
-      mStyle{},
+      mStyle{graphics::VectorFeatureStyle::createDefaultVectorStyle(getGeomType())},
       mStyles{}
 {
+    if (mStyle)
+        applyStyleToFeatures();
+}
 
+void vrsa::vector::VectorLayer::setFeatures(featuresVec features)
+{
+    mFeatures = std::move(features);
+    applyStyleToFeatures();
 }
 
 vrsa::vector::VectorLayer::~VectorLayer() = default;
@@ -139,6 +146,7 @@ void vrsa::vector::VectorLayer::setVisible(bool visible)
 void vrsa::vector::VectorLayer::setZValue(int zValue) noexcept
 {
     mZValue = zValue;
+    applyZValueToFeatures();
     emit ZValueChanged(mZValue);
 }
 vrsa::common::GeometryType vrsa::vector::VectorLayer::getGeomType() const
@@ -216,16 +224,46 @@ void vrsa::vector::VectorLayer::buildFieldTypesCache() const
 
 void vrsa::vector::VectorLayer::setStyle(std::unique_ptr<graphics::VectorFeatureStyle> style, common::GeometryType geomType)
 {
-    mStyles.emplace(geomType, std::move(style));
+    mStyle = std::move(style);
+    //mStyles.emplace(geomType, std::move(style));
+    applyStyleToFeatures();
 }
 
-vrsa::graphics::VectorFeatureStyle *vrsa::vector::VectorLayer::getStyle(common::GeometryType geomType) const noexcept
+vrsa::graphics::VectorFeatureStyle *vrsa::vector::VectorLayer::getStyle() const noexcept
 {
-    auto it = mStyles.find(geomType);
-    if (it != mStyles.end()) {
-        return it->second.get();
+    return mStyle.get();
+}
+
+//vrsa::graphics::VectorFeatureStyle *vrsa::vector::VectorLayer::getStyle(common::GeometryType geomType) const noexcept
+//{
+//    auto it = mStyles.find(geomType);
+//    if (it != mStyles.end()) {
+//        return it->second.get();
+//    }
+//    return nullptr;
+//}
+
+void vrsa::vector::VectorLayer::applyStyleToFeatures()
+{
+    for (const auto& feature: mFeatures)
+    {
+        if (feature)
+            feature->setStyle(mStyle.get());
+        else
+            VRSA_DEBUG("VectorLayer", "Nullptr feature detected");
     }
-    return nullptr;
+}
+
+void vrsa::vector::VectorLayer::applyZValueToFeatures()
+{
+    for (const auto& feature: mFeatures)
+    {
+        if (feature)
+            feature->setZValue(mZValue);
+        else
+            VRSA_DEBUG("VectorLayer", "Nullptr feature detected");
+
+    }
 };
 
 
