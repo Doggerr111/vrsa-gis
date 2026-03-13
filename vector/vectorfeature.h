@@ -12,6 +12,10 @@ namespace common
 enum class GeometryType : int;
 enum class FieldType : int;
 }
+namespace graphics
+{
+class VectorFeatureStyle;
+}
 namespace geometry
 {
 class Geometry;
@@ -166,16 +170,11 @@ public:
      * @param selected Новое состояние выделения
      */
     void setSelected(bool selected);
+    void setStyle(graphics::VectorFeatureStyle* newStyle);
+    graphics::VectorFeatureStyle*  getStyle() noexcept { return mStyle; };
+    void setZValue(int zVal);
+    int getZValue() const noexcept {return mZValue; };
 
-    /**
-     * @english @brief Creates new empty feature for given layer
-     * @param parentLayer Layer that will own this feature
-     * @return New feature or nullptr on error
-     *
-     * @russian @brief Создает новый пустой векторный объект для указанного слоя
-     * @param parentLayer Слой-владелец объекта
-     * @return Новый векторный объект или nullptr при ошибке
-     */
 
 //=======================АТТРИБУТЫ==============================
 
@@ -317,6 +316,16 @@ public:
     [[deprecated("Use getFieldNames() instead")]]
     std::vector<std::string> getAttributeNames() const;
 
+
+    /**
+     * @english @brief Creates new empty feature for given layer
+     * @param parentLayer Layer that will own this feature
+     * @return New feature or nullptr on error
+     *
+     * @russian @brief Создает новый пустой векторный объект для указанного слоя
+     * @param parentLayer Слой-владелец объекта
+     * @return Новый векторный объект или nullptr при ошибке
+     */
     static std::unique_ptr<vrsa::vector::VectorFeature> createFeature(VectorLayer *parentLayer);
 
 signals:
@@ -324,6 +333,8 @@ signals:
     void selectionChanged(bool);
     void geometryChanged();
     void featureChanged();
+    void styleChanged(graphics::VectorFeatureStyle* style);
+    void ZValueChanged(int zValue);
     //void featureSelected();
     //void attributesChanged(const std::string& name, const AttributeValue& value)
 
@@ -361,7 +372,8 @@ private:
     AttributeMap mAttributes;
     bool mIsVisible;
     bool mIsSelected;
-
+    graphics::VectorFeatureStyle* mStyle;
+    int mZValue;
 
 };
 

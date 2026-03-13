@@ -1,10 +1,15 @@
 #include "vectorfeature.h"
 #include "vector/vectorlayer.h"
 #include "gdal/ogrconverter.h"
+#include "gdal/geometrytypeconverter.h"
 #include "geometry/geometry.h"
+#include "graphics/vectorfeaturestyle.h"
+#include "gdal/typeconversions.h"
 vrsa::vector::VectorFeature::VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr rawFeature, OGRLayer* layer)
     : mFeature{std::move(rawFeature)},
-      mParentLayer{layer}
+      mParentLayer{layer},
+      mZValue{-1},
+      mStyle{nullptr}
 {
     if (mFeature)
     {
@@ -131,6 +136,18 @@ void vrsa::vector::VectorFeature::setSelected(bool selected)
     emit selectionChanged(mIsSelected);
 }
 
+void vrsa::vector::VectorFeature::setStyle(graphics::VectorFeatureStyle *newStyle)
+{
+    mStyle = newStyle;
+    emit styleChanged(mStyle);
+}
+
+void vrsa::vector::VectorFeature::setZValue(int zVal)
+{
+    mZValue = zVal;
+    emit ZValueChanged(mZValue);
+}
+
 vrsa::common::GeometryType vrsa::vector::VectorFeature::getType() const
 {
     if (!mFeature)
@@ -139,6 +156,14 @@ vrsa::common::GeometryType vrsa::vector::VectorFeature::getType() const
     if (!featGeom)
         return vrsa::common::GeometryType::Unknown;
     return vrsa::gdalwrapper::GeometryTypeConverter::FromOGR(featGeom->getGeometryType());
+}
+
+vrsa::common::GeometryType vrsa::vector::VectorFeature::getGeometryType() const
+{
+    if (!mFeature)
+        return common::GeometryType::Unknown;
+    auto featGeom = mFeature->GetGeometryRef();
+    return featGeom ? gdalwrapper::FromOGR(featGeom->getGeometryType()) : common::GeometryType::Unknown;
 }
 
 OGRwkbGeometryType vrsa::vector::VectorFeature::getOGRGeometryType() const
@@ -257,9 +282,11 @@ std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::create
         VRSA_ERROR("VectorFeature", "Can't create feature: passed VectorLayer has incorrect layer definition");
         return nullptr;
     }
-
+    auto vrsaFeat = std::make_unique<VectorFeature>(vrsa::gdalwrapper::OgrFeaturePtr(feature), ogrL);
+    vrsaFeat->setStyle(parentLayer->getStyle());
+    vrsaFeat->setZValue(parentLayer->getZValue());
     VRSA_DEBUG("VectorFeature", "Feature successfully created");
-    return std::make_unique<VectorFeature>(vrsa::gdalwrapper::OgrFeaturePtr(feature), ogrL);
+    return vrsaFeat;
 }
 
 
@@ -360,7 +387,9 @@ std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::clone(
 {
     if (!mFeature) return nullptr;
     auto geom = mFeature->GetGeometryRef();
-    auto newFeature = std::make_unique<VectorFeature>(nullptr, mParentLayer);
+    OGRFeature* clonedOGR = mFeature->Clone();
+    if (!clonedOGR) return nullptr;
+    auto newFeature = std::make_unique<VectorFeature>(gdalwrapper::OgrFeaturePtr(clonedOGR), mParentLayer);
     if (!newFeature) return nullptr;
     if (geom)
     {
