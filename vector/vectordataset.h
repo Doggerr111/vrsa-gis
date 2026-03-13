@@ -26,13 +26,13 @@ class VectorDataset: public vrsa::gdalwrapper::Dataset
 {
     using vecLayers=std::vector<std::unique_ptr<vrsa::vector::VectorLayer>>;
 public:
-    VectorDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, const std::string source, vecLayers = vecLayers());
-    std::size_t layersCount();
-    std::unique_ptr<VectorLayer>& getLayer(size_t index);
-    inline vecLayers& getLayers()
-    {
-        return mLayers;
-    }
+    VectorDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, vecLayers = vecLayers());
+    inline std::size_t layersCount()     const noexcept {return mLayers.size();};
+    inline VectorLayer* getLayer(size_t index) noexcept
+                    {return (index < mLayers.size()) ? mLayers[index].get() : nullptr;};
+    inline const VectorLayer* getLayer(size_t index) const noexcept
+                    {return (index < mLayers.size()) ? mLayers[index].get() : nullptr;};
+    inline vecLayers& getLayers() noexcept{ return mLayers; };
     //std::string getSource();
 private:
     vecLayers mLayers;
