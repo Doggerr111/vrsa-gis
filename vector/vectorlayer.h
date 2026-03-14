@@ -210,7 +210,7 @@ public:
 
 
 private:
-    void buildFieldTypesCache() const;
+    //void buildFieldTypesCache() const;
     void applyStyleToFeatures();
     void applyZValueToFeatures();
 
@@ -233,7 +233,7 @@ private:
     vrsa::common::GeometryType geomType;
     std::unique_ptr<graphics::VectorFeatureStyle> mStyle;
     std::unordered_map<common::GeometryType, std::unique_ptr<graphics::VectorFeatureStyle>> mStyles;
-    mutable std::unordered_map<std::string, vrsa::common::FieldType> mFieldTypesCache;
+    //mutable std::unordered_map<std::string, vrsa::common::FieldType> mFieldTypesCache;
     mutable bool mFieldTypesCacheValid = false;
 
 };

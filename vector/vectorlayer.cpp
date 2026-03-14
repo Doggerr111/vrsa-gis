@@ -86,6 +86,8 @@ bool vrsa::vector::VectorLayer::addFeature(std::unique_ptr<VectorFeature> featur
     if (err == OGRERR_NONE)
     {
         VRSA_DEBUG("VectorLayer", "Feature added! FID:" + std::to_string(ogrF->GetFID()));
+        feature->setZValue(mZValue);
+        feature->setStyle(mStyle.get());
         mFeatures.push_back(std::move(feature));
         mOGRLayer->SyncToDisk();
         return true;
@@ -181,14 +183,15 @@ std::vector<std::string> vrsa::vector::VectorLayer::getFieldNames() const
 
 vrsa::common::FieldType vrsa::vector::VectorLayer::getFieldType(const std::string& fieldName) const
 {
-    if (!mFieldTypesCacheValid)
-        buildFieldTypesCache();
+    if (!mOGRLayer) return common::FieldType::Unknown;
 
-    auto it = mFieldTypesCache.find(fieldName);
-    if (it != mFieldTypesCache.end())
-        return it->second;
+    OGRFeatureDefn* poDefn = mOGRLayer->GetLayerDefn();
+    int fieldIndex = poDefn->GetFieldIndex(fieldName.c_str());
+    if (fieldIndex < 0) return common::FieldType::Unknown;
 
-    return vrsa::common::FieldType::String; // по умолчанию
+    OGRFieldDefn* poFieldDefn = poDefn->GetFieldDefn(fieldIndex);
+    return gdalwrapper::convertFromOGRFieldType(poFieldDefn->GetType());
+
 }
 
 bool vrsa::vector::VectorLayer::hasField(const std::string& fieldName) const
@@ -203,24 +206,24 @@ int vrsa::vector::VectorLayer::getFieldCount() const noexcept
 }
 
 
-void vrsa::vector::VectorLayer::buildFieldTypesCache() const
-{
-    mFieldTypesCache.clear();
+//void vrsa::vector::VectorLayer::buildFieldTypesCache() const
+//{
+//    mFieldTypesCache.clear();
 
-    //собираем типы из всех фич
-    for (const auto& feature : mFeatures)
-    {
-        if (!feature) continue;
-        auto fieldNames = feature->getFieldNames();
-        for (const auto& fieldName : fieldNames)
-        {
-            auto fieldType = feature->getFieldType(fieldName);
-            mFieldTypesCache[fieldName] = fieldType;
-        }
-    }
+//    //собираем типы из всех фич
+//    for (const auto& feature : mFeatures)
+//    {
+//        if (!feature) continue;
+//        auto fieldNames = feature->getFieldNames();
+//        for (const auto& fieldName : fieldNames)
+//        {
+//            auto fieldType = feature->getFieldType(fieldName);
+//            mFieldTypesCache[fieldName] = fieldType;
+//        }
+//    }
 
-    mFieldTypesCacheValid = true;
-}
+//    mFieldTypesCacheValid = true;
+//}
 
 void vrsa::vector::VectorLayer::setStyle(std::unique_ptr<graphics::VectorFeatureStyle> style, common::GeometryType geomType)
 {
