@@ -1,29 +1,79 @@
 #include "vectorfeature.h"
 #include "vector/vectorlayer.h"
 #include "gdal/ogrconverter.h"
-vrsa::vector::VectorFeature::VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr feature, OGRLayer* layer)
-    : mFeature{std::move(feature)},
-      mParentLayer{layer}
+#include "gdal/geometrytypeconverter.h"
+#include "geometry/geometry.h"
+#include "graphics/vectorfeaturestyle.h"
+#include "gdal/typeconversions.h"
+vrsa::vector::VectorFeature::VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr rawFeature, OGRLayer* layer)
+    : mFeature{std::move(rawFeature)},
+      mParentLayer{layer},
+      mZValue{-1},
+      mStyle{nullptr}
 {
     if (mFeature)
     {
-        mGeometry = mFeature->GetGeometryRef();
-
-        // Заполняем информацию о типах полей
-        OGRFeatureDefn* poDefn = mFeature->GetDefnRef();
-        for (int i = 0; i < poDefn->GetFieldCount(); i++) {
-            OGRFieldDefn* poFieldDefn = poDefn->GetFieldDefn(i);
-            std::string fieldName = poFieldDefn->GetNameRef();
-            mFieldTypes[fieldName] = determineFieldType(poFieldDefn);
-        }
+        //это очень замедляет загрузку больших слоев с большим количеством атрибутов, возможно не стоит так делать ...
+        constructFromOGRfeature(mFeature.get());  //cинхронизируем атрибуты
+        setVisible(true);
     }
 }
 
-void vrsa::vector::VectorFeature::setGeometry(gdalwrapper::OgrGeometryPtr ptr)
+bool vrsa::vector::VectorFeature::setGeometry(gdalwrapper::OgrGeometryPtr ptr)
 {
-    //mGeometry = std::move(ptr);
-    //    emit geometryChanged();
-    //    emit featureChanged();
+    if (!mFeature)
+        return false;
+    if (!ptr)
+    {
+        VRSA_ERROR("VectorFeature", "Error while setting geometry: nullptr OgrGeometryPtr");
+        return false;
+    }
+
+    //клонируем для передачи во владение OGRFeature
+    OGRGeometry* clone = ptr->clone();
+    if (!clone)
+        return false;
+
+    // OGRFeature сам удалит старую геометрию
+    OGRErr err = mFeature->SetGeometry(clone);
+    if (err != OGRERR_NONE)
+    {
+        VRSA_LOG_GDAL_ERROR("VectorFeature", "Can't set new geometry to OGRFeature");
+        OGRGeometryFactory::destroyGeometry(clone);
+        return false;
+    }
+
+    emit geometryChanged();
+    emit featureChanged();
+    return true;
+}
+
+bool vrsa::vector::VectorFeature::setGeometry(OGRGeometry *ogrGeom)
+{
+    if (!mFeature)
+        return false;
+    if (!ogrGeom)
+    {
+        VRSA_ERROR("VectorFeature", "Error while setting geometry: nullptr OGRGeometry pointer");
+        return false;
+    }
+
+    // cоздаем копию
+    OGRGeometry* clone = ogrGeom->clone();
+    if (!clone) return false;
+
+    // передаем владение указателем фиче
+    OGRErr err = mFeature->SetGeometry(clone);
+    if (err != OGRERR_NONE)
+    {
+        VRSA_LOG_GDAL_ERROR("VectorFeature", "Can't set new geometry to OGRFeature");
+        OGRGeometryFactory::destroyGeometry(clone);
+        return false;
+    }
+
+    emit geometryChanged();
+    emit featureChanged();
+    return true;
 }
 
 bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry)
@@ -37,14 +87,13 @@ bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry
     auto ogrGeomUPtr = ogr_utils::OGRConverter::toOGR_uniquePTR(geometry);
     if (!ogrGeomUPtr)
     {
-        VRSA_DEBUG("VectorFeature", "Can't convert new geometry to OGRGeometry.");
+        VRSA_DEBUG("VectorFeature", "Can't convert internal geometry to OGRGeometry.");
         return false;
     }
     auto setGeomError = mFeature->SetGeometry(ogrGeomUPtr.get());
     if (setGeomError != OGRERR_NONE)
     {
-        VRSA_DEBUG("VectorFeature", "Can't set new geometry to OGRFeature. "
-                                    "OGR error: " + std::to_string(setGeomError) + " " + CPLGetLastErrorMsg());
+        VRSA_LOG_GDAL_ERROR("VectorFeature", "Can't set new geometry to OGRFeature");
         return false;
     }
     else if (!mParentLayer)
@@ -58,42 +107,45 @@ bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry
     {
         const char* errorMsg = CPLGetLastErrorMsg();
         qDebug()<<"vectorfeature " << errorMsg;
-        VRSA_WARNING("VectorFeature", "Geometry was successfully set to the feature, but failed to update in OGRLayer."
-                   "The feature may not have been added to the layer yet. If you digitizing, ignore this warning. "
-                                    "OGR error: " + std::to_string(setFeatureError)
-                   + " " + CPLGetLastErrorMsg() );
+        VRSA_LOG_GDAL_ERROR("VectorFeature", "Geometry was successfully set to the feature, but failed to update in OGRLayer."
+                            "The feature may not have been added to the layer yet. If you digitizing, ignore this error. ");
 
         return true;
     }
     VRSA_DEBUG("VectorFeature", "Geometry was successfully set to the feature and updated in OGRLayer.");
-    qDebug()<< "VECTOR FEATURE NEW GEOM - " << mFeature->GetGeometryRef();
-    char* WKTNEW = nullptr;
-    mFeature->GetGeometryRef()->exportToWkt(&WKTNEW);
-    qDebug() << "NEW GEOM WKT:" << WKTNEW;
-    CPLFree(WKTNEW);
+//    qDebug()<< "VECTOR FEATURE NEW GEOM - " << mFeature->GetGeometryRef();
+//    char* WKTNEW = nullptr;
+//    mFeature->GetGeometryRef()->exportToWkt(&WKTNEW);
+//    qDebug() << "NEW GEOM WKT:" << WKTNEW;
+//    CPLFree(WKTNEW);
+    emit geometryChanged();
+    emit featureChanged();
     return true;
 }
 
 
-
-void vrsa::vector::VectorFeature::setName(const std::string& name) {
-    if (mName != name) {
-        mName = name;
-        //emit featureChanged();
-    }
-}
-
-
-void vrsa::vector::VectorFeature::setAttribute(const std::string& name, const AttributeValue& value) {
-    mAttributes[name] = value;
-    //emit attributesChanged();
-    //emit featureChanged();
-}
-
 void vrsa::vector::VectorFeature::setVisible(bool visible)
 {
-    mVisible = visible;
+    mIsVisible = visible;
     emit visibilityChanged(visible);
+}
+
+void vrsa::vector::VectorFeature::setSelected(bool selected)
+{
+    mIsSelected = selected;
+    emit selectionChanged(mIsSelected);
+}
+
+void vrsa::vector::VectorFeature::setStyle(graphics::VectorFeatureStyle *newStyle)
+{
+    mStyle = newStyle;
+    emit styleChanged(mStyle);
+}
+
+void vrsa::vector::VectorFeature::setZValue(int zVal)
+{
+    mZValue = zVal;
+    emit ZValueChanged(mZValue);
 }
 
 vrsa::common::GeometryType vrsa::vector::VectorFeature::getType() const
@@ -106,73 +158,57 @@ vrsa::common::GeometryType vrsa::vector::VectorFeature::getType() const
     return vrsa::gdalwrapper::GeometryTypeConverter::FromOGR(featGeom->getGeometryType());
 }
 
+vrsa::common::GeometryType vrsa::vector::VectorFeature::getGeometryType() const
+{
+    if (!mFeature)
+        return common::GeometryType::Unknown;
+    auto featGeom = mFeature->GetGeometryRef();
+    return featGeom ? gdalwrapper::FromOGR(featGeom->getGeometryType()) : common::GeometryType::Unknown;
+}
+
+OGRwkbGeometryType vrsa::vector::VectorFeature::getOGRGeometryType() const
+{
+    if (!mFeature)
+        return OGRwkbGeometryType::wkbUnknown;
+    auto featGeom = mFeature->GetGeometryRef();
+    return featGeom ? featGeom->getGeometryType() : OGRwkbGeometryType::wkbUnknown;
+
+}
+
 OGRGeometry *vrsa::vector::VectorFeature::getOGRGeometry() const
 {
-    return mFeature->GetGeometryRef();
+    //возвращается оригинальная геометрия
+    return mFeature ? mFeature->GetGeometryRef(): nullptr;
+}
+
+vrsa::gdalwrapper::OgrGeometryPtr vrsa::vector::VectorFeature::cloneOGRGeometry() const
+{
+    if (!mFeature) return nullptr;
+    OGRGeometry* geom = mFeature->GetGeometryRef(); //для клонирования
+    return geom ? vrsa::gdalwrapper::OgrGeometryPtr(geom->clone()) : nullptr;
+}
+
+vrsa::geometry::Geometry vrsa::vector::VectorFeature::getInternalGeometry() const
+{
+    return mFeature ? ogr_utils::OGRConverter::fromOGR(mFeature->GetGeometryRef()) : geometry::Geometry();
 }
 
 vrsa::vector::VectorFeature::AttributeValue vrsa::vector::VectorFeature::getAttribute(const std::string &name) const
 {
-
     auto it = mAttributes.find(name);
     if (it != mAttributes.end())
         return it->second;
-
-    //    if (mFeature)
-    //    {
-    //        int fieldIndex = mFeature->GetFieldIndex(name.c_str());
-    //        if (fieldIndex >= 0)
-    //        {
-    //            AttributeValue value = readAttributeFromOGR(fieldIndex);
-    //            const_cast<VectorFeature*>(this)->mAttributes[name] = value;
-    //            return value;
-    //        }
-    //    }
-
     return nullptr;
-
 }
 
-QVariant vrsa::vector::VectorFeature::getAttributeAsQVariant(const std::string &name) const
-{
 
-    auto it = mAttributes.find(name);
-    if (it != mAttributes.end())
-    {
-        auto value = it->second;
-        return std::visit([](auto&& arg) -> QVariant {
-            using T = std::decay_t<decltype(arg)>;
-
-            if constexpr (std::is_same_v<T, std::nullptr_t>) {
-                return QVariant("NULL"); // или QVariant()
-            }
-            else if constexpr (std::is_same_v<T, int>) {
-                return QVariant(arg);
-            }
-            else if constexpr (std::is_same_v<T, double>) {
-                return QVariant(arg);
-            }
-            else if constexpr (std::is_same_v<T, std::string>) {
-                return QVariant(QString::fromStdString(arg));
-            }
-            else if constexpr (std::is_same_v<T, bool>) {
-                return QVariant(arg);
-            }
-            else {
-                return QVariant();
-            }
-        }, value);
-    }
-    return QVariant();
-}
 
 std::unordered_map<std::string, std::string> vrsa::vector::VectorFeature::getAttributesAsString() const
 {
     std::unordered_map<std::string, std::string> attributes;
-    for (const auto& attr: mAttributes)
-    {
-        attributes.insert({attr.first, getAttributeAsString(attr.first)});
-    }
+    attributes.reserve(mAttributes.size());
+    for (const auto& [name, value] : mAttributes)
+        attributes.emplace(name, getAttributeAsString(name));
     return attributes;
 }
 
@@ -181,8 +217,8 @@ std::unordered_map<QString, QString> vrsa::vector::VectorFeature::getAttributesA
     std::unordered_map<QString, QString> attributes;
     for (const auto& attr: mAttributes)
     {
-        qDebug()<<QString::fromStdString(attr.first);
-        qDebug()<<QString::fromStdString(getAttributeAsString(attr.first));
+//        qDebug()<<QString::fromStdString(attr.first);
+//        qDebug()<<QString::fromStdString(getAttributeAsString(attr.first));
         attributes.insert({QString::fromStdString(attr.first), getAttributeAsQString(attr.first)});
     }
     return attributes;
@@ -200,7 +236,7 @@ std::string vrsa::vector::VectorFeature::getAttributeAsString(const std::string 
             if constexpr (std::is_same_v<T, std::nullptr_t>) {
                 return ("NULL"); // или QVariant()
             }
-            else if constexpr (std::is_same_v<T, int>) {
+            else if constexpr (std::is_same_v<T, int64_t>) {
                 return std::to_string(arg);
             }
             else if constexpr (std::is_same_v<T, double>) {
@@ -225,167 +261,16 @@ QString vrsa::vector::VectorFeature::getAttributeAsQString(const std::string &na
     return QString::fromStdString(getAttributeAsString(name));
 }
 
-std::vector<std::string> vrsa::vector::VectorFeature::getAttributeNames() const
+
+
+std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::createFeature(VectorLayer *parentLayer)
 {
-    std::vector<std::string> names;
-    names.reserve(mAttributes.size());
-    for (const auto& attr: mAttributes)
-        names.push_back(attr.first);
-    return names;
-}
-
-OGRFeature *vrsa::vector::VectorFeature::getOGRFeature() const
-{
-    return mFeature.get();
-}
-
-bool vrsa::vector::VectorFeature::updateAttribute(const std::string &name, const AttributeValue &value)
-{
-    if (!mFeature)
-    {
-        VRSA_ERROR("VectorFeature", "Cannot update attribute: OGRFeature is null");
-        return false;
-    }
-
-    int fieldIndex = mFeature->GetFieldIndex(name.c_str());
-    if (fieldIndex < 0)
-    {
-        VRSA_ERROR("VectorFeature", "Attribute " + name + "not found in OGRFeature schema");
-        return false;
-    }
-
-    OGRFeatureDefn* defn = mFeature->GetDefnRef();
-    if (!defn) return false;
-
-    OGRFieldDefn* fieldDef = defn->GetFieldDefn(fieldIndex);
-    OGRFieldType fieldType = fieldDef->GetType();
-
-    try {
-        std::visit([&](auto&& arg) {
-            using T = std::decay_t<decltype(arg)>;
-
-            if constexpr (std::is_same_v<T, std::nullptr_t>)
-            {
-                mFeature->SetFieldNull(fieldIndex);
-                if (fieldType == OFTInteger || fieldType == OFTInteger64)
-                {
-                    mFeature->SetField(fieldIndex, 0);
-                }
-                else if (fieldType == OFTReal)
-                {
-                    mFeature->SetField(fieldIndex, 0.0);
-                }
-            }
-            else if constexpr (std::is_same_v<T, int>)
-            {
-
-                if (fieldType == OFTInteger || fieldType == OFTInteger64)
-                {
-                    mFeature->SetField(fieldIndex, arg);
-                }
-                else if (fieldType == OFTReal)
-                {
-                    mFeature->SetField(fieldIndex, static_cast<double>(arg));
-                }
-                else if (fieldType == OFTString)
-                {
-                    mFeature->SetField(fieldIndex, std::to_string(arg).c_str());
-                }
-                else
-                {
-                    throw std::runtime_error("Type mismatch for integer value");
-                }
-            }
-            else if constexpr (std::is_same_v<T, double>)
-            {
-                if (fieldType == OFTReal || fieldType == OFTInteger || fieldType == OFTInteger64)
-                {
-                    mFeature->SetField(fieldIndex, arg);
-                }
-                else if (fieldType == OFTString)
-                {
-                    mFeature->SetField(fieldIndex, std::to_string(arg).c_str());
-                }
-                else
-                {
-                    throw std::runtime_error("Type mismatch for double value");
-                }
-            }
-            else if constexpr (std::is_same_v<T, std::string>)
-            {
-                if (fieldType == OFTString)
-                {
-                    VRSA_DEBUG("VectorFeature", arg);
-                    //qDebug()<< QString::fromStdString(arg);
-                    mFeature->SetField(fieldIndex, arg.c_str());
-                }
-                else if (fieldType == OFTInteger || fieldType == OFTInteger64)
-                {
-                    // Пытаемся преобразовать строку в число
-                    try {
-                        int intValue = std::stoi(arg);
-                        mFeature->SetField(fieldIndex, intValue);
-                    } catch (...) {
-                        throw std::runtime_error("Cannot convert string to integer");
-                    }
-                }
-                else if (fieldType == OFTReal)
-                {
-                    try {
-                        double doubleValue = std::stod(arg);
-                        mFeature->SetField(fieldIndex, doubleValue);
-                    } catch (...) {
-                        throw std::runtime_error("Cannot convert string to double");
-                    }
-                }
-                else
-                {
-                    mFeature->SetField(fieldIndex, arg.c_str());
-                }
-            }
-            else if constexpr (std::is_same_v<T, bool>)
-            {
-                if (fieldType == OFTInteger || fieldType == OFTInteger64)
-                {
-                    mFeature->SetField(fieldIndex, arg ? 1 : 0);
-                }
-                else if (fieldType == OFTString)
-                {
-                    mFeature->SetField(fieldIndex, arg ? "true" : "false");
-                }
-                else if (fieldType == OFTReal)
-                {
-                    mFeature->SetField(fieldIndex, arg ? 1.0 : 0.0);
-                }
-                else
-                {
-                    throw std::runtime_error("Type mismatch for boolean value");
-                }
-            }
-        }, value);
-
-    } catch (const std::exception& e) {
-        VRSA_ERROR("VectorFeature", "Failed to update attribute" + name +" :" + e.what());
-        return false;
-    }
-
-    mAttributes[name] = value;
-    mParentLayer->SetFeature(mFeature.get());
-    emit attributesChanged(name, value);
-    emit featureChanged();
-
-
-    return true;
-}
-
-std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::createFeature(VectorLayer *layer)
-{
-    if (!layer)
+    if (!parentLayer)
     {
         VRSA_ERROR("VectorFeature", "Can't create feature: passed VectorLayer nullptr");
         return nullptr;
     }
-    OGRLayer* ogrL = layer->getOGRLayer();
+    OGRLayer* ogrL = parentLayer->getOGRLayer();
     if (!ogrL)
     {
         VRSA_ERROR("VectorFeature", "Can't create feature: passed VectorLayer has nullptr OGRLayer");
@@ -397,189 +282,40 @@ std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::create
         VRSA_ERROR("VectorFeature", "Can't create feature: passed VectorLayer has incorrect layer definition");
         return nullptr;
     }
-
+    auto vrsaFeat = std::make_unique<VectorFeature>(vrsa::gdalwrapper::OgrFeaturePtr(feature), ogrL);
+    vrsaFeat->setStyle(parentLayer->getStyle());
+    vrsaFeat->setZValue(parentLayer->getZValue());
     VRSA_DEBUG("VectorFeature", "Feature successfully created");
-    vrsa::gdalwrapper::OgrFeaturePtr ptrFeat(feature);
-    return std::make_unique<VectorFeature>(std::move(ptrFeat), ogrL);
+    return vrsaFeat;
 }
 
-//bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry)
-//{
-//    //получаем сырой указатель, т.к геометрией будет управлять сама фича
-//    auto ogrGeomRawPtr = ogr_utils::OGRConverter::toOGR(geometry);
-//    auto error = mFeature->SetGeometry(ogrGeomRawPtr);
-//    if (error!= OGRERR_NONE)
-//    {
-//        VRSA_ERROR("VectorFeature", "Can't set geometry to Vector Feature, OGR error:" + std::to_string(error));
-//        OGRGeometryFactory::destroyGeometry(ogrGeomRawPtr); //очищаем самостоятельно
-//        return false;
-//    }
-//    VRSA_DEBUG("VectorFeature", "Geometry has been successfully set to vector feature");
-//    return true;
 
-//}
-
-//void vrsa::vector::VectorFeature::setGeometry(const GeometryVariant &geometry)
-//{
-//    std::visit([this](const auto& geom) {
-//        using T = std::decay_t<decltype(geom)>;
-
-//        if constexpr (std::is_same_v<T, PointType>) {
-//            setPointGeometry(geom);
-//        }
-//        else if constexpr (std::is_same_v<T, MultiPointType>) {
-//            setMultiPointGeometry(geom);
-//        }
-//        else if constexpr (std::is_same_v<T, LineStringType>) {
-//            setLineStringGeometry(geom);
-//        }
-//        else if constexpr (std::is_same_v<T, MultiLineStringType>) {
-//            setMultiLineStringGeometry(geom);
-//        }
-//        else if constexpr (std::is_same_v<T, PolygonType>) {
-//            setPolygonGeometry(geom, {});
-//        }
-//        else if constexpr (std::is_same_v<T, PolygonWithHolesType>) {
-//            setPolygonGeometry(geom.first, geom.second);
-//        }
-//        else if constexpr (std::is_same_v<T, MultiPolygonType>) {
-//            setMultiPolygonGeometry(geom);
-//        }
-//    }, geometry);
-//}
-
-void vrsa::vector::VectorFeature::setPointGeometry(const QPointF &p)
-{
-    OGRPoint point(p.x(), p.y());
-    mFeature->SetGeometry(&point);
-}
-
-void vrsa::vector::VectorFeature::setMultiPointGeometry(const std::vector<QPointF> &points)
-{
-    OGRMultiPoint multiPoint;
-    for (const auto& p : points)
-    {
-        OGRPoint point (p.x(), p.y());
-        multiPoint.addGeometry(&point);
-    }
-    mFeature->SetGeometry(&multiPoint);
-}
-
-void vrsa::vector::VectorFeature::setLineStringGeometry(const std::vector<QPointF> &points)
-{
-    OGRLineString line;
-    for (const auto& p : points)
-    {
-        line.addPoint(p.x(), p.y());
-    }
-    mFeature->SetGeometry(&line);
-}
-
-void vrsa::vector::VectorFeature::setMultiLineStringGeometry(const std::vector<std::vector<QPointF> > &lines)
-{
-    OGRMultiLineString multiLine;
-    for (const auto& linePoints : lines)
-    {
-        OGRLineString line;
-        for (const auto& p : linePoints)
-        {
-            line.addPoint(p.x(), p.y());
-        }
-        multiLine.addGeometry(&line);
-    }
-    mFeature->SetGeometry(&multiLine);
-}
-
-void vrsa::vector::VectorFeature::setPolygonGeometry(const std::vector<QPointF> &exterior, const std::vector<std::vector<QPointF> > &holes)
-{
-    OGRPolygon polygon;
-
-    // внешнее кольцо
-    OGRLinearRing extRing;
-    for (const auto& p : exterior)
-    {
-        extRing.addPoint(p.x(), p.y());
-    }
-    extRing.closeRings();
-    polygon.addRing(&extRing);
-
-    // отверстия
-    for (const auto& hole : holes)
-    {
-        OGRLinearRing intRing;
-        for (const auto& p : hole)
-        {
-            intRing.addPoint(p.x(), p.y());
-        }
-        intRing.closeRings();
-        polygon.addRing(&intRing);
-    }
-
-    mFeature->SetGeometry(&polygon);
-}
-
-void vrsa::vector::VectorFeature::setMultiPolygonGeometry(const std::vector<std::vector<std::vector<QPointF> > > &polygons)
-{
-    OGRMultiPolygon multiPolygon;
-
-    for (const auto& polygonData : polygons)
-    {
-        OGRPolygon polygon;
-
-        // Первый вектор - внешнее кольцо
-        if (!polygonData.empty()) {
-            OGRLinearRing extRing;
-            for (const auto& p : polygonData[0])
-            {
-                extRing.addPoint(p.x(), p.y());
-            }
-            extRing.closeRings();
-            polygon.addRing(&extRing);
-
-            // Остальные - отверстия
-            for (size_t i = 1; i < polygonData.size(); ++i)
-            {
-                OGRLinearRing intRing;
-                for (const auto& p : polygonData[i])
-                {
-                    intRing.addPoint(p.x(), p.y());
-                }
-                intRing.closeRings();
-                polygon.addRing(&intRing);
-            }
-        }
-
-        multiPolygon.addGeometry(&polygon);
-    }
-
-    mFeature->SetGeometry(&multiPolygon);
-}
 
 
 
 std::vector<std::string> vrsa::vector::VectorFeature::getFieldNames() const
 {
     std::vector<std::string> names;
-    for (const auto& [name, _] : mAttributes) {
+    for (const auto& [name, _] : mAttributes)
         names.push_back(name);
-    }
     return names;
 }
 
 vrsa::common::FieldType vrsa::vector::VectorFeature::getFieldType(const std::string& name) const
 {
-    auto it = mFieldTypes.find(name);
-    if (it != mFieldTypes.end()) {
-        return it->second;
-    }
-
-    // Если тип не найден, пытаемся определить по значению
     auto attrIt = mAttributes.find(name);
-    if (attrIt != mAttributes.end()) {
-        return determineTypeFromValue(attrIt->second);
+    if (attrIt != mAttributes.end())
+    {
+        if (std::holds_alternative<int64_t>(attrIt->second))
+            return common::FieldType::Integer;
+        if (std::holds_alternative<double>(attrIt->second))
+            return common::FieldType::Real;
+        if (std::holds_alternative<bool>(attrIt->second))
+            return common::FieldType::Boolean;
+        if (std::holds_alternative<std::string>(attrIt->second))
+            return common::FieldType::String;
     }
-
-    return vrsa::common::FieldType::String; // по умолчанию
+    return common::FieldType::Unknown;
 }
 
 bool vrsa::vector::VectorFeature::hasField(const std::string& name) const
@@ -594,44 +330,50 @@ int vrsa::vector::VectorFeature::getFieldCount() const
 
 bool vrsa::vector::VectorFeature::isMultiGeometry() const
 {
-    if (!mGeometry) return false;
+    if (!mFeature) return false;
+    auto geom = mFeature->GetGeometryRef();
+    if (!geom) return false;
 
-    OGRwkbGeometryType type = wkbFlatten(mGeometry->getGeometryType());
+    OGRwkbGeometryType type = wkbFlatten(geom->getGeometryType());
     return type == wkbMultiPoint ||
-           type == wkbMultiLineString ||
-           type == wkbMultiPolygon ||
-           type == wkbGeometryCollection;
+            type == wkbMultiLineString ||
+            type == wkbMultiPolygon ||
+            type == wkbGeometryCollection;
 }
 
 std::vector<std::unique_ptr<vrsa::vector::VectorFeature>> vrsa::vector::VectorFeature::explodeToSimpleFeatures() const
 {
     std::vector<std::unique_ptr<VectorFeature>> result;
+    if (!mFeature) return result;
+    auto geom = mFeature->GetGeometryRef();
+    if (!geom) return result;
 
     if (!isMultiGeometry()) {
-        // Если уже простая геометрия, возвращаем копию
+        //если уже простая геометрия, просто возвращаем копию
         result.push_back(clone());
         return result;
     }
 
-    auto* collection = dynamic_cast<OGRGeometryCollection*>(mGeometry);
+    auto* collection = dynamic_cast<OGRGeometryCollection*>(geom);
     if (!collection) return result;
 
-    for (int i = 0; i < collection->getNumGeometries(); i++) {
+    for (int i = 0; i < collection->getNumGeometries(); ++i) {
         OGRGeometry* subGeom = collection->getGeometryRef(i);
         if (!subGeom) continue;
 
-        // Создаем новую фичу
+
         auto newFeature = std::make_unique<VectorFeature>(nullptr, mParentLayer);
 
-        // Копируем геометрию
-        newFeature->setGeometry(vrsa::gdalwrapper::OgrGeometryPtr(subGeom->clone()));
+        //копируем геометрию и атрибуты
+        bool flag = newFeature->setGeometry(vrsa::gdalwrapper::OgrGeometryPtr(subGeom->clone()));
+        if (flag)
+            VRSA_DEBUG("VectorFeature", "Can't set geometry to new simple feature");
 
-        // Копируем все атрибуты
         for (const auto& [name, value] : mAttributes) {
             newFeature->setAttribute(name, value);
         }
 
-        // Добавляем служебные атрибуты
+        //служебные атрибуты
         newFeature->setAttribute("_original_index", i);
         newFeature->setAttribute("_original_fid", (int)this->getOGRFeature()->GetFID());
 
@@ -643,22 +385,191 @@ std::vector<std::unique_ptr<vrsa::vector::VectorFeature>> vrsa::vector::VectorFe
 
 std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::clone() const
 {
-    auto newFeature = std::make_unique<VectorFeature>(nullptr, mParentLayer);
-
-    if (mGeometry) {
-        newFeature->setGeometry(vrsa::gdalwrapper::OgrGeometryPtr(mGeometry->clone()));
+    if (!mFeature) return nullptr;
+    auto geom = mFeature->GetGeometryRef();
+    OGRFeature* clonedOGR = mFeature->Clone();
+    if (!clonedOGR) return nullptr;
+    auto newFeature = std::make_unique<VectorFeature>(gdalwrapper::OgrFeaturePtr(clonedOGR), mParentLayer);
+    if (!newFeature) return nullptr;
+    if (geom)
+    {
+        bool flag = newFeature->setGeometry(vrsa::gdalwrapper::OgrGeometryPtr(geom->clone()));
+        if (!flag)
+            VRSA_DEBUG("VectorFeature", "Can't clone() geometry to new feature");
     }
 
-    for (const auto& [name, value] : mAttributes) {
+    for (const auto& [name, value] : mAttributes)
         newFeature->setAttribute(name, value);
-    }
 
-    newFeature->setName(mName);
-    newFeature->setVisible(mVisible);
+    //newFeature->setName(mName);
+    newFeature->setVisible(mIsVisible);
 
     return newFeature;
 }
 
 
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, const QVariant& value)
+{       
+    if (value.type() == QVariant::Int)
+        return setAttribute(name, value.toInt());
+    else if (value.type() == QVariant::LongLong)
+            return setAttribute(name, static_cast<int64_t>(value.toLongLong()));
+    else if (value.type() == QVariant::Double)
+        return setAttribute(name, value.toDouble());
+    else if (value.type() == QVariant::Bool)
+        return setAttribute(name, value.toBool());
+    else
+        return setAttribute(name, value.toString().toStdString());
+    //syncToOGRFeature(name, value);
+}
 
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, int value)
+{
+    return setAttribute(name, static_cast<int64_t>(value));
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string &name, int64_t value)
+{
+    if (syncToOGRFeature(name, value))
+    {
+        mAttributes[name] = value;
+        return true;
+    }
+    return false;
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, double value)
+{
+    if (syncToOGRFeature(name, value))
+    {
+        mAttributes[name] = value;
+        return true;
+    }
+    return false;
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, const std::string& value)
+{
+    if (syncToOGRFeature(name, value))
+    {
+        mAttributes[name] = value;
+        return true;
+    }
+    return false;
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, bool value)
+{
+    if (syncToOGRFeature(name, value))
+    {
+        mAttributes[name] = value;
+        return true;
+    }
+    return false;
+
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, const char* value)
+{
+    return setAttribute(name, std::string(value));
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string &name, const AttributeValue &value)
+{
+    if (std::holds_alternative<int64_t>(value))
+        return setAttribute(name, std::get<int64_t>(value));
+    else if (std::holds_alternative<double>(value))
+        return setAttribute(name, std::get<double>(value));
+    else if (std::holds_alternative<bool>(value))
+        return setAttribute(name, std::get<bool>(value));
+    else if (std::holds_alternative<std::string>(value))
+        return setAttribute(name, std::get<std::string>(value));
+    else if (std::holds_alternative<std::nullptr_t>(value))
+    {
+        if (mFeature && mParentLayer)
+        {
+            int fieldIndex = mFeature->GetFieldIndex(name.c_str());
+            if (fieldIndex >= 0)
+            {
+                mFeature->SetFieldNull(fieldIndex);
+                if (mParentLayer->SetFeature(mFeature.get()) == OGRERR_NONE)
+                {
+                    mAttributes[name] = value;
+                    return true;
+                }
+                else
+                {
+                    VRSA_ERROR("VectorFeature", "Can't update attribute in a feature. Fid: "
+                               + std::to_string(mFeature->GetFID()));
+                    return false;
+                }
+
+            }
+            return false;
+        }
+        return false;
+    }
+    return false;
+
+}
+
+
+
+void vrsa::vector::VectorFeature::constructFromOGRfeature(OGRFeature* feature)
+{
+    if (!feature) return;
+
+    OGRFeatureDefn* defn = feature->GetDefnRef();
+    for (int i = 0; i < defn->GetFieldCount(); ++i)
+    {
+        if (!feature->IsFieldSet(i)) continue;
+
+        OGRFieldDefn* fieldDef = defn->GetFieldDefn(i);
+        std::string name = fieldDef->GetNameRef();
+
+        switch(fieldDef->GetType())
+        {
+        case OFTInteger:
+            mAttributes[name] = feature->GetFieldAsInteger(i);
+            break;
+        case OFTInteger64:
+            mAttributes[name] = feature->GetFieldAsInteger64(i);
+            break;
+        case OFTReal:
+            mAttributes[name] = feature->GetFieldAsDouble(i);
+            break;
+        case OFTString:
+            mAttributes[name] = std::string(feature->GetFieldAsString(i));
+            break;
+        default:
+            mAttributes[name] = std::string(feature->GetFieldAsString(i));
+        }
+    }
+}
+
+
+QVariant vrsa::vector::VectorFeature::getAttributeAsQVariant(const std::string& name) const
+{
+    auto it = mAttributes.find(name);
+    if (it == mAttributes.end()) return QVariant();
+
+    if (std::holds_alternative<int64_t>(it->second))
+        return QVariant(static_cast<long long>(std::get<int64_t>(it->second)));
+    if (std::holds_alternative<double>(it->second))
+        return QVariant(std::get<double>(it->second));
+    if (std::holds_alternative<bool>(it->second))
+        return QVariant(std::get<bool>(it->second));
+    if (std::holds_alternative<std::string>(it->second))
+        return QVariant(QString::fromStdString(std::get<std::string>(it->second)));
+
+    return QVariant();
+}
+
+std::vector<std::string> vrsa::vector::VectorFeature::getAttributeNames() const
+{
+    std::vector<std::string> names;
+    for (const auto& [name, _] : mAttributes)
+        names.push_back(name);
+    return names;
+}
 

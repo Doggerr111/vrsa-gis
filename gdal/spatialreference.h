@@ -2,6 +2,13 @@
 #define SPATIALREFERENCE_H
 #include "gdal/gdalresourcehandles.h"
 #include "common/GisDefines.h"
+
+
+
+
+
+
+////////////////////DELETE THIS///////////////////////////
 namespace vrsa
 {
 namespace gdalwrapper
@@ -11,7 +18,7 @@ class SpatialReference
 {
 public:
     SpatialReference();
-    SpatialReference(std::string str, vrsa::common::CrsFormat format);
+    SpatialReference(std::string str, vrsa::common::CRSDesctiptionFormat format);
     SpatialReference(int epsgCode);
     SpatialReference(const SpatialReference& other);
     SpatialReference& operator=(const SpatialReference& other);
@@ -22,9 +29,13 @@ public:
     static SpatialReference fromProj(const std::string& projString);
     static SpatialReference fromUTM(int zone, bool northernHemisphere = true);
 
-    inline const gdalwrapper::OgrSpatialRefPtr& GetOGRSpatialRef() const noexcept
+    inline const gdalwrapper::OgrSpatialRefPtr& GetOGRSpatialRefPtr() const noexcept
     {
         return mCrs;
+    }
+    inline OGRSpatialReference* GetOGRSpatialRef() noexcept
+    {
+        return mCrs.get();
     }
 
     SpatialReference(SpatialReference&& other) noexcept = default;

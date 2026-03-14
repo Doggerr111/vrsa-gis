@@ -5,6 +5,7 @@
 #include <gdal_priv.h>
 #include <ogrsf_frmts.h>
 #include <cpl_conv.h>
+#include <ogr_spatialref.h>
 
 #include <common/logger.h>
 namespace vrsa {
@@ -17,9 +18,7 @@ namespace gdalwrapper {
 struct GdalDatasetDeleter {
     void operator()(GDALDataset* dataset) const {
         if (dataset) {
-#ifdef ENABLE_DEBUG_LOGS
             VRSA_DEBUG("GDAL", "calling GdalDatasetDeleter");
-#endif
             GDALClose(dataset);
         }
     }
@@ -48,11 +47,10 @@ struct OgrLayerDeleter {
  * @endrussian
  */
 struct OgrFeatureDeleter {
-    void operator()(OGRFeature* feature) const {
+    void operator()(OGRFeature* feature) const
+    {
         if (feature) {
-#ifdef ENABLE_DEBUG_LOGS
             VRSA_DEBUG("GDAL", "calling OgrFeatureDeleter");
-#endif
             OGRFeature::DestroyFeature(feature);
         }
     }
@@ -119,10 +117,20 @@ struct OgrFeatureDefnDeleter {
 struct OgrSpatialRefDeleter {
     void operator()(OGRSpatialReference* spatialRef) const {
         if (spatialRef) {
-            OSRRelease(spatialRef);
+            OGRSpatialReference::DestroySpatialReference(spatialRef);
         }
     }
 };
+
+
+struct OgrCoordinateTransformationRefDeleter {
+    void operator()(OGRCoordinateTransformation* transformation) const {
+        if (transformation) {
+            OGRCoordinateTransformation::DestroyCT(transformation);
+        }
+    }
+};
+
 
 // ============================================================================
 // Удалители для GDAL драйверов и утилит

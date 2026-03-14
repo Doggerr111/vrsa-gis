@@ -3,6 +3,7 @@
 #include "ogr_geometry.h"
 #include "geometry/geometry.h"
 #include <gdalresourcehandles.h>
+
 namespace vrsa
 {
 namespace ogr_utils
