@@ -4,24 +4,16 @@
 #include "gdal/gdalresourcehandles.h"
 #include <unordered_map>
 #include <variant>
-
+#include <QDebug>
 namespace vrsa
 {
-namespace common
-{
-enum class GeometryType : int;
-enum class FieldType : int;
-}
-namespace graphics
-{
-class VectorFeatureStyle;
-}
-namespace geometry
-{
-class Geometry;
-}
+namespace common  {  enum class GeometryType : int;
+                    enum class FieldType : int; }
+namespace graphics{ class VectorFeatureStyle;   }
+namespace geometry{ class Geometry;             }
 namespace vector
 {
+
 class VectorLayer;
 
 class VectorFeature :  public QObject
@@ -31,7 +23,8 @@ class VectorFeature :  public QObject
 public:
     using AttributeValue = std::variant<
         std::string,
-        int,
+        //int,
+        int64_t, //OFTInteger64
         double,
         bool,
         std::nullptr_t
@@ -162,6 +155,7 @@ public:
      * @param visible Новое состояние видимости
      */
     void setVisible(bool visible);
+    bool isVisible() const noexcept { return mIsVisible; };
     /**
      * @english @brief Sets feature selection state and emits selectionChanged signal
      * @param selected New selection state
@@ -170,6 +164,7 @@ public:
      * @param selected Новое состояние выделения
      */
     void setSelected(bool selected);
+    bool isSelected() const noexcept { return mIsSelected; };
     void setStyle(graphics::VectorFeatureStyle* newStyle);
     graphics::VectorFeatureStyle*  getStyle() noexcept { return mStyle; };
     void setZValue(int zVal);
@@ -188,16 +183,17 @@ public:
      * @param name Имя атрибута
      * @param value Значение атрибута в виде QVariant
      */
-    void setAttribute(const std::string& name, const QVariant& value);
+    [[nodiscard]]bool setAttribute(const std::string& name, const QVariant& value);
 
-    // Перегрузки для разных типов
-    void setAttribute(const std::string& name, int value);
-    void setAttribute(const std::string& name, double value);
-    void setAttribute(const std::string& name, const std::string& value);
-    void setAttribute(const std::string& name, bool value);
-    void setAttribute(const std::string& name, const char* value);
-    void setAttribute(const std::string& name, const AttributeValue& value);
-    bool updateAttribute(const std::string& name, const AttributeValue& value);
+    //Перегрузки для разных типов
+    [[nodiscard]]bool setAttribute(const std::string& name, int value);
+    [[nodiscard]]bool setAttribute(const std::string& name, int64_t value);
+    [[nodiscard]]bool setAttribute(const std::string& name, double value);
+    [[nodiscard]]bool setAttribute(const std::string& name, const std::string& value);
+    [[nodiscard]]bool setAttribute(const std::string& name, bool value);
+    [[nodiscard]]bool setAttribute(const std::string& name, const char* value);
+    [[nodiscard]]bool setAttribute(const std::string& name, const AttributeValue& value);
+    //bool updateAttribute(const std::string& name, const AttributeValue& value);
     /**
      * @english @brief Checks if attribute exists
      * @param name Attribute name
@@ -208,18 +204,6 @@ public:
      * @return true если атрибут существует
      */
     bool hasField(const std::string& name) const;
-
-    /**
-     * @english @brief Loads all attributes from OGR feature
-     * @param feature Source OGR feature (must not be null)
-     * @note Unsupported field types are converted to strings (Date, Time, Binary, etc.)
-     *
-     * @russian @brief Загружает все атрибуты из OGR feature
-     * @param feature Исходный OGR feature (не должен быть null)
-     * @note Неподдерживаемые типы полей конвертируются в строки (Date, Time, Binary...)
-     */
-    void loadFromOGRFeature(OGRFeature* feature);
-
     /**
      * @english @brief Returns all attribute names
      * @return Vector of attribute names
@@ -341,20 +325,32 @@ signals:
 
 private:
     /**
-     * @english @brief Synchronizes attribute value with underlying OGR feature
+     * @english @brief Tries to synchronize attribute value with underlying OGR feature and OGR Layer
      * @tparam T Value type
      * @param name Attribute name
      * @param value Attribute value
-     * @note Internal method, called automatically from setAttribute() and constructor VectorFeature()
+     * @return true - if successfuly updated feature in a layer
+     * @note Internal method, called automatically from setAttribute()
      *
-     * @russian @brief Синхронизирует значение атрибута с внутренним OGR feature
+     * @russian @brief Пробует синхронизировать значение атрибута с внутренним OGR feature и OGR Layer
      * @tparam T Тип значения
      * @param name Имя атрибута
      * @param value Значение атрибута
-     * @note Внутренний метод, вызывается автоматически из setAttribute() и constructor VectorFeature()
+     * @return true - если удалось обновить объект в слое
+     * @note Внутренний метод, вызывается автоматически из setAttribute()
      */
     template<typename T>
-    void syncToOGRFeature(const std::string& name, const T& value);
+    bool syncToOGRFeature(const std::string& name, const T& value);
+    /**
+     * @english @brief Loads all attributes from OGR feature into enternal attibutes map (used in constructor)
+     * @param feature Source OGR feature (must not be null)
+     * @note Unsupported field types are converted to strings (Date, Time, Binary, etc.)
+     *
+     * @russian @brief Загружает все атрибуты из OGR feature во внутреннюю мапу с атрибуами (используется в конструкторе)
+     * @param feature Исходный OGR feature (не должен быть null)
+     * @note Неподдерживаемые типы полей конвертируются в строки (Date, Time, Binary...)
+     */
+    void constructFromOGRfeature(OGRFeature* feature);
 public:
     // НОВЫЕ МЕТОДЫ для геометрии
     bool isMultiGeometry() const;
@@ -377,44 +373,163 @@ private:
 
 };
 
+//основной шаблон (для всех типов, кроме int)
 template<typename T>
-T VectorFeature::getAttribute(const std::string &name) const
+inline T VectorFeature::getAttribute(const std::string &name) const
 {
     auto it = mAttributes.find(name);
-    if (it == mAttributes.end()) {
+    if (it == mAttributes.end())
         throw std::runtime_error("Attribute not found: " + name);
-    }
-    return std::get<T>(it->second);
+
+    if (std::holds_alternative<T>(it->second))
+        return std::get<T>(it->second);
+
+    std::string msg = "Type mismatch for '" + name + "'. Expected ";
+    msg += typeid(T).name();
+    msg += " but got index ";
+    msg += std::to_string(it->second.index());
+    throw std::runtime_error(msg);
 }
 
+//специализация для int
+template<>
+inline int VectorFeature::getAttribute<int>(const std::string &name) const
+{
+    auto it = mAttributes.find(name);
+    if (it == mAttributes.end())
+        throw std::runtime_error("Attribute not found: " + name);
+
+    //пробуем получить как int64_t и привести
+    if (std::holds_alternative<int64_t>(it->second)) {
+        int64_t val = std::get<int64_t>(it->second);
+        if (val > std::numeric_limits<int>::max() ||
+            val < std::numeric_limits<int>::min()) {
+            throw std::runtime_error("int64_t value out of int range for: " + name);
+        }
+        return static_cast<int>(val);
+    }
+
+    //если не int64_t — ошибка
+    std::string msg = "Type mismatch for '" + name + "'. Expected int";
+    msg += " but got index ";
+    msg += std::to_string(it->second.index());
+    throw std::runtime_error(msg);
+}
+
+//основной шаблон для getAttribute с default
 template<typename T>
-T VectorFeature::getAttribute(const std::string &name, const T &defaultValue) const
+inline T VectorFeature::getAttribute(const std::string &name, const T &defaultValue) const
 {
     auto it = mAttributes.find(name);
     if (it == mAttributes.end()) return defaultValue;
 
-    if (!std::holds_alternative<T>(it->second)) return defaultValue;
-    return std::get<T>(it->second);
+    if (std::holds_alternative<T>(it->second))
+        return std::get<T>(it->second);
+
+    return defaultValue;
+}
+
+//специализация для int
+template<>
+inline int VectorFeature::getAttribute<int>(const std::string &name, const int &defaultValue) const
+{
+    auto it = mAttributes.find(name);
+    if (it == mAttributes.end()) return defaultValue;
+
+    //пробумм получить как int64_t
+    if (std::holds_alternative<int64_t>(it->second)) {
+        int64_t val = std::get<int64_t>(it->second);
+        if (val > std::numeric_limits<int>::max() ||
+            val < std::numeric_limits<int>::min()) {
+            return defaultValue;
+        }
+        return static_cast<int>(val);
+    }
+
+    return defaultValue;
 }
 
 template<typename T>
-void VectorFeature::syncToOGRFeature(const std::string &name, const T &value)
+inline bool VectorFeature::syncToOGRFeature(const std::string &name, const T &value)
 {
-    if (!mFeature) return;
+    if (!mFeature) {
+           // qDebug() << "mFeature is null";
+            return false;
+        }
 
-    int fieldIndex = mFeature->GetFieldIndex(name.c_str());
-    if (fieldIndex < 0) return;
+//        qDebug() << "=== SYNC DEBUG ===";
+//        qDebug() << "looking for field:" << name.c_str();
 
-    if constexpr (std::is_same_v<T, int>)
-        mFeature->SetField(fieldIndex, value);
+
+        OGRFeatureDefn* defn = mFeature->GetDefnRef();
+        //qDebug() << "Total fields in OGR:" << defn->GetFieldCount();
+
+        for (int i = 0; i < defn->GetFieldCount(); i++) {
+            OGRFieldDefn* field = defn->GetFieldDefn(i);
+            //qDebug() << "  Field" << i << ":" << field->GetNameRef();
+        }
+
+        int fieldIndex = mFeature->GetFieldIndex(name.c_str());
+        //qDebug() << "GetFieldIndex result:" << fieldIndex;
+
+        if (fieldIndex < 0) {
+           // qDebug() << " Field not found!";
+            return false;
+        }
+
+    bool success = false;
+    if constexpr (std::is_same_v<T, int64_t>)
+    {
+        mFeature->SetField(fieldIndex, static_cast<GIntBig>(value));
+        success =  true;
+    }
     else if constexpr (std::is_same_v<T, double>)
+    {
         mFeature->SetField(fieldIndex, value);
+        success = true;
+    }
     else if constexpr (std::is_same_v<T, std::string>)
+    {
         mFeature->SetField(fieldIndex, value.c_str());
+        success = true;
+    }
     else if constexpr (std::is_same_v<T, bool>)
+    {
         mFeature->SetField(fieldIndex, value ? 1 : 0);
+        success = true;
+    }
     else if constexpr (std::is_same_v<T, const char*>)
+    {
         mFeature->SetField(fieldIndex, value);
+        success =  true;
+    }
+    if (success)
+    {
+        //поверяем, принадлежит ли фича этому слою
+        if (mFeature->GetFID() != -1) {
+            //проверим, есть ли такая фича в слое
+            OGRFeature* existing = mParentLayer->GetFeature(mFeature->GetFID());
+            if (existing) {
+                //qDebug() << "Feature with FID" << mFeature->GetFID() << "already exists in layer";
+                OGRFeature::DestroyFeature(existing);
+            } else {
+                //qDebug() << "Feature with FID" << mFeature->GetFID() << "not found in layer";
+            }
+        }
+
+        //qDebug() << "attempting SetFeature with FID:" << mFeature->GetFID();
+
+        OGRErr err = mParentLayer->SetFeature(mFeature.get());
+       // qDebug() << "setFeature result:" << err;
+
+        if (err == OGRERR_NONE)
+        {
+            VRSA_DEBUG("VectorFeature", "Successfully updated attribute value for feature");
+            return true;
+        }
+    }
+    VRSA_ERROR("feature", "Can't update attribute to vector feature with FID:" + std::to_string(mFeature->GetFID()));
+    return false;
 
 }
 

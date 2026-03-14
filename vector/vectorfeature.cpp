@@ -14,7 +14,7 @@ vrsa::vector::VectorFeature::VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr rawF
     if (mFeature)
     {
         //это очень замедляет загрузку больших слоев с большим количеством атрибутов, возможно не стоит так делать ...
-        loadFromOGRFeature(mFeature.get());  //cинхронизируем атрибуты
+        constructFromOGRfeature(mFeature.get());  //cинхронизируем атрибуты
         setVisible(true);
     }
 }
@@ -236,7 +236,7 @@ std::string vrsa::vector::VectorFeature::getAttributeAsString(const std::string 
             if constexpr (std::is_same_v<T, std::nullptr_t>) {
                 return ("NULL"); // или QVariant()
             }
-            else if constexpr (std::is_same_v<T, int>) {
+            else if constexpr (std::is_same_v<T, int64_t>) {
                 return std::to_string(arg);
             }
             else if constexpr (std::is_same_v<T, double>) {
@@ -306,7 +306,7 @@ vrsa::common::FieldType vrsa::vector::VectorFeature::getFieldType(const std::str
     auto attrIt = mAttributes.find(name);
     if (attrIt != mAttributes.end())
     {
-        if (std::holds_alternative<int>(attrIt->second))
+        if (std::holds_alternative<int64_t>(attrIt->second))
             return common::FieldType::Integer;
         if (std::holds_alternative<double>(attrIt->second))
             return common::FieldType::Real;
@@ -408,73 +408,114 @@ std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::clone(
 }
 
 
-void vrsa::vector::VectorFeature::setAttribute(const std::string& name, const QVariant& value)
-{
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, const QVariant& value)
+{       
     if (value.type() == QVariant::Int)
-        setAttribute(name, value.toInt());
+        return setAttribute(name, value.toInt());
+    else if (value.type() == QVariant::LongLong)
+            return setAttribute(name, static_cast<int64_t>(value.toLongLong()));
     else if (value.type() == QVariant::Double)
-        setAttribute(name, value.toDouble());
+        return setAttribute(name, value.toDouble());
     else if (value.type() == QVariant::Bool)
-        setAttribute(name, value.toBool());
+        return setAttribute(name, value.toBool());
     else
-        setAttribute(name, value.toString().toStdString());
-}
-
-void vrsa::vector::VectorFeature::setAttribute(const std::string& name, int value)
-{
-    mAttributes[name] = value;
-    syncToOGRFeature(name, value);
-}
-
-void vrsa::vector::VectorFeature::setAttribute(const std::string& name, double value)
-{
-    mAttributes[name] = value;
-    syncToOGRFeature(name, value);
-}
-
-void vrsa::vector::VectorFeature::setAttribute(const std::string& name, const std::string& value)
-{
-    mAttributes[name] = value;
-    syncToOGRFeature(name, value);
-}
-
-void vrsa::vector::VectorFeature::setAttribute(const std::string& name, bool value)
-{
-    mAttributes[name] = value;
-    syncToOGRFeature(name, value);
-}
-
-void vrsa::vector::VectorFeature::setAttribute(const std::string& name, const char* value)
-{
-    setAttribute(name, std::string(value));
+        return setAttribute(name, value.toString().toStdString());
     //syncToOGRFeature(name, value);
 }
 
-void vrsa::vector::VectorFeature::setAttribute(const std::string &name, const AttributeValue &value)
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, int value)
 {
-    if (std::holds_alternative<int>(value))
-        setAttribute(name, std::get<int>(value));
-    else if (std::holds_alternative<double>(value))
-        setAttribute(name, std::get<double>(value));
-    else if (std::holds_alternative<bool>(value))
-        setAttribute(name, std::get<bool>(value));
-    else if (std::holds_alternative<std::string>(value))
-        setAttribute(name, std::get<std::string>(value));
-    else if (std::holds_alternative<std::nullptr_t>(value))
+    return setAttribute(name, static_cast<int64_t>(value));
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string &name, int64_t value)
+{
+    if (syncToOGRFeature(name, value))
     {
         mAttributes[name] = value;
-        // устанавливаем NULL в OGRFeature
-        if (mFeature)
+        return true;
+    }
+    return false;
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, double value)
+{
+    if (syncToOGRFeature(name, value))
+    {
+        mAttributes[name] = value;
+        return true;
+    }
+    return false;
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, const std::string& value)
+{
+    if (syncToOGRFeature(name, value))
+    {
+        mAttributes[name] = value;
+        return true;
+    }
+    return false;
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, bool value)
+{
+    if (syncToOGRFeature(name, value))
+    {
+        mAttributes[name] = value;
+        return true;
+    }
+    return false;
+
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, const char* value)
+{
+    return setAttribute(name, std::string(value));
+}
+
+bool vrsa::vector::VectorFeature::setAttribute(const std::string &name, const AttributeValue &value)
+{
+    if (std::holds_alternative<int64_t>(value))
+        return setAttribute(name, std::get<int64_t>(value));
+    else if (std::holds_alternative<double>(value))
+        return setAttribute(name, std::get<double>(value));
+    else if (std::holds_alternative<bool>(value))
+        return setAttribute(name, std::get<bool>(value));
+    else if (std::holds_alternative<std::string>(value))
+        return setAttribute(name, std::get<std::string>(value));
+    else if (std::holds_alternative<std::nullptr_t>(value))
+    {
+        if (mFeature && mParentLayer)
         {
             int fieldIndex = mFeature->GetFieldIndex(name.c_str());
             if (fieldIndex >= 0)
+            {
                 mFeature->SetFieldNull(fieldIndex);
+                if (mParentLayer->SetFeature(mFeature.get()) == OGRERR_NONE)
+                {
+                    mAttributes[name] = value;
+                    return true;
+                }
+                else
+                {
+                    VRSA_ERROR("VectorFeature", "Can't update attribute in a feature. Fid: "
+                               + std::to_string(mFeature->GetFID()));
+                    return false;
+                }
+
+            }
+            return false;
         }
+        return false;
     }
+    return false;
+
 }
 
 
-void vrsa::vector::VectorFeature::loadFromOGRFeature(OGRFeature* feature)
+
+void vrsa::vector::VectorFeature::constructFromOGRfeature(OGRFeature* feature)
 {
     if (!feature) return;
 
@@ -489,16 +530,19 @@ void vrsa::vector::VectorFeature::loadFromOGRFeature(OGRFeature* feature)
         switch(fieldDef->GetType())
         {
         case OFTInteger:
-            setAttribute(name, feature->GetFieldAsInteger(i));
+            mAttributes[name] = feature->GetFieldAsInteger(i);
+            break;
+        case OFTInteger64:
+            mAttributes[name] = feature->GetFieldAsInteger64(i);
             break;
         case OFTReal:
-            setAttribute(name, feature->GetFieldAsDouble(i));
+            mAttributes[name] = feature->GetFieldAsDouble(i);
             break;
         case OFTString:
-            setAttribute(name, std::string(feature->GetFieldAsString(i)));
+            mAttributes[name] = std::string(feature->GetFieldAsString(i));
             break;
         default:
-            setAttribute(name, std::string(feature->GetFieldAsString(i)));
+            mAttributes[name] = std::string(feature->GetFieldAsString(i));
         }
     }
 }
@@ -509,8 +553,8 @@ QVariant vrsa::vector::VectorFeature::getAttributeAsQVariant(const std::string& 
     auto it = mAttributes.find(name);
     if (it == mAttributes.end()) return QVariant();
 
-    if (std::holds_alternative<int>(it->second))
-        return QVariant(std::get<int>(it->second));
+    if (std::holds_alternative<int64_t>(it->second))
+        return QVariant(static_cast<long long>(std::get<int64_t>(it->second)));
     if (std::holds_alternative<double>(it->second))
         return QVariant(std::get<double>(it->second));
     if (std::holds_alternative<bool>(it->second))
