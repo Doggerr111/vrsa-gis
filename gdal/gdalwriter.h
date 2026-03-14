@@ -25,7 +25,7 @@ struct LayerCreationParams
     bool writeBbox = false;
 
     //дополнительные опции (ключ-значение)
-    std::map<std::string, std::string> extraOptions;
+    std::unordered_map<std::string, std::string> extraOptions;
 
     //конвертация в GDAL options
     CplStringListPtr toGDALLayerOptions() const

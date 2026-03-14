@@ -1,10 +1,10 @@
 #include "dataset.h"
-
-vrsa::gdalwrapper::Dataset::Dataset(gdalwrapper::GdalDatasetPtr ds, std::string src)
-    : mDs{std::move(ds)},
-      mSource{src}
+#include "GisDefines.h"
+vrsa::gdalwrapper::Dataset::Dataset(gdalwrapper::GdalDatasetPtr ds)
+    : mDs{std::move(ds)}
 {
-
+    if (mDs)
+        mSource = mDs->GetDescription();
 }
 
 void vrsa::gdalwrapper::Dataset::SetDatasetType(common::DatasetType dsType) noexcept

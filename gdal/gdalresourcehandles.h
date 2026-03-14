@@ -15,9 +15,11 @@ using GdalDatasetPtr = std::unique_ptr<GDALDataset, GdalDatasetDeleter>;
 using OgrFeaturePtr = std::unique_ptr<OGRFeature, OgrFeatureDeleter>;
 using OgrGeometryPtr = std::unique_ptr<OGRGeometry, OgrGeometryDeleter>;
 using OgrSpatialRefPtr = std::unique_ptr<OGRSpatialReference, OgrSpatialRefDeleter>;
+using OgrCoordinateTransformationRefPtr = std::unique_ptr<OGRCoordinateTransformation,
+                                                OgrCoordinateTransformationRefDeleter>;
 using OgrFieldDefnPtr = std::unique_ptr<OGRFieldDefn, OgrFieldDefnDeleter>;
 using OgrFeatureDefnPtr = std::unique_ptr<OGRFeatureDefn, OgrFeatureDefnDeleter>;
-using CplStringPtr = std::unique_ptr<char, CplStringDeleter>;
+using CplStringPtr = std::unique_ptr<char[], CplStringDeleter>;
 using CplStringListPtr = std::unique_ptr<char*, CplStringListDeleter>;
 
 // Shared pointers версии

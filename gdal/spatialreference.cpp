@@ -6,13 +6,13 @@ vrsa::gdalwrapper::SpatialReference::SpatialReference()
 
 }
 
-vrsa::gdalwrapper::SpatialReference::SpatialReference(std::string crsDefinition, common::CrsFormat format)
+vrsa::gdalwrapper::SpatialReference::SpatialReference(std::string crsDefinition, common::CRSDesctiptionFormat format)
     : mCrs(new OGRSpatialReference)
 {
     switch (format)
     {
 
-    case common::CrsFormat::WKT:
+    case common::CRSDesctiptionFormat::WKT:
     {
         auto result = mCrs->importFromWkt(crsDefinition.c_str());
         if (result != OGRERR_NONE)
@@ -22,7 +22,7 @@ vrsa::gdalwrapper::SpatialReference::SpatialReference(std::string crsDefinition,
         break;
     }
 
-    case common::CrsFormat::Proj:
+    case common::CRSDesctiptionFormat::Proj:
     {
         auto result = mCrs->importFromProj4(crsDefinition.c_str());
         if (result != OGRERR_NONE)
@@ -32,7 +32,7 @@ vrsa::gdalwrapper::SpatialReference::SpatialReference(std::string crsDefinition,
         break;
     }
 
-    case common::CrsFormat::EPSG:
+    case common::CRSDesctiptionFormat::EPSG:
     {
         try
         {

@@ -1,5 +1,6 @@
 #include "gdalreader.h"
 #include "vector/vectorlayer.h"
+#include "vector/vectorfeature.h"
 #include "vector/vectordataset.h"
 #include "raster/rasterdataset.h"
 #include "common/GisDefines.h"
