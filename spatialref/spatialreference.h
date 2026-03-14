@@ -30,7 +30,7 @@ public:
     static SpatialReference fromProj(const std::string& projString);
     static SpatialReference fromUTM(int zone, bool northernHemisphere = true);
 
-    inline const OGRSpatialReference* GetOGRSpatialRef() const noexcept { return mCrs.get(); }
+    inline OGRSpatialReference* GetOGRSpatialRef() const noexcept { return mCrs.get(); }
 
     //методы для получения информации
     bool isValid() const;

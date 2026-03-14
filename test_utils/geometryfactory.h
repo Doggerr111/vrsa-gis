@@ -44,7 +44,7 @@ inline OGRLineString* createRandomLineString(RandomGenerator& gen, int numPoints
     if (numPoints < 0) numPoints = gen.randomCount() + 2; // минимум 2 точки
 
     auto* line = new OGRLineString();
-    for (int i = 0; i < numPoints; i++) {
+    for (int i = 0; i < numPoints; ++i) {
         line->addPoint(gen.randomCoord(), gen.randomCoord());
     }
     return line;
@@ -58,7 +58,7 @@ inline OGRPolygon* createRandomPolygon(RandomGenerator& gen, int numPoints = -1)
 
     // Генерируем точки
     std::vector<QPointF> points;
-    for (int i = 0; i < numPoints; i++) {
+    for (int i = 0; i < numPoints; ++i) {
         points.push_back(gen.randomPoint());
     }
 
@@ -93,7 +93,7 @@ inline OGRMultiPoint* createRandomMultiPoint(RandomGenerator& gen, int numPoints
     if (numPoints < 0) numPoints = gen.randomCount();
 
     auto* multiPoint = new OGRMultiPoint();
-    for (int i = 0; i < numPoints; i++) {
+    for (int i = 0; i < numPoints; ++i) {
         multiPoint->addGeometry(createRandomPoint(gen));
     }
     return multiPoint;
@@ -104,7 +104,7 @@ inline OGRMultiLineString* createRandomMultiLineString(RandomGenerator& gen, int
     if (numLines < 0) numLines = gen.randomCount();
 
     auto* multiLine = new OGRMultiLineString();
-    for (int i = 0; i < numLines; i++) {
+    for (int i = 0; i < numLines; ++i) {
         multiLine->addGeometry(createRandomLineString(gen, gen.randomCount() + 2));
     }
     return multiLine;
@@ -115,7 +115,7 @@ inline OGRMultiPolygon* createRandomMultiPolygon(RandomGenerator& gen, int numPo
     if (numPolys < 0) numPolys = gen.randomCount();
 
     auto* multiPoly = new OGRMultiPolygon();
-    for (int i = 0; i < numPolys; i++) {
+    for (int i = 0; i < numPolys; ++i) {
         multiPoly->addGeometry(createRandomPolygon(gen, gen.randomCount() + 3));
     }
     return multiPoly;

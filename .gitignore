@@ -1,2 +1,3 @@
 tests/data/place_points_osm.*
 *.user
+*.autosave

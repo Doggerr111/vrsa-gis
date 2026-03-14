@@ -82,7 +82,7 @@ enum class GeometryType {
 
 enum class FieldType {
     Integer,      // целые числа (32-bit)
-    Integer64,    // длинные целые (64-bit)
+    Integer64,    // целые числа (64-bit)
     Real,         // числа с плавающей точкой
     String,       // строки
     Date,         // дата

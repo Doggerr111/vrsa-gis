@@ -4,12 +4,37 @@
 #include "common/logger.h"
 #include <QString>
 #include <QFile>
-
+#include "common/GisDefines.h"
 #ifdef VRSA_ENABLE_TEST_UTILS
+//методы для создания различных векторных датасетов, слоев и объектов, используя исключительно GDAL api.
 namespace vrsa
 {
 namespace test_utils
 {
+
+
+
+inline std::string data_folder;
+
+struct TestLayerParamsStruct {
+    std::string layerName;
+    OGRwkbGeometryType geomType;
+    int numFeatures;
+    int numFields;
+    std::string format;
+
+    TestLayerParamsStruct(std::string name, OGRwkbGeometryType type, int features, int fields, std::string fmt)
+            : layerName(name), geomType(type), numFeatures(features), numFields(fields), format(fmt) {}
+
+
+        std::string toString() const {
+            return layerName + " | " +
+                   OGRGeometryTypeToName(geomType) + " | " +
+                   std::to_string(numFeatures) + " объектов | " +
+                   std::to_string(numFields) + " аттрибутивных полей | " +
+                   format;
+        }
+};
 
 //возможности формата
 enum class DatasetCapability {
@@ -50,6 +75,7 @@ inline GDALDataset* createTestDataset( const std::string& layerName, OGRwkbGeome
         return nullptr;
     }
 
+    //VRSA_ERROR("TEST", "createTestDataset called(). outputPath:" + outputPath);
     std::string dsPath = outputPath;
     DatasetCapability capability = getFormatCapability(format);
 
@@ -58,12 +84,12 @@ inline GDALDataset* createTestDataset( const std::string& layerName, OGRwkbGeome
     //меняем пути в зависимости от возможностьи хранения нескольких слоев
     if (capability == DatasetCapability::SingleLayer)
     {
-        dsPath = outputPath.empty() ? "/test_output/test_dataset_" + layerName : outputPath;
+        dsPath = outputPath.empty() ? common::TEST_VECTOR_DATA_FOLDER+"/test_dataset_" + layerName : outputPath;
         VRSA_DEBUG("TEST", "Creating Single Layer Dataset");
     }
     else
     {
-        dsPath = outputPath.empty() ? "/test_output/test_multi_dataset_" : outputPath;
+        dsPath = outputPath.empty() ? common::TEST_VECTOR_DATA_FOLDER+"/test_multi_dataset_" : outputPath;
         VRSA_DEBUG("TEST", "Creating Multi Layer Dataset");
     }
 
@@ -92,7 +118,7 @@ inline GDALDataset* createTestDataset( const std::string& layerName, OGRwkbGeome
 
     //создаем поля с учетом ограничения на длину имен (shapefile например не позволяет длинные имена)
     //TODO Сделать длину поля параметром в сигнатуре функции
-    for (int i = 0; i < numFields; i++)
+    for (int i = 0; i < numFields; ++i)
     {
         std::string fieldName = "fld" + std::to_string(i); // Короткие имена
         OGRFieldDefn fieldDefn(fieldName.c_str(), OFTString);
@@ -113,7 +139,7 @@ inline GDALDataset* createTestDataset( const std::string& layerName, OGRwkbGeome
     //генерируем векторные объекты слоев
     RandomGenerator gen;
 
-    for (int i = 0; i < numFeatures; i++)
+    for (int i = 0; i < numFeatures; ++i)
     {
         OGRFeature* poFeature = OGRFeature::CreateFeature(poLayer->GetLayerDefn());
         OGRGeometry* geom = createRandomGeometry(geomType, gen);
@@ -171,14 +197,14 @@ inline GDALDataset* createCompleteTestDataset(const std::string& format = "Memor
         {"polygons", wkbPolygon}
     };
     auto dsPath = outputPath;
-    dsPath = outputPath.empty() ? "/test_output/test_multilayer_dataset_" : outputPath;
+    dsPath = outputPath.empty() ? common::TEST_VECTOR_DATA_FOLDER+"/test_multilayer_dataset_" : outputPath;
     //добавляем мультигеометрии только для форматов, которые их поддерживают
     if (format != "CSV" && format !="XLSX")
     {
         layerTypes.push_back({"multipoints", wkbMultiPoint});
         layerTypes.push_back({"multilines", wkbMultiLineString});
         layerTypes.push_back({"multipolygons", wkbMultiPolygon});
-        dsPath = outputPath.empty() ? "/test_output/test_multilayer_multigeometry_dataset_" : outputPath;
+        dsPath = outputPath.empty() ? common::TEST_VECTOR_DATA_FOLDER+"/test_multilayer_multigeometry_dataset_" : outputPath;
     }
 
     GDALDataset* poDS = poDriver->Create(dsPath.c_str(), 0, 0, 0, GDT_Unknown, NULL);
@@ -212,7 +238,7 @@ inline GDALDataset* createCompleteTestDataset(const std::string& format = "Memor
 
         //создание векторных объектов
         int numFeatures = gen.randomCount() + 3;
-        for (int i = 0; i < numFeatures; i++)
+        for (int i = 0; i < numFeatures; ++i)
         {
             OGRFeature* poFeature = OGRFeature::CreateFeature(poLayer->GetLayerDefn());
             if (!poFeature)
@@ -346,7 +372,9 @@ public:
     //точечный
     GDALDataset* createPointLayer(const QString& name, int numFeatures = 100)
     {
+        //qDebug() << "DEBUG test layer helper: name ==" << name;
         QString path = getLayerPath(name, "shp");
+        //qDebug() << "DEBUG test layer helper: path ==" << path;
         return createAndSaveLayer(name.toStdString(), wkbPoint, numFeatures, path);
     }
 
@@ -427,7 +455,7 @@ private:
                                     const QString& path, const QString& format = "ESRI Shapefile")
     {
 
-        auto* ds = createTestDataset(name, geomType, numFeatures, 3, format.toStdString());
+        auto* ds = createTestDataset(name, geomType, numFeatures, 3, format.toStdString(), path.toStdString());
         if (!ds)
         {
             VRSA_ERROR("TEST", "TestHelper couldn't create testDataset: "+ name);

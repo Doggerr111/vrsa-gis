@@ -161,6 +161,7 @@ if(QT_VERSION_MAJOR EQUAL 6)
         ${UI_HEADERS}
         ${UI_FILES}        # ← ВСЕ ui файлы
         icons.qrc
+        appStyles.qrc
     )
 
     target_link_libraries(VRSA PRIVATE
@@ -193,6 +194,7 @@ else()
         ${UI_FILES}
 
         icons.qrc
+        appStyles.qrc
     )
 
     target_link_libraries(VRSA PRIVATE
@@ -232,8 +234,12 @@ if(BUILD_TESTS)
     )
     FetchContent_MakeAvailable(googletest)
 
-    add_executable(test_gdal_wrapper tests/unit/test_vector_feature.cpp
-         tests/unit/test_vector_reader.cpp)
+    add_executable(test_gdal_wrapper
+        tests/unit/test_vector_reader.cpp
+        tests/unit/test_vector_creator.cpp
+        tests/unit/test_vector_layer.cpp
+        tests/unit/test_vector_feature.cpp
+    )
 
     add_executable(test_raster tests/unit/test_raster.cpp )
 
