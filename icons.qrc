@@ -64,5 +64,19 @@
         <file>images/icons/rectangle.png</file>
         <file>images/icons/Tools/node.png</file>
         <file>images/icons/Tools/digitize.png</file>
+        <file>images/icons/common/add_icon_bold_no_border.png</file>
+        <file>images/icons/common/add_icon_black_no_border.png</file>
+        <file>images/icons/common/add_icon_black_with_border.png</file>
+        <file>images/icons/common/remove_icon_black_bin.png</file>
+        <file>images/icons/common/remove_icon_black_with_border.png</file>
+        <file>images/icons/common/remove_icon_black_filled_with_border.png</file>
+        <file>images/icons/common/load_icon_black.png</file>
+        <file>images/icons/geometry/shapes_icon_black.png</file>
+        <file>images/icons/geometry/icon_multi_points_gray.png</file>
+        <file>images/icons/geometry/icon_multi_lines_black.png</file>
+        <file>images/icons/geometry/icon_multi_polygon_black.png</file>
+        <file>images/icons/geometry/icon_point_bold_black.png</file>
+        <file>images/icons/geometry/icon_point_black.png</file>
+        <file>images/icons/common/broom_icon_black_no_border.png</file>
     </qresource>
 </RCC>
