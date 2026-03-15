@@ -239,6 +239,7 @@ if(BUILD_TESTS)
         tests/unit/test_vector_creator.cpp
         tests/unit/test_vector_layer.cpp
         tests/unit/test_vector_feature.cpp
+        tests/unit/test_spatial_ref
     )
 
     add_executable(test_raster tests/unit/test_raster.cpp )
