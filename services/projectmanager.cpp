@@ -1,5 +1,7 @@
 #include "projectmanager.h"
-
+#include "vector/vectorlayer.h"
+#include "gdal/gdalreader.h"
+#include "featuregraphicsitemfactory.h"
 vrsa::services::ProjectManager::ProjectManager(QObject *parent)
     : QObject{parent},
       mActiveVectorLayer{nullptr}
@@ -10,9 +12,45 @@ vrsa::services::ProjectManager::ProjectManager(QObject *parent)
 void vrsa::services::ProjectManager::AddDataset(DatasetPtr dS)
 {
     if (!dS)
-        VRSA_DEBUG("ProjectManager", "Failed to add dataset: " + dS->getSource());
+    {
+        VRSA_DEBUG("ProjectManager", "Failed to add new dataset");
+        return;
+    }
+    graphics::FeatureGraphicsItemFactory &itemFactoryRef = graphics::FeatureGraphicsItemFactory::instance();
+    switch (dS->GetDatasetType())
+    {
+    case common::DatasetType::Vector:
+    {
+        auto vectorDataset = static_cast<vrsa::vector::VectorDataset*>(dS.get());
+        for (int i = 0; i < vectorDataset->layersCount(); ++i )
+        {
+            auto vectorLayer = vectorDataset->getLayer(i);
+            if (!vectorLayer)
+            {
+                VRSA_DEBUG("ProjectManager", "Nullptr layer after VectorDataset::getLayer(size_t indx)");
+                continue;
+            }
+            for (auto vectorFeature: vectorLayer->getFeatures())
+            {
+                if (!vectorFeature)
+                {
+                    VRSA_DEBUG("ProjectManager", "Nullptr feature in Vector Layer");
+                    continue;
+                }
+                itemFactoryRef.createForFeature(vectorFeature);
+//                auto featItem = std::make_unique<graphics::FeatureGraphicsItem>(vectorFeature);
+//                emit featureGraphicsItemCreated(featItem.release()); //передаем владение (сцене)
+            }
+
+        }
+        break;
+    }
+    default:break;
+    }
+
+    auto* dsPtr = dS.get();
     mDatasets.push_back(std::move(dS));
-    emit datasetAdded();
+    emit datasetAdded(dsPtr);
 }
 
 std::vector<vrsa::services::ProjectManager::DatasetPtr> &vrsa::services::ProjectManager::getDatasets() noexcept
@@ -81,14 +119,7 @@ vrsa::vector::VectorLayer* vrsa::services::ProjectManager::getLayer(const std::s
     auto vDs = static_cast<vector::VectorDataset*>(getDatasetBySource(src));
     if (vDs)
     {
-        try
-        {
-            return vDs->getLayer(idx).get();
-        }
-        catch (const std::out_of_range& e)
-        {
-            VRSA_ERROR("ProjectManager", "Can't find vector layer, passed index out of range:" + std::to_string(idx) + " Dataset:" + src);
-        }
+        return vDs->getLayer(idx);
     }
     return nullptr;
 
@@ -109,7 +140,7 @@ vrsa::vector::VectorLayer *vrsa::services::ProjectManager::getLayerAssociatedWit
 {
 
     if (!feature) return nullptr;
-    if (!feature->getParentOGRLayer()) return nullptr;
+    if (!feature->getOGRLayer()) return nullptr;
 
     for (const auto& dS: mDatasets)
     {
@@ -119,7 +150,7 @@ vrsa::vector::VectorLayer *vrsa::services::ProjectManager::getLayerAssociatedWit
             auto vDs = static_cast<vector::VectorDataset*>(dataset);
             for (const auto& layer: vDs->getLayers())
             {
-                if (layer->getOGRLayer() == feature->getParentOGRLayer())
+                if (layer->getOGRLayer() == feature->getOGRLayer())
                     return layer.get();
             }
         }
@@ -127,3 +158,32 @@ vrsa::vector::VectorLayer *vrsa::services::ProjectManager::getLayerAssociatedWit
     return nullptr;
 
 }
+
+vrsa::gdalwrapper::Dataset *vrsa::services::ProjectManager::readDataset(const std::string &source)
+{
+    vrsa::gdalwrapper::GDALReader reader;
+    std::unique_ptr<vrsa::gdalwrapper::Dataset> datasetUPtr;
+    try
+    {
+        datasetUPtr=reader.readDataset(source);
+    }
+    catch (const vrsa::common::DataSetOpenException& e)
+    {
+        VRSA_DEBUG("ProjectManager", e.what());
+    }
+    if (!datasetUPtr)
+    {
+        VRSA_ERROR("ProjectManager", "Can't read dataset: " + source);
+        return nullptr;
+    }
+    auto rawDs = datasetUPtr.get();
+    AddDataset(std::move(datasetUPtr));
+    return rawDs;
+}
+
+void vrsa::services::ProjectManager::onVectorLayerReadingRequested(const std::string &src)
+{
+    readDataset(src);
+
+}
+

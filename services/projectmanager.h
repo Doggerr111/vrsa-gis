@@ -5,32 +5,35 @@
 #include "vector/vectordataset.h"
 #include "common/gisexceptions.h"
 #include "common/logger.h"
+#include "featuregraphicsitem.h"
+
+
 namespace vrsa
 {
+namespace gdalwrapper
+{
+class Dataset;
+}
 namespace services
 {
+
 //реестр слоев
 class ProjectManager : public QObject
 {
     //using projectDatasets = std::vector<std::unique_ptr<vrsa::gdalwrapper::Dataset>>;
-    using DatasetPtr = std::unique_ptr<vrsa::gdalwrapper::Dataset>;
+    using DatasetPtr = std::unique_ptr<gdalwrapper::Dataset>;
     Q_OBJECT
 public:
 
-    // Удаляем конструкторы копирования и присваивания
-    ProjectManager(const ProjectManager&) = delete;
-    ProjectManager& operator=(const ProjectManager&) = delete;
-
-    //синглтон  Майерса
-    static ProjectManager& instance() {
-        static ProjectManager s_instance;
-        return s_instance;
-    }
-
+//    //синглтон  Майерса
+//    static ProjectManager& instance() {
+//        static ProjectManager s_instance;
+//        return s_instance;
+//    }
     void AddDataset(DatasetPtr dS);
 
     std::vector<DatasetPtr>& getDatasets() noexcept;
-
+    explicit ProjectManager(QObject *parent = nullptr);
     /**
      * @english
      * @brief Finds and returns a dataset by its source path
@@ -91,18 +94,18 @@ public:
 
     vrsa::vector::VectorLayer* getLayerAssociatedWithFeature(const vrsa::vector::VectorFeature* feature) const;
 
-signals:
-    /**
-      * @brief Сигнал о добавлении нового датасета
-      */
-     void datasetAdded();
+    gdalwrapper::Dataset* readDataset(const std::string& src);
 
-     /**
-      * @brief Сигнал об изменении списка датасетов
-      */
+public slots:
+    void onVectorLayerReadingRequested(const std::string& src);
+signals:
+     void datasetAdded(gdalwrapper::Dataset* dS);
+     void featureGraphicsItemCreated(graphics::FeatureGraphicsItem*);
      void datasetsChanged();
 private:
-    explicit ProjectManager(QObject *parent = nullptr);
+ // Удаляем конструкторы копирования и присваивания
+ ProjectManager(const ProjectManager&) = delete;
+ ProjectManager& operator=(const ProjectManager&) = delete;
     std::vector<DatasetPtr> mDatasets;
     vector::VectorLayer* mActiveVectorLayer;
 };
