@@ -226,6 +226,47 @@ enum class SymbolType
     Unknown
 };
 
+inline QDebug operator<<(QDebug debug, vrsa::common::SymbolType type)
+{
+    QDebugStateSaver saver(debug);
+    debug.nospace();
+
+    switch (type) {
+    case vrsa::common::SymbolType::SimpleSymbol:
+        debug << "SymbolType::SimpleSymbol";
+        break;
+    case vrsa::common::SymbolType::SimplePointSymbol:
+        debug << "SymbolType::SimplePointSymbol";
+        break;
+    case vrsa::common::SymbolType::SimpleLineSymbol:
+        debug << "SymbolType::SimpleLineSymbol";
+        break;
+    case vrsa::common::SymbolType::SimplePolygonSymbol:
+        debug << "SymbolType::SimplePolygonSymbol";
+        break;
+    case vrsa::common::SymbolType::LayerSymbol:
+        debug << "SymbolType::LayerSymbol";
+        break;
+    case vrsa::common::SymbolType::LayerPointSymbol:
+        debug << "SymbolType::LayerPointSymbol";
+        break;
+    case vrsa::common::SymbolType::LayerLineSymbol:
+        debug << "SymbolType::LayerLineSymbol";
+        break;
+    case vrsa::common::SymbolType::LayerPolygonSymbol:
+        debug << "SymbolType::LayerPolygonSymbol";
+        break;
+    case vrsa::common::SymbolType::Unknown:
+        debug << "SymbolType::Unknown";
+        break;
+    default:
+        debug << "SymbolType::Unknown(" << static_cast<int>(type) << ")";
+        break;
+    }
+
+    return debug;
+}
+
 
 enum class StyleParametr
 {
