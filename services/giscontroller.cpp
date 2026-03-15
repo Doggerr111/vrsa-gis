@@ -4,121 +4,145 @@
 #include "vectorstylingform.h"
 #include "tools/digitizingtoolfactory.h"
 #include "tools/maptoolfactory.h"
+#include "vectorlayercreationform.h"
+#include "graphics/featuregraphicsitemfactory.h"
+#include "graphics/mapscene.h"
+#include "common/logger.h"
+#include "services/projectmanager.h"
+#include "gdal/gdalreader.h"
+#include "calculations/mapcalculations.h"
+#include "spatialref/spatialrefdatabase.h"
+#include "customWidgets/mapholder.h"
+#include "customWidgets/treewidget.h"
+#include "vectorlayertools/vectorlayercreator.h"
+#include "graphics/symbols/symbolrenderer.h"
+#include <QMenu>
+#include <QAction>
+#include <QFileDialog>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QButtonGroup>
+#include <QLabel>
+#include <QGraphicsView>
+#include <QStatusBar>
+#include <crscombobox.h>
 vrsa::services::GISController::GISController(QObject *parent)
     : QObject{parent},
-      mMapView{nullptr},
-      //mDigitizingManager{std::make_unique<DigitizingManager>()},
-      mRenderer{}
+      mRenderer{std::make_unique<graphics::SymbolRenderer>()},
+      mVectorCreator{std::make_unique<vector::VectorLayerCreator>()},
+      mProjectManager{std::make_unique<services::ProjectManager>()}
 {
-    connect(this, &GISController::updateLegendIconsRequired, &mRenderer, &graphics::SymbolRenderer::renderToIcon);
-}
-
-void vrsa::services::GISController::initializeScene(MapHolder *view)
-{
-    if (!view)
+    if (!mRenderer || !mVectorCreator || !mProjectManager)
     {
-        VRSA_ERROR("MapScene initialization", "Nullptr QGraphicsView");
-        return;
+        VRSA_ERROR("GISController", "Error while constructing GIScontroller");
+        throw std::runtime_error("Error while constructing GIScontroller");
     }
-    mMapView = view;
-    mMapView->connect(this, &vrsa::services::GISController::ProjectCRSChanged, mMapView, &MapHolder::onCrsChanged);
-    mMapScene = new vrsa::graphics::MapScene();
-    mMapScene->setMapHolderScale(mMapView->getMapHolderScale());
-    mMapView->setScene(mMapScene);
-    connect(mMapView, &MapHolder::scaleChanged, mMapScene, &graphics::MapScene::onMapHolderScaleChanged);
-    connect(mMapScene, &graphics::MapScene::panningRequested, mMapView, &MapHolder::onPanningRequested);
-    connect(mMapView, &MapHolder::mousePressed, mMapScene, &graphics::MapScene::onMapHolderMousePressed);
-    mMapView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
-    mMapView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-    mMapView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-
-    view->setOptimizationFlags(
-                QGraphicsView::DontSavePainterState |
-                QGraphicsView::DontAdjustForAntialiasing
-                );
-
-
-
-    view->setOptimizationFlags(QGraphicsView::DontSavePainterState);
-    view->setRenderHint(QPainter::Antialiasing, true);
-    view->setRenderHint(QPainter::SmoothPixmapTransform, false);
-
-    // Отключаем кэширование фона
-    view->setCacheMode(QGraphicsView::CacheNone);
-    // ui->graphicsView->scene()->setSceneRect(-180,90,360,-180);
-    double xMin = -20037508.34;
-    double yMax = 20037508.34;
-    double width = 40075016.68;
-    double height = 20037508.34;
-
-    // Установка сцены в пределах EPSG:3857 координат
-    mMapView->scale(1,-1);
-    mMapView->setSceneRect(xMin*4, 4*yMax, 4*width, -8*height);
-    mMapView->recalculateScale();
-
-
+        connect(this, &GISController::updateLegendIconsRequired, mRenderer.get(),
+                                       &graphics::SymbolRenderer::renderToIcon);
+        connect(this, &GISController::vectorLayerCreationRequested, mVectorCreator.get(),
+                                       &vector::VectorLayerCreator::onLayerCreationRequested);
+        connect(this, &GISController::datasetReadingRequested, mProjectManager.get(),
+                                       &ProjectManager::onVectorLayerReadingRequested);
+        connect(mProjectManager.get(), &ProjectManager::datasetAdded, this, &GISController::onDatasetAdded);
+        connect(mVectorCreator.get(), &vector::VectorLayerCreator::vectorLayerReadingRequested, mProjectManager.get(),
+                                       &ProjectManager::onVectorLayerReadingRequested);
 }
 
-void vrsa::services::GISController::setTreeWidget(TreeWidget *treeWidget)
+void vrsa::services::GISController::setupViewAndIntitizlizeScene()
 {
-    mTreeWidget = treeWidget;
-    mTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    auto view = mComps.mapView;
+    mMapScene = new vrsa::graphics::MapScene();
+    if (!mMapScene)
+        return;
+    mMapScene->setMapHolderScale(view->getMapHolderScale());
+    view->setScene(mMapScene);
+
+    connect(view, &MapHolder::scaleChanged, mMapScene, &graphics::MapScene::onMapHolderScaleChanged);
+    connect(view, &MapHolder::mousePressed, mMapScene, &graphics::MapScene::onMapHolderMousePressed);
+    connect(this, &vrsa::services::GISController::projectCRSChanged, view, &MapHolder::onCrsChanged);
+    //связываем сигнал с фабрики (синглтон), для создания графических объектов и их автоматического добавления на сцену
+    connect(&graphics::FeatureGraphicsItemFactory::instance(), &graphics::FeatureGraphicsItemFactory::featureGraphicsItemCreated,
+            mMapScene, &graphics::MapScene::onFeatureGraphicsItemCreated);
+    connect(mMapScene, &graphics::MapScene::panningRequested, view, &MapHolder::onPanningRequested);
+    connect(mComps.mapView, &MapHolder::scaleChanged, this, &GISController::onMapHolderScaleChanged);
+    connect(mMapScene, &vrsa::graphics::MapScene::mouseMoved, this, &GISController::onMouseCoordinatesChanged);
+    view->scale(1,-1);
+    view->recalculateScale();
+}
+
+void vrsa::services::GISController::setup()
+{
+    setupMainLegendTreeWidget();
+    setupViewAndIntitizlizeScene();
+
+    connect(mComps.crsCombo, QOverload<int>::of(&CRSComboBox::currentIndexChanged), this,
+            &GISController::onCRSComboBoxIndexChanged);
+    connect(this, qOverload<const QIcon&>(&GISController::activeLayerChanged), this,
+            qOverload<const QIcon&>(&GISController::onActiveLayerChanged));
+    connect(this, qOverload<const QString&>(&GISController::activeLayerChanged), this,
+            qOverload<const QString&>(&GISController::onActiveLayerChanged));
+    connect(mComps.singleSelectionBtn, &QPushButton::clicked, this,
+            &vrsa::services::GISController::onSingleSelectionToolClicked);
+    connect(mComps.rectSeletionBtn, &QPushButton::clicked, this,
+            &vrsa::services::GISController::onRectSelectionToolClicked);
+    connect(mComps.geometryEditBtn, &QPushButton::clicked, this,
+            &vrsa::services::GISController::onGeometryEditToolClicked);
+    connect(mComps.addFeatureBtn, &QPushButton::clicked, this, &GISController::onDigitizingToolClicked);
+
+    //==========ПОДЛЮЧЕНИЕ СИГНАЛОВ QAction==========
+    connect(mComps.actionOpenLayer, &QAction::triggered,
+            this, &GISController::onOpenLayerActionTriggered);
+    connect(mComps.actionCreateLayer, &QAction::triggered,
+            this, &GISController::onCreateLayerActionTriggered);
+    connect(mComps.actionCreatePointLayer, &QAction::triggered,
+            this, &GISController::onCreatePointLayerActionTriggered);
+    connect(mComps.actionCreateLineLayer, &QAction::triggered,
+            this, &GISController::onCreateLineLayerActionTriggered);
+    connect(mComps.actionCreatePolygonLayer, &QAction::triggered,
+            this, &GISController::onCreatePolygonLayerActionTriggered);
+}
+
+void vrsa::services::GISController::setupMainLegendTreeWidget()
+{
+    auto treeWidget = mComps.mainLegendTree;
+    treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     treeWidget->setItemsExpandable(false);
     treeWidget->expandAll();
-    connect(mTreeWidget, &TreeWidget::customContextMenuRequested,
+    connect(treeWidget, &TreeWidget::customContextMenuRequested,
             this, &services::GISController::showContextMenu);
-
-    connect(mTreeWidget, &TreeWidget::itemChanged,
-            this, &services::GISController::layerTreeDataChanged);
-
-    connect(mTreeWidget, &TreeWidget::itemDoubleClicked,
+    connect(treeWidget, &TreeWidget::itemChanged,
+            this, &services::GISController::onLayerTreeDataChanged);
+    connect(treeWidget, &TreeWidget::itemDoubleClicked,
             this, &services::GISController::onLayerTreeItemDoubleClicked);
-
-    connect(mTreeWidget, &TreeWidget::itemDragRequested,
+    connect(treeWidget, &TreeWidget::itemDragRequested,
             this, &services::GISController::onItemDragRequested);
-
-    connect(mTreeWidget, &TreeWidget::itemDropped,
+    connect(treeWidget, &TreeWidget::itemDropped,
             this, &services::GISController::onItemDropped);
-
 }
 
-void vrsa::services::GISController::setTabWidgets(QTabWidget *lhs, QTabWidget *rhs) noexcept
-{
-    mLeftTabWidget = lhs;
-    mRightTabWidget = rhs;
-}
 
-QTreeWidget* vrsa::services::GISController::getSelectionTreeWidget() const
-{
-    if (mRightTabWidget)
-    {
-        if (QWidget* pageTab = mRightTabWidget->widget(SELECTION_TAB_INDEX))
-            return qobject_cast<QTreeWidget*>(pageTab->findChild<QTreeWidget*>(SELECTION_TREE_OBJ_NAME));
-    }
-    return nullptr;
-}
 
-void vrsa::services::GISController::LoadDataSet(std::string &source)
+void vrsa::services::GISController::setupViewComponents(const ViewComponents &comp)
 {
-    vrsa::gdalwrapper::GDALReader reader;
-    std::unique_ptr<vrsa::gdalwrapper::Dataset> ptr;
-    try
+    mComps = comp;
+    std::string errorMsg;
+    if (!mComps.isValid(errorMsg))
     {
-        ptr=reader.readDataset(source);
-    }
-    catch (const vrsa::common::DataSetOpenException& e)
-    {
-        VRSA_DEBUG("DataSetOpenException", e.what());
-    }
-    if (!ptr)
-    {
-        VRSA_ERROR("GDAL", "Can't read dataset: " + source);
+        VRSA_ERROR("GISController", "Error while setting up view components:" + errorMsg);
         return;
     }
-    auto& projManager = services::ProjectManager::instance();
-    auto dS = ptr.get();
-    projManager.AddDataset(std::move(ptr));
+    VRSA_INFO("GISController", "View components successfully configured");
+    setup();
+}
 
+
+void vrsa::services::GISController::onDatasetAdded(gdalwrapper::Dataset *dS)
+{
+    if (!dS)
+        return;
+    //заполяем treeWidget (легенду)
+    std::string source = dS->getSource();
     auto* dSItem = new QTreeWidgetItem();
     dSItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/dataset.png"));
     dSItem->setText(DATA_COLUMN, QString::fromStdString(source));
@@ -133,16 +157,13 @@ void vrsa::services::GISController::LoadDataSet(std::string &source)
         auto vDs = static_cast<vrsa::vector::VectorDataset*>(dS);
         dSItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_VectorDataset));
         dSItem->setData(DATA_COLUMN, common::DatasetTypeRole, QVariant::fromValue(common::DatasetType::Vector));
-        for (int i=0; i<vDs->layersCount(); ++i)
+        for (int i = 0; i < vDs->layersCount(); ++i)
         {
-            auto& layer = vDs->getLayer(i);
+            auto layer = vDs->getLayer(i);
             if (!layer)
                 continue;
-            mMapScene->addLayer(layer);
             auto* layerItem = new QTreeWidgetItem(dSItem);
-
             layerItem->setCheckState(DATA_COLUMN,Qt::Checked);
-
             layerItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_VectorLayer));
             layerItem->setData(DATA_COLUMN, common::DatasetPathRole, QString::fromStdString(source));
             layerItem->setData(DATA_COLUMN, common::LayerIDRole, i);
@@ -153,31 +174,8 @@ void vrsa::services::GISController::LoadDataSet(std::string &source)
             if (layerName && layerName[0] != '\0')
                 displayName = layerName;
             layerItem->setText(DATA_COLUMN, QString::fromUtf8(displayName));
-//            switch (layer->getGeomType())
-//            {
-//            case common::GeometryType::Point:
-//            case common::GeometryType::MultiPoint:
-//                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/pointLayer.png"));
-//                break;
-//            case common::GeometryType::LineString:
-//            case common::GeometryType::MultiLineString:
-//                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/lineLayer.png"));
-//                break;
-//            case common::GeometryType::Polygon:
-//            case common::GeometryType::MultiPolygon:
-//                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/polygonLayer.png"));
-//                break;
-//            case common::GeometryType::GeometryCollection:
-//                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/group.png"));
-//                break;
-//            default:
-//                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/unknown.png"));
-//                break;
 
-//            }
-
-            qDebug()<<"GIS CONTROLLER. LAYER GEOM TYPE - " << layer->getGeomType();
-            if (auto layerStyle = layer->getStyle(layer->getGeomType()))
+            if (auto layerStyle = layer->getStyle())
             {
                 QIcon icon = QIcon();
                 emit updateLegendIconsRequired(layerStyle->getSymbol(), icon);
@@ -215,69 +213,59 @@ void vrsa::services::GISController::LoadDataSet(std::string &source)
         break;
     }
     default:
-
-        VRSA_WARNING("GisController", "Данный тип датасета пока не совсем ... поддерживается, простите :c");
+        VRSA_WARNING("GisController", "Данный тип датасета пока не поддерживается");
     }
-
-    if (mTreeWidget)
-        mTreeWidget->addTopLevelItem(dSItem);
-
-    mTreeWidget->expandAll();
+    mComps.mainLegendTree->addTopLevelItem(dSItem);
+    mComps.mainLegendTree->expandAll();
     syncZOrderWithTree();
-    emit DatasetAdded(source);
-
 
 }
 
+
 void vrsa::services::GISController::ApplyCRS(std::string name)
 {  
-    if (auto wktDesc = vrsa::georef::SpatialReferenceLibrary::getInstance().GetWKTByName(name))
-        mProjCrs = vrsa::gdalwrapper::SpatialReference(*wktDesc, common::CrsFormat::WKT);
-    else if (auto projDesc = vrsa::georef::SpatialReferenceLibrary::getInstance().GetProjByName(name))
-        mProjCrs = vrsa::gdalwrapper::SpatialReference(*projDesc, common::CrsFormat::Proj);
-    else if (auto epsgCode = vrsa::georef::SpatialReferenceLibrary::getInstance().GetEPSGByName(name))
-        mProjCrs = vrsa::gdalwrapper::SpatialReference(std::to_string(*epsgCode), common::CrsFormat::EPSG);
-    else
-    {
-        VRSA_ERROR("GISController", "Can't apply CRS:" + name);
-        return;
-    }
-    emit ProjectCRSChanged(mProjCrs);
-    //mMapCalculator->setCRS(mProjCrs);
+//    if (auto wktDesc = vrsa::georef::SpatialReferenceLibrary::getInstance().GetWKTByName(name))
+//        mProjCrs = vrsa::gdalwrapper::SpatialReference(*wktDesc, common::CRSDesctiptionFormat::WKT);
+//    else if (auto projDesc = vrsa::georef::SpatialReferenceLibrary::getInstance().GetProjByName(name))
+//        mProjCrs = vrsa::gdalwrapper::SpatialReference(*projDesc, common::CRSDesctiptionFormat::Proj);
+//    else if (auto epsgCode = vrsa::georef::SpatialReferenceLibrary::getInstance().GetEPSGByName(name))
+//        mProjCrs = vrsa::gdalwrapper::SpatialReference(std::to_string(*epsgCode), common::CRSDesctiptionFormat::EPSG);
+//    else
+//    {
+//        VRSA_ERROR("GISController", "Can't apply CRS:" + name);
+//        return;
+//    }
+//    emit projectCRSChanged(mProjCrs);
+//    //mMapCalculator->setCRS(mProjCrs);
 }
 
 bool vrsa::services::GISController::isCurrentCRSGeographic() const
 {
-    return mProjCrs.GetOGRSpatialRef()->IsGeographic();
+    //return mProjCrs.GetOGRSpatialRefPtr()->IsGeographic();
 }
 
 
 
-void vrsa::services::GISController::syncZOrderWithTree()
+void vrsa::services::GISController::syncZOrderWithTree() const
 {
     int baseZ = common::MAX_Z_VALUE;
-    for (int i=0; i<mTreeWidget->topLevelItemCount(); ++i)
+    for (int i=0; i<mComps.mainLegendTree->topLevelItemCount(); ++i)
     {
-        auto topLevelItem = mTreeWidget->topLevelItem(i);
-        auto& pM = ProjectManager::instance();
+        auto topLevelItem = mComps.mainLegendTree->topLevelItem(i);
+        auto& pM = mProjectManager;
         switch (topLevelItem->data(DATA_COLUMN, common::ItemTypeRole).value<common::TreeItemType>())
         {
         case common::ItemType_VectorDataset:
         {
             QString path = topLevelItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
-            for (auto& layer: static_cast<vector::VectorDataset*>(pM.getDatasetBySource(path.toStdString()))->getLayers())
-            {
-                //qDebug()<<layer.get()<< " has z value =" << baseZ;
+            for (auto& layer: static_cast<vector::VectorDataset*>(pM->getDatasetBySource(path.toStdString()))->getLayers())
                 layer->setZValue(baseZ--);
-
-            }
             break;
         }
         case common::ItemType_RasterDataset:
         {
             QString path = topLevelItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
-            auto rasterDataset = static_cast<raster::RasterDataset*>(pM.getDatasetBySource(path.toStdString()));
-            //qDebug()<<rasterDataset<< " has z value =" << baseZ;
+            auto rasterDataset = static_cast<raster::RasterDataset*>(pM->getDatasetBySource(path.toStdString()));
             rasterDataset->setZValue(baseZ--);
             break;
         }
@@ -307,11 +295,9 @@ QIcon vrsa::services::GISController::getIconForGeometryType(common::GeometryType
 
 void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
 {
-    QTreeWidgetItem *clickedItem=mTreeWidget->itemAt(itemPos);
+    QTreeWidgetItem *clickedItem=mComps.mainLegendTree->itemAt(itemPos);
     if (!clickedItem)
         return;
-    //получение типа QTreeWidgetItem (dataset, layer etc..)
-
     QMenu menu;
     switch (clickedItem->data(DATA_COLUMN, common::ItemTypeRole).value<common::TreeItemType>())
     {
@@ -321,29 +307,24 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
             VectorDatasetForm form;
             form.setTreeItem(clickedItem);
             form.exec();
-            qDebug() << "properties";
         });
         break;
     case common::ItemType_RasterDataset:
         qDebug() << "Raster Dataset Item Clicked!";
         menu.addAction(tr("Свойства"), this, [this, clickedItem]() {
-            //            VectorDatasetForm form;
-            //            form.setTreeItem(clickedItem);
-            //            form.exec();
             qDebug() << "properties";
         });
         menu.addAction(tr("Увеличить до слоя"), this, [this, clickedItem]() {
 
             QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
-            auto rasterDataset = static_cast<raster::RasterDataset*>(ProjectManager::instance()
-                                                                     .getDatasetBySource(path.toStdString()));
+            auto rasterDataset = static_cast<raster::RasterDataset*>(mProjectManager->getDatasetBySource(path.toStdString()));
 
             QRectF targetRect = rasterDataset->getBoundingBox();
-            mMapView->fitInView(targetRect, Qt::KeepAspectRatio);
-            mMapView->centerOn(targetRect.center());
-            mMapView->recalculateScale();
-            qDebug() << "zoom to layer";
+            mComps.mapView->fitInView(targetRect, Qt::KeepAspectRatio);
+            mComps.mapView->centerOn(targetRect.center());
+            mComps.mapView->recalculateScale();
+            qDebug() << targetRect;
         });
         break;
     case common::ItemType_VectorLayer:
@@ -356,18 +337,18 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
         menu.addAction(tr("Увеличить до слоя"), this, [this, clickedItem]() {
             QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
-            auto selectedLayer = ProjectManager::instance().getLayer(path.toStdString(), layerID);
+            auto selectedLayer = mProjectManager->getLayer(path.toStdString(), layerID);
             QRectF targetRect = selectedLayer->getBoundingBox();
-            mMapView->fitInView(targetRect, Qt::KeepAspectRatio);
-            mMapView->centerOn(targetRect.center());
-            mMapView->recalculateScale();
-            qDebug() << "zoom to layer";
+            mComps.mapView->fitInView(targetRect, Qt::KeepAspectRatio);
+            mComps.mapView->centerOn(targetRect.center());
+            mComps.mapView->recalculateScale();
+            qDebug() << targetRect;
         });
 
         menu.addAction(tr("Таблица атрибутов"), this, [this, clickedItem]() {
             QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
-            auto selectedLayer = ProjectManager::instance().getLayer(path.toStdString(), layerID);
+            auto selectedLayer = mProjectManager->getLayer(path.toStdString(), layerID);
             AttributeTableForm form(nullptr, selectedLayer);
             //VectorDatasetForm form;
             form.exec();
@@ -376,9 +357,9 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
         menu.addAction(tr("Настройки стиля"), this, [this, clickedItem]() {
             QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
-            auto selectedLayer = ProjectManager::instance().getLayer(path.toStdString(), layerID);
+            auto selectedLayer = mProjectManager->getLayer(path.toStdString(), layerID);
             auto layerGeometryType = selectedLayer->getGeomType();
-            auto style = selectedLayer->getStyle(layerGeometryType);
+            auto style = selectedLayer->getStyle();
             if (!style)
                 return;
             auto symbol = style->getSymbol();
@@ -418,7 +399,7 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
 
     }
     menu.show();
-    menu.exec(mTreeWidget->mapToGlobal(itemPos));
+    menu.exec(mComps.mainLegendTree->mapToGlobal(itemPos));
 
     //    if (clickedItem->parent()) {
     //        qDebug() << "Parent found:" << clickedItem->parent()->text(0);
@@ -429,15 +410,15 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
 
 }
 
-void vrsa::services::GISController::layerTreeDataChanged(QTreeWidgetItem *selectedItem, int column)
+void vrsa::services::GISController::onLayerTreeDataChanged(QTreeWidgetItem *selectedItem, int column)
 {
-    auto& pM = ProjectManager::instance();
+    auto& pM = mProjectManager;
     switch (selectedItem->data(DATA_COLUMN, common::ItemTypeRole).value<common::TreeItemType>())
     {
     case common::ItemType_VectorDataset:
     {
         QString path = selectedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
-        for (auto& layer: static_cast<vector::VectorDataset*>(pM.getDatasetBySource(path.toStdString()))->getLayers())
+        for (auto& layer: static_cast<vector::VectorDataset*>(pM->getDatasetBySource(path.toStdString()))->getLayers())
         {
             layer->setVisible(selectedItem->checkState(column));
         }
@@ -454,7 +435,7 @@ void vrsa::services::GISController::layerTreeDataChanged(QTreeWidgetItem *select
     {
         QString path = selectedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
         int id = selectedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
-        auto selectedLayer = pM.getLayer(path.toStdString(), id);
+        auto selectedLayer = pM->getLayer(path.toStdString(), id);
         if (selectedLayer)
             selectedLayer->setVisible(selectedItem->checkState(column));
         break;
@@ -470,7 +451,7 @@ void vrsa::services::GISController::layerTreeDataChanged(QTreeWidgetItem *select
 
 void vrsa::services::GISController::onLayerTreeItemDoubleClicked(QTreeWidgetItem *selectedItem, int column)
 {
-    auto& pM = ProjectManager::instance();
+    auto& pM = mProjectManager;
     switch (selectedItem->data(DATA_COLUMN, common::ItemTypeRole).value<common::TreeItemType>())
     {
     case common::ItemType_VectorDataset:
@@ -482,12 +463,12 @@ void vrsa::services::GISController::onLayerTreeItemDoubleClicked(QTreeWidgetItem
     {
         QString path = selectedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
         int id = selectedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
-        auto selectedLayer = pM.getLayer(path.toStdString(), id);
+        auto selectedLayer = pM->getLayer(path.toStdString(), id);
         if (selectedLayer)
         {
 
-            pM.setActiveVectorLayer(selectedLayer);
-            qDebug()<< "Active vector layer changed:" << pM.getActiveVectorLayer();
+            pM->setActiveVectorLayer(selectedLayer);
+            qDebug()<< "Active vector layer changed:" << pM->getActiveVectorLayer();
             emit activeLayerChanged(getIconForGeometryType(selectedLayer->getGeomType()));
             emit activeLayerChanged(selectedLayer->getName());
             emit activeLayerChanged(selectedLayer);
@@ -511,14 +492,14 @@ void vrsa::services::GISController::onItemDragRequested(QDragMoveEvent *event, b
 void vrsa::services::GISController::onItemDropped(QDropEvent* event, bool *accepted)
 {
 
-    QTreeWidgetItem* source = mTreeWidget->currentItem();
-    QTreeWidgetItem* target = mTreeWidget->itemAt(event->pos());
+    QTreeWidgetItem* source = mComps.mainLegendTree->currentItem();
+    QTreeWidgetItem* target = mComps.mainLegendTree->itemAt(event->pos());
     if (!source || source == target)
     {
         *accepted = false;
         return;
     }
-    auto& pM = ProjectManager::instance();
+    auto& pM = mProjectManager;
     qDebug() << "=== DROP DEBUG ===";
     qDebug() << "source:" << source << "text:" << (source ? source->text(0) : "null");
     qDebug() << "target:" << target << "text:" << (target ? target->text(0) : "null");
@@ -534,7 +515,7 @@ void vrsa::services::GISController::onItemDropped(QDropEvent* event, bool *accep
             break;
 
         //если есть таргет
-        QRect targetRect = mTreeWidget->visualItemRect(target);
+        QRect targetRect = mComps.mainLegendTree->visualItemRect(target);
         int cursorY = event->pos().y();
 
         //получаем toplevelitem target'a
@@ -543,8 +524,8 @@ void vrsa::services::GISController::onItemDropped(QDropEvent* event, bool *accep
         {
             rootTarget = rootTarget->parent();
         }
-        int sourceIndex = mTreeWidget->indexOfTopLevelItem(source); //всегда dataset должен быть корнем ??
-        int rootTargetIndex = mTreeWidget->indexOfTopLevelItem(rootTarget);
+        int sourceIndex = mComps.mainLegendTree->indexOfTopLevelItem(source); //всегда dataset должен быть корнем ??
+        int rootTargetIndex = mComps.mainLegendTree->indexOfTopLevelItem(rootTarget);
         qDebug()<<"Индекс корня чего вставляем- " << sourceIndex;
         qDebug()<<"Индекс корня куда вставляем - " << rootTargetIndex;
 
@@ -559,39 +540,39 @@ void vrsa::services::GISController::onItemDropped(QDropEvent* event, bool *accep
                 qDebug() << "rootTargetIndex:" << rootTargetIndex;
                 qDebug() << "sourceIndex:" << sourceIndex;
 
-                QTreeWidgetItem* temp1 = mTreeWidget->takeTopLevelItem(sourceIndex); //убираем то что перемещаем
+                QTreeWidgetItem* temp1 = mComps.mainLegendTree->takeTopLevelItem(sourceIndex); //убираем то что перемещаем
 
                 qDebug() << "After take source - items:";
-                for (int i = 0; i < mTreeWidget->topLevelItemCount(); ++i) {
-                    qDebug() << "  " << i << ":" << mTreeWidget->topLevelItem(i)->text(0);
+                for (int i = 0; i < mComps.mainLegendTree->topLevelItemCount(); ++i) {
+                    qDebug() << "  " << i << ":" << mComps.mainLegendTree->topLevelItem(i)->text(0);
                 }
-                rootTargetIndex = mTreeWidget->indexOfTopLevelItem(rootTarget);
-                QTreeWidgetItem* temp2 = mTreeWidget->takeTopLevelItem(rootTargetIndex);
+                rootTargetIndex = mComps.mainLegendTree->indexOfTopLevelItem(rootTarget);
+                QTreeWidgetItem* temp2 = mComps.mainLegendTree->takeTopLevelItem(rootTargetIndex);
 
                 qDebug() << "After both takes - items:";
-                for (int i = 0; i < mTreeWidget->topLevelItemCount(); ++i) {
-                    qDebug() << "  " << i << ":" << mTreeWidget->topLevelItem(i)->text(0);
+                for (int i = 0; i < mComps.mainLegendTree->topLevelItemCount(); ++i) {
+                    qDebug() << "  " << i << ":" << mComps.mainLegendTree->topLevelItem(i)->text(0);
                 }
 
-                mTreeWidget->insertTopLevelItem(rootTargetIndex, temp1);
-                mTreeWidget->insertTopLevelItem(rootTargetIndex+1,
+                mComps.mainLegendTree->insertTopLevelItem(rootTargetIndex, temp1);
+                mComps.mainLegendTree->insertTopLevelItem(rootTargetIndex+1,
                             temp2);
 
                 qDebug() << "After inserts - items:";
-                for (int i = 0; i < mTreeWidget->topLevelItemCount(); ++i) {
-                    qDebug() << "  " << i << ":" << mTreeWidget->topLevelItem(i)->text(0);
+                for (int i = 0; i < mComps.mainLegendTree->topLevelItemCount(); ++i) {
+                    qDebug() << "  " << i << ":" << mComps.mainLegendTree->topLevelItem(i)->text(0);
                 }
 
-                mTreeWidget->update();  // не всегда помогает
-                mTreeWidget->doItemsLayout();  // принудительная перерисовка
+                mComps.mainLegendTree->update();  // не всегда помогает
+                mComps.mainLegendTree->doItemsLayout();  // принудительная перерисовка
 
                 *accepted=false;
             }
             else
             {
-                QTreeWidgetItem* temp1 = mTreeWidget->takeTopLevelItem(sourceIndex); //убираем то что перемещаем
+                QTreeWidgetItem* temp1 = mComps.mainLegendTree->takeTopLevelItem(sourceIndex); //убираем то что перемещаем
 
-                mTreeWidget->insertTopLevelItem(rootTargetIndex+1, temp1);
+                mComps.mainLegendTree->insertTopLevelItem(rootTargetIndex+1, temp1);
                 *accepted=false;
             }
         }
@@ -599,18 +580,18 @@ void vrsa::services::GISController::onItemDropped(QDropEvent* event, bool *accep
         {
             if (cursorY < targetRect.center().y()) // верхняя половина — вставить перед
             {
-                QTreeWidgetItem* temp1 = mTreeWidget->takeTopLevelItem(sourceIndex); //убираем то что перемещаем
-                //QTreeWidgetItem* temp2 = mTreeWidget->takeTopLevelItem(rootTargetIndex);
-                rootTargetIndex = mTreeWidget->indexOfTopLevelItem(rootTarget);
-                mTreeWidget->insertTopLevelItem(rootTargetIndex, temp1);
-                //mTreeWidget->insertTopLevelItem(sourceIndex, temp2);
+                QTreeWidgetItem* temp1 = mComps.mainLegendTree->takeTopLevelItem(sourceIndex); //убираем то что перемещаем
+                //QTreeWidgetItem* temp2 = mComps.mainLegendTree->takeTopLevelItem(rootTargetIndex);
+                rootTargetIndex = mComps.mainLegendTree->indexOfTopLevelItem(rootTarget);
+                mComps.mainLegendTree->insertTopLevelItem(rootTargetIndex, temp1);
+                //mComps.mainLegendTree->insertTopLevelItem(sourceIndex, temp2);
                 *accepted=true;
             }
             else
             {
-                QTreeWidgetItem* temp1 = mTreeWidget->takeTopLevelItem(sourceIndex); //убираем то что перемещаем
-                rootTargetIndex = mTreeWidget->indexOfTopLevelItem(rootTarget);
-                mTreeWidget->insertTopLevelItem(rootTargetIndex+1, temp1);
+                QTreeWidgetItem* temp1 = mComps.mainLegendTree->takeTopLevelItem(sourceIndex); //убираем то что перемещаем
+                rootTargetIndex = mComps.mainLegendTree->indexOfTopLevelItem(rootTarget);
+                mComps.mainLegendTree->insertTopLevelItem(rootTargetIndex+1, temp1);
                 *accepted=true;
             }
         }
@@ -644,8 +625,8 @@ void vrsa::services::GISController::onItemDropped(QDropEvent* event, bool *accep
 
 void vrsa::services::GISController::startDigitizing() //onpbAddFeature
 {
-    auto& pM = ProjectManager::instance();
-    auto activeLayer = pM.getActiveVectorLayer();
+    auto& pM = mProjectManager;
+    auto activeLayer = pM->getActiveVectorLayer();
     if (!activeLayer)
     {
         //emit activeLayerChanged(getIconForGeometryType(common::GeometryType::Unknown));//for digitizing tool button
@@ -682,8 +663,7 @@ void vrsa::services::GISController::addMapTool(common::MapToolType type, vector:
     if (tool)
     {
         connect(tool.get(), &tools::MapTool::toolEvent, this, &GISController::onToolEvent);
-        if (mStatusBar)
-            connect(tool.get(), &tools::MapTool::statusMessage, mStatusBar, &QStatusBar::showMessage);
+        connect(tool.get(), &tools::MapTool::statusMessage, mComps.statusBar, &QStatusBar::showMessage);
         mMapScene->setMapTool(std::move(tool));
     }
 
@@ -712,7 +692,29 @@ void vrsa::services::GISController::onGeometryEditToolClicked(bool checked)
 //    if (checked)
     addMapTool(common::MapToolType::EditGeometryTool);
 //    else
-//        mMapScene->deselectCurrentMapTool();
+    //        mMapScene->deselectCurrentMapTool();
+}
+
+void vrsa::services::GISController::onDigitizingToolClicked(bool checked)
+{
+    if (checked)
+        startDigitizing();
+    else
+        removeMapTool();
+}
+
+void vrsa::services::GISController::onCRSComboBoxIndexChanged(int index)
+{
+    auto crs = spatialref::SpatialReferenceDatabase::instance().createFromIndex(index);
+    if (crs.isValid())
+    {
+        //auto crsInfo = spatialref::SpatialReferenceDatabase::instance().getCRSInfoByEPSG(std::stoi(crs.getAuthorityCode()));
+        VRSA_DEBUG("GISController", "Project CRS changed to:" + mComps.crsCombo->currentText().toStdString());
+        mProjCrs = crs;
+        emit projectCRSChanged(crs);
+        return;
+    }
+    VRSA_DEBUG("GISController", "Invalid CRS set");
 }
 
 void vrsa::services::GISController::onToolEvent(tools::MapTool::ToolEventType type, const QVariant &data)
@@ -736,17 +738,27 @@ void vrsa::services::GISController::onToolEvent(tools::MapTool::ToolEventType ty
 
 void vrsa::services::GISController::handleFeatureSelected(graphics::FeatureGraphicsItem *item, bool shouldClearTree)
 {
+    auto selectionTreeWidget = mComps.featureSelectionTree;
     if (shouldClearTree)
-        getSelectionTreeWidget()->clear();
+        selectionTreeWidget->clear();
     if (!item)
         return;
     auto feature = item->getFeature();
-    auto layer = ProjectManager::instance().getLayerAssociatedWithFeature(feature);
+    auto layer = mProjectManager->getLayerAssociatedWithFeature(feature);
     if (!layer)
         return;
-    auto selectionTreeWidget = getSelectionTreeWidget(); //получаем tree виджет из tabWidget
     QTreeWidgetItem* root = new QTreeWidgetItem;
     root->setText(DATA_COLUMN, layer->getName());
+    QString tooltipText = QString("<b>Слой:</b> %1<br><b>FID:</b> %2")
+                              .arg(layer->getName())
+                              .arg(QString::number(feature->getFID())); // предположим, у layer есть такой метод
+
+    // Устанавливаем ToolTip для первого столбца [citation:1][citation:3]
+    root->setToolTip(DATA_COLUMN, tooltipText);
+
+    mComps.statusBar->showMessage("Веторный объект слоя: "+QString::fromStdString(layer->getNameAsString())
+                                   +" | FID:"+ QString::number(feature->getFID()), 5000);
+
     selectionTreeWidget->addTopLevelItem(root);
     for (const auto& attr: feature->getAttributesAsQString())
     {
@@ -760,9 +772,97 @@ void vrsa::services::GISController::handleFeatureSelected(graphics::FeatureGraph
 
 void vrsa::services::GISController::handleMultipleFeaturesSelected(const std::vector<graphics::FeatureGraphicsItem *>& items)
 {
-    getSelectionTreeWidget()->clear();
+    mComps.featureSelectionTree->clear();
     for (const auto& item: items)
         handleFeatureSelected(item, false);
+}
+
+//=============================СЛОТЫ ОБРАБОТЧИКИ СИГНАЛОВ СО СЦЕНЫ===============================
+void vrsa::services::GISController::onMapHolderScaleChanged(int mapScale, double widgetScale)
+{
+    mComps.scaleEdit->setText(QString::number(mapScale));
+}
+
+void vrsa::services::GISController::onMouseCoordinatesChanged(const QPointF& p)
+{
+    if (mProjCrs.isGeographic())
+    {
+        QString xCoord = QString::number(p.x(), 'f', 5); // форматируем координаты с пятью знаками после запятой
+        QString yCoord = QString::number(p.y(), 'f', 5);
+        QString coords = QString("%1  %2").arg(xCoord, yCoord);
+        mComps.coordEdit->setText(coords);
+    }
+    else
+    {
+        QString xCoord = QString::number(p.x(), 'f', 2);
+        QString yCoord = QString::number(p.y(), 'f', 2);
+        QString coords = QString("%1  %2").arg(xCoord, yCoord);
+        mComps.coordEdit->setText(coords);
+    }
+}
+
+void vrsa::services::GISController::onActiveLayerChanged(const QIcon &icon)
+{
+    mComps.addFeatureBtn->setIcon(icon);
+    mComps.mapToolsGrp->setExclusive(false);
+    mComps.addFeatureBtn->setChecked(false);
+    mComps.mapToolsGrp->setExclusive(true);
+    removeMapTool();
+    mComps.addFeatureBtn->setAttribute(Qt::WA_UnderMouse, false);
+}
+
+void vrsa::services::GISController::onActiveLayerChanged(const QString &name)
+{
+    mComps.activeLayerLabel->setText(tr("Активный слой:") + name);
+}
+
+//==================СЛОТЫ ОБРАБОТЧИКИ ACTION=========================
+void vrsa::services::GISController::onOpenLayerActionTriggered()
+{
+     std::string fileName=QFileDialog::getOpenFileName(nullptr,"Chose Vector Layer","Vector Files").toStdString();
+     emit datasetReadingRequested(fileName); //сигнал для project manager
+}
+
+void vrsa::services::GISController::onCreateLayerActionTriggered()
+{
+    VectorLayerCreationForm form;
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreatePointLayerActionTriggered()
+{
+    VectorLayerCreationForm form(common::GeometryType::Point);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateLineLayerActionTriggered()
+{
+    VectorLayerCreationForm form(common::GeometryType::LineString);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreatePolygonLayerActionTriggered()
+{
+    VectorLayerCreationForm form(common::GeometryType::Polygon);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    form.exec();
+}
+
+
+
+//получение описания векторного слоя с диалогового окна по его созданию
+void vrsa::services::GISController::onVectorLayerCreationAccepted(const common::LayerDefinition &layerDef)
+{
+    if (!layerDef.isValid())
+    {
+        VRSA_ERROR("GISController", "Can't create new vector layer. Reason: invalid layer definition");
+        return;
+    }
+    vectorLayerCreationRequested(layerDef);
+
 }
 
 

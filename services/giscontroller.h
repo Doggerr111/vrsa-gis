@@ -2,105 +2,192 @@
 #define GISCONTROLLER_H
 
 #include <QObject>
-#include <QGraphicsView>
-#include "graphics/mapscene.h"
-#include "common/logger.h"
-#include "services/projectmanager.h"
-#include "gdal/gdalreader.h"
-#include "calculations/mapcalculations.h"
-#include "georef/spatialreferencelibrary.h"
-#include "gdal/spatialreference.h"
-#include "customWidgets/mapholder.h"
-#include "customWidgets/treewidget.h"
-#include <QTreeWidget>
-#include <QAction>
-#include <QMenu>
-
-#include "graphics/symbols/symbolrenderer.h"
 #include "tools/maptool.h"
-#include <QStatusBar>
+#include "common/layercreationparams.h"
+#include "vectorlayertools/vectorlayercreator.h"
+#include "services/projectmanager.h"
+#include "graphics/symbols/symbolrenderer.h"
+#include "spatialref/spatialreference.h"
 
-
-
+class QLabel;
+class QPushButton;
+class QToolButton;
+class QButtonGroup;
+class QLineEdit;
+class QComboBox;
+class QStackedWidget;
+class QTabWidget;
+class QStatusBar;
+class MapHolder;
+class QTreeWidget;
+class QTreeWidgetItem;
+class TreeWidget;
+class QDragEvent;
+class QDragMoveEvent;
+class QDropEvent;
 namespace vrsa
 {
+namespace common{
+enum class GeometryType: int;
+enum class MapToolType: int;
+}
+namespace vector{
+class VectorLayerCreator;
+class VectorLayer;
+}
+namespace gdalwrapper
+{
+class Dataset;
+}
+namespace graphics {
+class SymbolRenderer;
+class MapScene;
+class FeatureGraphicsItem;
+class Symbol;
+}
 namespace services
 {
+class ProjectManager;
+struct ViewComponents
+{
+    //view
+    MapHolder* mapView = nullptr;
+    //map tools
+    QPushButton* addFeatureBtn = nullptr;
+    QPushButton* singleSelectionBtn = nullptr;
+    QPushButton* rectSeletionBtn = nullptr;
+    QPushButton* geometryEditBtn = nullptr;
+    QButtonGroup* mapToolsGrp = nullptr;
+    // common
+    QLineEdit* coordEdit = nullptr;
+    QLineEdit* scaleEdit = nullptr;
+    QComboBox* crsCombo = nullptr;
+    QStatusBar* statusBar = nullptr;
+    QLabel* activeLayerLabel = nullptr;
 
+    QTabWidget* leftTab = nullptr; //и дочерние виджеты
+    TreeWidget* mainLegendTree = nullptr;
+
+    QTabWidget* rightTab = nullptr; //и дочерние виджеты
+    QTreeWidget* featureSelectionTree = nullptr;
+    //actions
+    QAction* actionOpenLayer = nullptr;
+    QAction* actionCreateLayer = nullptr;
+    QAction* actionCreatePointLayer = nullptr;
+    QAction* actionCreateLineLayer = nullptr;
+    QAction* actionCreatePolygonLayer = nullptr;
+
+    bool isValid(std::string& errorMsg) const noexcept
+    {
+        if (!mapView) { errorMsg = "mapView is null"; return false; }
+        if (!addFeatureBtn) {  errorMsg = "addFeatureBtn is null"; return false; }
+        if (!singleSelectionBtn) {  errorMsg = "singleSelectionBtn is null"; return false; }
+        if (!rectSeletionBtn) {  errorMsg = "rectSeletionBtn is null"; return false; }
+        if (!geometryEditBtn) {  errorMsg = "geometryEditBtn is null"; return false; }
+        if (!mapToolsGrp) {  errorMsg = "mapToolsGrp is null"; return false; }
+        if (!coordEdit) {  errorMsg = "coordEdit is null"; return false; }
+        if (!scaleEdit) {  errorMsg = "scaleEdit is null"; return false; }
+        if (!crsCombo) {  errorMsg = "crsCombo is null"; return false; }
+        if (!statusBar) {  errorMsg = "statusBar is null"; return false; }
+        if (!leftTab) {  errorMsg = "leftTab is null"; return false; }
+        if (!rightTab) {  errorMsg = "rightTab is null"; return false; }
+        if (!actionOpenLayer) {  errorMsg = "actionOpenLayer is null"; return false; }
+        if (!actionCreateLayer) {  errorMsg = "actionCreateLayer is null"; return false; }
+        if (!actionCreatePointLayer) {  errorMsg = "actionCreatePointLayer is null"; return false; }
+        if (!actionCreateLineLayer) {  errorMsg = "actionCreateLineLayer is null"; return false; }
+        if (!actionCreatePolygonLayer) {  errorMsg = "actionCreatePolygonLayer is null"; return false; }
+        if (!mainLegendTree) { errorMsg = "MainLegendTree is null"; return false; }
+        if (!featureSelectionTree) { errorMsg = "FeatureSelectionTree is null"; return false; }
+        if (!activeLayerLabel) { errorMsg = "ActiveLayerLaber is null"; return false; }
+
+        return true;
+    }
+};
 
 class GISController : public QObject
 {
     Q_OBJECT
 public:
     explicit GISController(QObject *parent = nullptr);
-    void LoadDataSet(std::string& source);
     void ApplyCRS(std::string name);
     bool isCurrentCRSGeographic() const;
-    inline graphics::MapScene* getScene() const noexcept
-    {
-        return mMapScene;
-    }
-    void startDigitizing();
-    void syncZOrderWithTree();
+    inline graphics::MapScene* getScene() const noexcept { return mMapScene; };
+    void setupViewComponents(const ViewComponents& comp);
 
+private:
+    ViewComponents mComps;
+    graphics::MapScene* mMapScene;
+    spatialref::SpatialReference mProjCrs;
+    //vrsa::gdalwrapper::SpatialReference mProjCrs;
+    const int DATA_COLUMN = 0; //для treewidget
+
+private:
+    std::unique_ptr<graphics::SymbolRenderer> mRenderer;
+    std::unique_ptr<vector::VectorLayerCreator> mVectorCreator;
+    std::unique_ptr<services::ProjectManager> mProjectManager;
+
+private:
     QIcon getIconForGeometryType(common::GeometryType type); //например для изменения иконки оцифровки в ui
     void addMapTool(common::MapToolType type, vector::VectorLayer *layer = nullptr);
     void removeMapTool();
+    void startDigitizing();
+    void syncZOrderWithTree() const;
+    void setup();
+    void setupViewAndIntitizlizeScene();
+    void setupMainLegendTreeWidget();
 
-    //некоторые компоненты интерфейса придется хранить... надеюсь когда-нибудь перейду просто на сигналы и слоты
-    void initializeScene(MapHolder* view);
-    void setTreeWidget(TreeWidget* treeWidget);
-    void setTabWidgets(QTabWidget* lhs, QTabWidget* rhs) noexcept;
-    QTreeWidget* getSelectionTreeWidget() const;
-    void setStatusBar(QStatusBar* statusBar) noexcept {mStatusBar=statusBar; };
-private:
-    //std::unique_ptr<vrsa::calculations::MapCalculator> mMapCalculator;
-    vrsa::gdalwrapper::SpatialReference mProjCrs;
-
-    MapHolder* mMapView;
-    TreeWidget* mTreeWidget;
-    graphics::MapScene* mMapScene;
-    QTabWidget* mRightTabWidget;
-    QTabWidget* mLeftTabWidget;
-    QStatusBar* mStatusBar;
-
-    //std::unique_ptr<DigitizingManager> mDigitizingManager;
-    graphics::SymbolRenderer mRenderer;
-    const int DATA_COLUMN = 0;
-
-    const int SELECTION_TAB_INDEX = 1;
-    const QString SELECTION_TREE_OBJ_NAME = "treeWidgetSelection";
-    //std::unique_ptr<vrsa::georef::SpatialReferenceLibrary> mCRSLib;
-
-public slots:
-    void showContextMenu(const QPoint&);
-
+private slots:
+    void showContextMenu(const QPoint& point);
     //слоты для работы с основной легендой
-    void layerTreeDataChanged(QTreeWidgetItem*, int);
+    void onLayerTreeDataChanged      (QTreeWidgetItem*, int);
     void onLayerTreeItemDoubleClicked(QTreeWidgetItem*, int);
-    void onItemDragRequested(QDragMoveEvent* event, bool* accepted);
-    void onItemDropped(QDropEvent* event, bool* accepted);
-    //обработка кликов с mainwindow
+    void onItemDragRequested         (QDragMoveEvent* event, bool* accepted);
+    void onItemDropped               (QDropEvent* event, bool* accepted);
+    //обработка кликов с кнопок инструменты карты
     void onSingleSelectionToolClicked(bool checked);
-    void onRectSelectionToolClicked(bool checked);
-    void onGeometryEditToolClicked(bool checked);
+    void onRectSelectionToolClicked  (bool checked);
+    void onGeometryEditToolClicked   (bool checked);
+    void onDigitizingToolClicked     (bool checked);
+    //crs cbox
+    void onCRSComboBoxIndexChanged   (int index);
 
     //обработка всех событий с инструментов карты
     void onToolEvent(tools::MapTool::ToolEventType type, const QVariant& data); //вся информация с инструментов
     //специфичные методы для обработки данных с инструментов
-    void handleFeatureSelected(graphics::FeatureGraphicsItem* item, bool shouldClearTree);
+    void handleFeatureSelected         (graphics::FeatureGraphicsItem* item, bool shouldClearTree);
     void handleMultipleFeaturesSelected(const std::vector<graphics::FeatureGraphicsItem *> &items);
 
+    void onMapHolderScaleChanged  (int mapScale, double widgetScale);
+    void onMouseCoordinatesChanged(const QPointF &p);
+
+    //для обновления ui
+    void onActiveLayerChanged(const QIcon&icon); //принимаем сигнал от контроллера
+    void onActiveLayerChanged(const QString& name); //принимаем сигнал от контроллера
+
+    //слоты с project manager
+    void onDatasetAdded(gdalwrapper::Dataset* dS);
+
+    //новые слоты для обработки действий с главного окна ui
+    void onOpenLayerActionTriggered();
+    void onCreateLayerActionTriggered();
+    void onCreatePointLayerActionTriggered();
+    void onCreateLineLayerActionTriggered();
+    void onCreatePolygonLayerActionTriggered();
+
+    //обработка сигналов с диалоговых окон
+    void onVectorLayerCreationAccepted(const common::LayerDefinition &layerDef); //vectorlayercreationform
+
 signals:
-    void DatasetAdded(std::string src);
-    void ProjectCRSChanged(vrsa::gdalwrapper::SpatialReference &ref);
+    void datasetAdded(std::string src);
+    void projectCRSChanged(spatialref::SpatialReference &ref);
     void updateLegendIconsRequired(graphics::Symbol* symbol, QIcon &icon);
 
-    void activeLayerChanged(vrsa::vector::VectorLayer*);
-    void activeLayerChanged(const QIcon&); //для изменения иконке в mainwindow для инструментов работы с активным слоем
-    void activeLayerChanged(const QString&); //для изменения лейбла в mainwindow
+    void activeLayerChanged(vector::VectorLayer*);
+    void activeLayerChanged(const QIcon&); //для изменения иконки для инструментов работы с активным слоем
+    void activeLayerChanged(const QString&); //для изменения лейбла активного слоя
 
-
+    void vectorLayerCreationRequested(const common::LayerDefinition &layerDef);
+    void datasetReadingRequested     (const std::string& src);
 
 };
 }
