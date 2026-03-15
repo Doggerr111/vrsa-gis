@@ -4,245 +4,162 @@
 #include "vectorstylingform.h"
 #include <QButtonGroup>
 #include <QSplitter>
+#include "vectorlayercreationform.h"
+#include "test_utils/vectorlayertest.h"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
       mGisController{std::make_unique<vrsa::services::GISController>()}
-
 {
     ui->setupUi(this);
+    if (!mGisController)
+        return;
+    initialize();
+    mGisController->setupViewComponents(createViewComponents());
+    setupLogger();
+    showMaximized();
+}
 
-    if (mGisController)
-        VRSA_DEBUG("Services", "GIS Controller succesfully created");
-    mGisController->initializeScene(ui->graphicsView);
-    mGisController->setTreeWidget(ui->LayerTree);
-    mGisController->setTabWidgets(ui->leftTabWidget, ui->rightTabWidget);
-    mGisController->setStatusBar(ui->statusbar);
-    connect(ui->graphicsView, &MapHolder::scaleChanged, this, &MainWindow::updateScaleLineEdit);
-    connect(mGisController->getScene(), &vrsa::graphics::MapScene::mouseMoved, this, &MainWindow::updateCoordinatesLineEdit);
-    connect(mGisController.get(), qOverload<const QIcon&>(&vrsa::services::GISController::activeLayerChanged), this,
-            qOverload<const QIcon&>(&MainWindow::onActiveLayerChanged));
-    connect(mGisController.get(), qOverload<const QString&>(&vrsa::services::GISController::activeLayerChanged), this,
-            qOverload<const QString&>(&MainWindow::onActiveLayerChanged));
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
 
-    connect(ui->pushButtonSingleSelection, &QPushButton::clicked, mGisController.get(),
-            &vrsa::services::GISController::onSingleSelectionToolClicked);
-
-    connect(ui->pushButtonRectSelection, &QPushButton::clicked, mGisController.get(),
-            &vrsa::services::GISController::onRectSelectionToolClicked);
-
-    connect(ui->pushButtonGeometryEdit, &QPushButton::clicked, mGisController.get(),
-            &vrsa::services::GISController::onGeometryEditToolClicked);
-
-
+void MainWindow::initialize()
+{
     mMapToolExclusiveGroup = new QButtonGroup(this);
     mMapToolExclusiveGroup->setExclusive(true);
     mMapToolExclusiveGroup->addButton(ui->pushButton_addFeature);
     mMapToolExclusiveGroup->addButton(ui->pushButtonSingleSelection);
     mMapToolExclusiveGroup->addButton(ui->pushButtonRectSelection);
     mMapToolExclusiveGroup->addButton(ui->pushButtonGeometryEdit);
-
     ui->rightTabWidget->tabBar()->setExpanding(false);
 
-
-    showMaximized();
-
-    QHBoxLayout* layoutold = qobject_cast<QHBoxLayout*>(ui->central_frame->layout());
-
+    QHBoxLayout* layoutOld = qobject_cast<QHBoxLayout*>(ui->central_frame->layout());
     //убираем из layout
-    layoutold->removeWidget(ui->left_menu_frame);
-    layoutold->removeWidget(ui->graphicsView);
-    layoutold->removeWidget(ui->right_menu_frame);
-
+    layoutOld->removeWidget(ui->left_menu_frame);
+    layoutOld->removeWidget(ui->graphicsView);
+    layoutOld->removeWidget(ui->right_menu_frame);
     delete ui->central_frame->layout();
-
-    // Создаем новый layout
+    //новый layout
     QHBoxLayout* layout = new QHBoxLayout(ui->central_frame);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
-
-    // Создаем сплиттер
+    //извлекаем graphicsView из его фрейма
+    ui->graphicsView->setParent(nullptr);
+    //cоздаем ВЕРТИКАЛЬНЫЙ сплиттер для graphicsView + консоль
+    QSplitter* verticalSplitter = new QSplitter(Qt::Vertical);
+    verticalSplitter->setHandleWidth(1);
+    verticalSplitter->setStyleSheet("QSplitter::handle { background: black; }");
+    verticalSplitter->setChildrenCollapsible(false);
+    verticalSplitter->addWidget(ui->graphicsView);
+    verticalSplitter->addWidget(ui->tabWidgetConsoleLog);
+    verticalSplitter->setSizes({500, 150});  // graphicsView 500px, консоль 150px
+    //горизонтальный сплитер для tab widgets по бокам
     QSplitter* splitter = new QSplitter(Qt::Horizontal);
     splitter->setStyleSheet("QSplitter::handle { background: transparent; }");
     splitter->setStyleSheet("QSplitter::handle { background: black; }");
     splitter->addWidget(ui->left_menu_frame);
-    splitter->addWidget(ui->graphicsView);
+    splitter->addWidget(verticalSplitter);
     splitter->addWidget(ui->right_menu_frame);
     splitter->setChildrenCollapsible(false);
     splitter->setHandleWidth(1);
-
-    // Добавляем сплиттер в layout
     layout->addWidget(splitter);
-
-
-
-
-
-
-
-
-    // и закидываем в сплиттер
-//    QSplitter* splitter = new QSplitter(Qt::Horizontal, ui->central_frame);
-//    splitter->setStyleSheet("QSplitter::handle { background: transparent; }");
-//    splitter->setHandleWidth(1);  // толщина разделителя
-//    splitter->setStyleSheet("QSplitter::handle { background: black; }");  // чтобы с рамкой совпадало
-//    splitter->addWidget(ui->left_menu_frame);
-//    splitter->addWidget(ui->graphicsView);
-//    splitter->addWidget(ui->right_menu_frame);
-//    splitter->setChildrenCollapsible(false);
-//    splitter->setFrameShape(QFrame::NoFrame);
-
-
-//    //splitter->setSizes({200, 800, 200});
-
-
-//    qDebug() << "central_frame margins:"
-//             << ui->central_frame->contentsMargins();
-//    qDebug() << "layout spacing:" << layout->spacing();
-//    qDebug() << "layout margins:" << layout->contentsMargins();
-
-
-//    splitter->setStyleSheet(
-//        "QSplitter::handle {"
-//        "   background: red;"
-//        "   height: 10px;"  // для вертикального
-//        "   width: 10px;"   // для горизонтального
-//        "}"
-//        "QSplitter {"
-//        "   border: 3px solid blue;"
-//        "}"
-//    );
-
-//    //layout->setStretchFactor(splitter, 1);
-//    layout->setAlignment(Qt::Alignment());  // сброс
-//    layout->setContentsMargins(0, 0, 0, 0);  // убрать отступы
-//    layout->setMargin(0);
-//    layout->setSpacing(0);
-//    splitter->setContentsMargins(0, 0, 0, 0);
-
-//    ui->centralwidget->layout()->setMargin(0);
-//    ui->centralwidget->layout()->setContentsMargins(0, 0, 0, 0);
-
-//    layout->setSpacing(0);
-//    splitter->setContentsMargins(0, 0, 0, 0);
-//    ui->central_frame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    //layout->addStretch(0);  // пружина справа
-    //layout->addWidget(splitter);
-   // splitter->setGeometry(0, 0, ui->central_frame->width(), ui->central_frame->height());
-
-
-    //layout->addStretch(0);  // пружина справа
-    //toolGroup->addButton(ui->zoomButton);
-
-//    for (int i=0; i<9; i++)
-//    {
-//        VectorStylingForm form(i);
-//        form.exec();
-//    }
-//    std::exit(1);
-
-
-
 }
 
-MainWindow::~MainWindow()
+void MainWindow::setupLogger()
 {
+    auto& logger = vrsa::common::Logger::getInstance();
+    //главная консоль (все сообщения)
+    logger.setLogWidget(ui->textEditLoggerCommon);
+    logger.setCategoryWidget(vrsa::common::LogCategory::GDAL, ui->textEditLoggerTech);
+    logger.setCategoryWidget(vrsa::common::LogCategory::VECTOR, ui->textEditLoggerData);
+    logger.setCategoryWidget(vrsa::common::LogCategory::UI, ui->textEditLoggerGraphics);
+}
 
+vrsa::services::ViewComponents MainWindow::createViewComponents()
+{
+    vrsa::services::ViewComponents comps;
+    comps.mapView = ui->graphicsView;
+    comps.addFeatureBtn = ui->pushButton_addFeature;
+    comps.singleSelectionBtn = ui->pushButtonSingleSelection;
+    comps.rectSeletionBtn = ui->pushButtonRectSelection;
+    comps.geometryEditBtn = ui->pushButtonGeometryEdit;
+    comps.mapToolsGrp = mMapToolExclusiveGroup;
 
-    delete ui;
+    comps.coordEdit = ui->lineEditCoordinates;
+    comps.scaleEdit = ui->lineEditScale;
+    comps.crsCombo = ui->crsComboBox;
+    comps.statusBar = ui->statusbar;
+    comps.activeLayerLabel = ui->labelActiveLayer;
 
+    comps.leftTab = ui->leftTabWidget;
+    comps.mainLegendTree = ui->LayerTree;
+    comps.rightTab = ui->rightTabWidget;
+    comps.featureSelectionTree = ui->treeWidgetSelection;
+
+    comps.actionOpenLayer = ui->actionLoad_vector_layer;
+    comps.actionCreateLayer = ui->actionNewLayer;
+    comps.actionCreatePointLayer = ui->actionNew_point_layer;
+    comps.actionCreateLineLayer = ui->actionNew_line_layer;
+    comps.actionCreatePolygonLayer = ui->actionNew_polygon_layer;
+
+    return comps;
 }
 
 
 
 void MainWindow::on_actionLoad_vector_layer_triggered()
-{
-    std::string fileName=QFileDialog::getOpenFileName(this,"","").toStdString();
-
-
-//    std::string fileName = "PG:host=localhost port=5432 dbname=test user=postgres password=1234";
-
-//    int count = GDALGetDriverCount();
-//        bool pgFound = false;
-
-//        for(int i = 0; i < count; i++) {
-//            GDALDriverH driver = GDALGetDriver(i);
-//            const char* name = GDALGetDriverShortName(driver);
-//            const char* longName = GDALGetDriverLongName(driver);
-
-//            qDebug() << "Driver:" << name << "-" << longName;
-
-//            if (QString(name).contains("PG", Qt::CaseInsensitive) ||
-//                QString(longName).contains("PostgreSQL", Qt::CaseInsensitive)) {
-//                pgFound = true;
-//            }
-//        }
-
-//        if (!pgFound) {
-//            qDebug() << "PostgreSQL driver not found! GDAL built without PostgreSQL support?";
-//        }
-
-    mGisController->LoadDataSet(fileName);
-
+{ 
 }
 
 
 void MainWindow::on_crsComboBox_currentIndexChanged(int index)
 {
-    mGisController->ApplyCRS(ui->crsComboBox->currentText().toStdString());
 }
 
-void MainWindow::updateScaleLineEdit(int mapScale, double widgetScale)
-{
-    ui->lineEditScale->setText(QString::number(mapScale));
-}
-
-void MainWindow::updateCoordinatesLineEdit(QPointF p)
-{
-    if (mGisController->isCurrentCRSGeographic())
-    {
-        QString xCoord = QString::number(p.x(), 'f', 5); // Форматируем координату x с двумя знаками после запятой
-        QString yCoord = QString::number(p.y(), 'f', 5); // Форматируем координату y с двумя знаками после запятой
-        QString coords = QString("%1  %2").arg(xCoord, yCoord); // Соединяем координаты в одну строку с пробелом между ними
-        ui->lineEditCoordinates->setText(coords);
-    }
-    else
-    {
-        QString xCoord = QString::number(p.x(), 'f', 2);
-        QString yCoord = QString::number(p.y(), 'f', 2);
-        QString coords = QString("%1  %2").arg(xCoord, yCoord);
-        ui->lineEditCoordinates->setText(coords);
-    }
-}
-
-void MainWindow::onActiveLayerChanged(const QIcon &icon)
-{
-    ui->pushButton_addFeature->setIcon(icon);
-    mMapToolExclusiveGroup->setExclusive(false);
-    ui->pushButton_addFeature->setChecked(false);
-    mMapToolExclusiveGroup->setExclusive(true);
-    mGisController->removeMapTool();
-    ui->pushButton_addFeature->setAttribute(Qt::WA_UnderMouse, false);
-}
-
-void MainWindow::onActiveLayerChanged(const QString &name)
-{
-    ui->labelActiveLayer->setText(tr("Активный слой:") + name);
-}
 
 
 void MainWindow::on_pushButton_addFeature_clicked()
 {
-    if (ui->pushButton_addFeature->isChecked())
-        mGisController->startDigitizing();
-    else
-        mGisController->removeMapTool();
 }
 
 
 void MainWindow::on_pushButtonSingleSelection_clicked(bool checked)
 {
+}
+
+
+void MainWindow::on_pushButton_testVectorLayerUtils_clicked()
+{
+//    auto scene = ui->graphicsView->scene();
+//    std::vector<QPainterPath> paths;
+//    for (int i=0; i<1000; ++i)
+//    {
+//        double lat = QRandomGenerator::global()->generateDouble() * 180 - 90;   // -90..90
+//        double lon = QRandomGenerator::global()->generateDouble() * 360 - 180;  // -180..180
+//        QPainterPath path;
+//        path.moveTo(lon, lat);
+//        for (int j=0; j<10; j++)
+//        {
+//            double lat = QRandomGenerator::global()->generateDouble() * 180 - 90;   // -90..90
+//            double lon = QRandomGenerator::global()->generateDouble() * 360 - 180;  // -180..180
+//            path.lineTo(lon,lat);
+
+//        }
+//        paths.push_back(path);
+
+//    }
+//    for (int i=0; i<1000; ++i)
+//    {
+//        //QGraphicsEllipseItem *item = new QGraphicsEllipseItem();
+//        QPen pen;
+//        pen.setWidthF(0.1);
+//        QGraphicsPathItem* it = new QGraphicsPathItem;
+//        it->setPen(pen);
+//        it->setPath(paths[i]);
+//        scene->addItem(it);
+//    }
 
 }
 

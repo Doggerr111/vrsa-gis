@@ -556,6 +556,9 @@ background-color: rgb(68,68,68)
              </property>
              <item>
               <widget class="QTabWidget" name="leftTabWidget">
+               <property name="currentIndex">
+                <number>0</number>
+               </property>
                <widget class="QWidget" name="tab">
                 <attribute name="title">
                  <string>Tab 1</string>
@@ -738,6 +741,19 @@ border-radius: 14px;
                 <attribute name="title">
                  <string>Tab 2</string>
                 </attribute>
+                <widget class="QPushButton" name="pushButton_testVectorLayerUtils">
+                 <property name="geometry">
+                  <rect>
+                   <x>8</x>
+                   <y>40</y>
+                   <width>131</width>
+                   <height>25</height>
+                  </rect>
+                 </property>
+                 <property name="text">
+                  <string>сгенерировать</string>
+                 </property>
+                </widget>
                </widget>
               </widget>
              </item>
@@ -761,7 +777,7 @@ border-radius: 14px;
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+         <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
           <property name="spacing">
            <number>0</number>
           </property>
@@ -815,6 +831,244 @@ border-top: 0px solid black</string>
             <property name="viewportUpdateMode">
              <enum>QGraphicsView::MinimalViewportUpdate</enum>
             </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTabWidget" name="tabWidgetConsoleLog">
+            <property name="currentIndex">
+             <number>4</number>
+            </property>
+            <widget class="QWidget" name="tabLoggerCommon">
+             <attribute name="title">
+              <string>Общее</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
+              <item>
+               <widget class="QTextEdit" name="textEditLoggerCommon"/>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_7">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_12">
+                 <item alignment="Qt::AlignTop">
+                  <widget class="QToolButton" name="toolButtonClearCommonLogger">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tabLoggerCore">
+             <attribute name="title">
+              <string>Ядро</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_10">
+              <item>
+               <widget class="QTextEdit" name="textEditLoggerCore"/>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_11">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_13">
+                 <item alignment="Qt::AlignTop">
+                  <widget class="QToolButton" name="toolButtonClearCoreLogger">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tabLoggerData">
+             <attribute name="title">
+              <string>Данные</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_12">
+              <item>
+               <widget class="QTextEdit" name="textEditLoggerData"/>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_12">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_14">
+                 <item alignment="Qt::AlignTop">
+                  <widget class="QToolButton" name="toolButtonClearDataLogger">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tabLoggerGraphics">
+             <attribute name="title">
+              <string>Графика</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_13">
+              <item>
+               <widget class="QTextEdit" name="textEditLoggerGraphics"/>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_13">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_15">
+                 <item alignment="Qt::AlignTop">
+                  <widget class="QToolButton" name="toolButtonClearGraphicsLogger">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tabLoggerLib">
+             <attribute name="title">
+              <string>Техническое</string>
+             </attribute>
+             <layout class="QHBoxLayout" name="horizontalLayout_14">
+              <item>
+               <widget class="QTextEdit" name="textEditLoggerTech"/>
+              </item>
+              <item>
+               <widget class="QFrame" name="frame_14">
+                <property name="frameShape">
+                 <enum>QFrame::StyledPanel</enum>
+                </property>
+                <property name="frameShadow">
+                 <enum>QFrame::Raised</enum>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_16">
+                 <item alignment="Qt::AlignTop">
+                  <widget class="QToolButton" name="toolButtonClearTechLogger">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>20</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
@@ -1240,6 +1494,7 @@ background-color: rgb(68,68,68)
     <addaction name="actionNew_point_layer"/>
     <addaction name="actionNew_line_layer"/>
     <addaction name="actionNew_polygon_layer"/>
+    <addaction name="actionNewLayer"/>
     <addaction name="actionLoad_vector_layer"/>
    </widget>
    <widget class="QMenu" name="menuDatabase">
@@ -1332,7 +1587,7 @@ background-color: rgb(68,68,68)
   <action name="actionLoad_vector_layer">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/images/icons/addLayer.png</normaloff>:/images/icons/addLayer.png</iconset>
+     <normaloff>:/images/icons/common/load_icon_black.png</normaloff>:/images/icons/common/load_icon_black.png</iconset>
    </property>
    <property name="text">
     <string>Зазгрузить векторный слой</string>
@@ -1485,12 +1740,24 @@ background-color: rgb(68,68,68)
     <string>Подключиться к XYZ сервису</string>
    </property>
   </action>
+  <action name="actionNewLayer">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/geometry/shapes_icon_black.png</normaloff>:/images/icons/geometry/shapes_icon_black.png</iconset>
+   </property>
+   <property name="text">
+    <string>Создать новый слой</string>
+   </property>
+   <property name="toolTip">
+    <string>Создать новый векторный слой с выбором типа геометрии</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>CRSComboBox</class>
    <extends>QComboBox</extends>
-   <header>customWidgets/crscombobox.h</header>
+   <header>crscombobox.h</header>
   </customwidget>
   <customwidget>
    <class>MapHolder</class>

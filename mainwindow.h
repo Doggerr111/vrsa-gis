@@ -18,22 +18,18 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+private:
+    void initialize();
+    void setupLogger();
+    vrsa::services::ViewComponents createViewComponents();
 
 private slots:
     void on_actionLoad_vector_layer_triggered();
-
     void on_crsComboBox_currentIndexChanged(int index);
-
     void on_pushButton_addFeature_clicked();
-
     void on_pushButtonSingleSelection_clicked(bool checked);
+    void on_pushButton_testVectorLayerUtils_clicked();
 
-public slots:
-    void updateScaleLineEdit(int mapScale, double widgetScale);
-    void updateCoordinatesLineEdit(QPointF p);
-
-    void onActiveLayerChanged(const QIcon&icon); //принимаем сигнал от контроллера
-    void onActiveLayerChanged(const QString& name); //принимаем сигнал от контроллера
 
 private:
     Ui::MainWindow *ui;
