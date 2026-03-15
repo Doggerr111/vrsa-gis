@@ -1,0 +1,621 @@
+/* ===== БАЗОВЫЙ СТИЛЬ ДЛЯ ВСЕГО ПРИЛОЖЕНИЯ ===== */
+
+/* Основной фон диалогов */
+QFileDialog {
+background-color: #353535;
+}
+
+QFileDialog QLabel {
+color: #ffffff;
+}
+
+QFileDialog QLineEdit {
+background-color: #4f4f4f;
+color: #ffffff;
+border: 1px solid #656565;
+}
+
+QFileDialog QTreeView, QFileDialog QListView {
+background-color: #4f4f4f;
+color: #ffffff;
+}
+
+QFileDialog QPushButton {
+background-color: #5f5f5f;
+color: #ffffff;
+}
+
+QFileDialog QPushButton:hover {
+background-color: #757575;
+}
+
+QDialog {
+background-color: #353535;
+}
+
+/* ЗАГОЛОВКИ ОКОН */
+QDialog QLabel#qt_dialog_titlelabel, QMessageBox QLabel, QInputDialog QLabel {
+color: #ffffff;
+font-weight: bold;
+font-size: 14px;
+}
+
+/* СТРОКА ЗАГОЛОВКА ОКНА */
+QDialog, QMainWindow, QMessageBox, QInputDialog {
+background-color: #353535;
+}
+
+/* Заголовок самого окна */
+QDialog > QLabel {
+color: #ffffff;
+font-size: 16px;
+font-weight: bold;
+padding: 10px;
+}
+
+/* Для QGroupBox */
+QGroupBox {
+color: #ffffff;
+font-weight: bold;
+border: 2px solid #555;
+border-radius: 5px;
+margin-top: 10px;
+padding-top: 10px;
+}
+
+QGroupBox::title {
+subcontrol-origin: margin;
+left: 10px;
+padding: 0 5px 0 5px;
+}
+
+/* Текст */
+QLabel {
+color: #ffffff;
+}
+
+/* ===== ГЛОБАЛЬНЫЕ СТИЛИ ДЛЯ ВИДЖЕТОВ (ВНЕ TREE) ===== */
+QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+background-color: #4f4f4f;
+color: #ffffff;
+border: 1px solid #656565;
+border-radius: 3px;
+padding: 3px;
+}
+
+/* Выпадающие списки глобально */
+QComboBox::drop-down {
+border: none;
+}
+
+QComboBox::down-arrow {
+image: none;
+border-left: 5px solid transparent;
+border-right: 5px solid transparent;
+border-top: 5px solid #ffffff;
+width: 0;
+height: 0;
+}
+
+/* Кнопки */
+QPushButton {
+background-color: #5f5f5f;
+color: #ffffff;
+border: none;
+border-radius: 3px;
+padding: 5px 10px;
+min-width: 60px;
+}
+
+QPushButton:hover {
+background-color: #757575;
+}
+
+QPushButton:pressed {
+background-color: #404040;
+}
+
+/* Таблицы и списки глобально */
+QTableView, QTreeView, QListView {
+background-color: #4f4f4f;
+color: #ffffff;
+alternate-background-color: #5a5a5a;
+border: 1px solid #656565;
+}
+
+QTableView::item:selected, QTreeView::item:selected, QListView::item:selected {
+background-color: #0d7377;
+}
+
+/* Вкладки */
+QTabWidget::pane {
+border: 1px solid #656565;
+background-color: #353535;
+}
+
+QTabBar::tab {
+background-color: #4f4f4f;
+color: #ffffff;
+padding: 5px 10px;
+border: 1px solid #656565;
+border-bottom: none;
+}
+
+QTabBar::tab:selected {
+background-color: #5f5f5f;
+}
+
+QTabBar::tab:hover {
+background-color: #6f6f6f;
+}
+
+/* Скроллбары */
+QScrollBar:vertical {
+background-color: #4f4f4f;
+width: 12px;
+margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+background-color: #6f6f6f;
+min-height: 20px;
+border-radius: 6px;
+}
+
+QScrollBar::handle:vertical:hover {
+background-color: #8f8f8f;
+}
+
+/* Для QMessageBox специально */
+QMessageBox QLabel {
+color: #ffffff;
+}
+
+/* Для QInputDialog */
+QInputDialog QLabel {
+color: #ffffff;
+}
+
+/* Для QFontDialog и QColorDialog */
+QFontDialog QLabel, QColorDialog QLabel {
+color: #ffffff;
+}
+
+/* =====  СПЕЦИАЛЬНЫЙ СТИЛЬ ТОЛЬКО ДЛЯ QTreeWidget ===== */
+/* Все стили ниже применяются ТОЛЬКО к QTreeWidget и его содержимому */
+
+QTreeWidget {
+background-color: #1e1e1e;
+color: #e0e0e0;
+gridline-color: #333333;
+outline: none;
+border: 1px solid #333333;
+}
+
+/* Заголовки ТОЛЬКО в QTreeWidget */
+QTreeWidget QHeaderView::section {
+background-color: #252525;
+color: #e0e0e0;
+padding: 8px;
+border: 1px solid #333333;
+font-weight: bold;
+height: 30px;
+}
+
+/* Уголок ТОЛЬКО в QTreeWidget */
+QTreeWidget QTableCornerButton::section {
+background-color: #252525;
+border: 1px solid #333333;
+}
+
+QTreeWidget QHeaderView::section:corner {
+background-color: #252525;
+border: 1px solid #333333;
+}
+
+/* Элементы дерева ТОЛЬКО в QTreeWidget */
+QTreeWidget::item {
+height: 32px;
+border: none;
+border-bottom: 1px solid #2a2a2a;
+}
+
+QTreeWidget::item:selected {
+background-color: #404040;
+color: #ffffff;
+}
+
+QTreeWidget::item:hover {
+background-color: #2a2a2a;
+}
+
+QTreeWidget::item:selected:hover {
+background-color: #4a4a4a;
+}
+
+/* ===== ВИДЖЕТЫ ВНУТРИ QTreeWidget (переопределяют глобальные) ===== */
+/* QLineEdit внутри QTreeWidget */
+QTreeWidget QLineEdit {
+background-color: #2d2d2d;
+color: #ffffff;
+border: 1px solid #555555;
+border-radius: 3px;
+padding: 4px 8px;
+selection-background-color: #505050;
+selection-color: #ffffff;
+min-height: 24px;
+max-height: 28px;
+margin: 2px;
+font-size: 12px;
+}
+
+QTreeWidget QLineEdit:focus {
+background-color: #333333;
+border: 1px solid #777777;
+}
+
+QTreeWidget QLineEdit:hover {
+background-color: #353535;
+border: 1px solid #666666;
+}
+
+QTreeWidget QLineEdit::placeholder {
+color: #888888;
+}
+
+QTreeWidget QLineEdit:disabled {
+background-color: #1e1e1e;
+color: #666666;
+border: 1px solid #333333;
+}
+
+/* QComboBox внутри QTreeWidget */
+QTreeWidget QComboBox {
+background-color: #2d2d2d;
+color: #ffffff;
+border: 1px solid #555555;
+border-radius: 3px;
+padding: 4px 8px;
+min-height: 24px;
+max-height: 28px;
+margin: 2px;
+font-size: 12px;
+}
+
+QTreeWidget QComboBox:focus {
+background-color: #333333;
+border: 1px solid #777777;
+}
+
+QTreeWidget QComboBox:hover {
+background-color: #353535;
+border: 1px solid #666666;
+}
+
+/* Стрелка комбобокса внутри QTreeWidget */
+QTreeWidget QComboBox::drop-down {
+border: none;
+width: 24px;
+background-color: #3a3a3a;
+border-left: 1px solid #555555;
+border-top-right-radius: 3px;
+border-bottom-right-radius: 3px;
+}
+
+QTreeWidget QComboBox::down-arrow {
+image: none;
+border-left: 5px solid transparent;
+border-right: 5px solid transparent;
+border-top: 5px solid #aaaaaa;
+width: 0;
+height: 0;
+}
+
+/* Выпадающий список комбобокса внутри QTreeWidget */
+QTreeWidget QComboBox QAbstractItemView {
+background-color: #2d2d2d;
+color: #ffffff;
+border: 1px solid #555555;
+outline: none;
+}
+
+QTreeWidget QComboBox QAbstractItemView::item {
+height: 24px;
+padding: 4px 8px;
+}
+
+QTreeWidget QComboBox QAbstractItemView::item:hover {
+background-color: #404040;
+}
+
+QTreeWidget QComboBox QAbstractItemView::item:selected {
+background-color: #505050;
+color: #ffffff;
+}
+
+/* QSpinBox внутри QTreeWidget */
+QTreeWidget QSpinBox, QTreeWidget QDoubleSpinBox {
+background-color: #2d2d2d;
+color: #ffffff;
+border: 1px solid #555555;
+border-radius: 3px;
+padding: 4px 8px;
+min-height: 24px;
+max-height: 28px;
+}
+
+/* Стрелки спинбокса внутри QTreeWidget */
+QTreeWidget QSpinBox::up-button, QTreeWidget QDoubleSpinBox::up-button,
+QTreeWidget QSpinBox::down-button, QTreeWidget QDoubleSpinBox::down-button {
+background-color: #3a3a3a;
+border: none;
+width: 16px;
+}
+
+QTreeWidget QSpinBox::up-button:hover, QTreeWidget QDoubleSpinBox::up-button:hover,
+QTreeWidget QSpinBox::down-button:hover, QTreeWidget QDoubleSpinBox::down-button:hover {
+background-color: #4a4a4a;
+}
+
+/* Вертикальный заголовок внутри QTreeWidget */
+QTreeWidget QHeaderView::section:vertical {
+background-color: #252525;
+border: 1px solid #333333;
+}
+
+/* Горизонтальный заголовок внутри QTreeWidget */
+QTreeWidget QHeaderView::section:horizontal {
+background-color: #252525;
+border: 1px solid #333333;
+}
+
+
+/* ===== QTableWidget ===== */
+QTableWidget {
+background-color: #1e1e1e;
+color: #e0e0e0;
+gridline-color: #333333;
+outline: none;
+border: 1px solid #333333;
+selection-background-color: #404040;
+selection-color: #ffffff;
+alternate-background-color: #252525;
+}
+
+/* Заголовки ТОЛЬКО в QTableWidget */
+QTableWidget QHeaderView::section {
+background-color: #252525;
+color: #e0e0e0;
+padding: 8px;
+border: 1px solid #333333;
+font-weight: bold;
+height: 30px;
+}
+
+/* Уголок ТОЛЬКО в QTableWidget */
+QTableWidget QTableCornerButton::section {
+background-color: #252525;
+border: 1px solid #333333;
+}
+
+QTableWidget QHeaderView::section:corner {
+background-color: #252525;
+border: 1px solid #333333;
+}
+
+/* Ячейки таблицы */
+QTableWidget::item {
+height: 32px;
+border: none;
+border-bottom: 1px solid #2a2a2a;
+padding: 4px 8px;
+}
+
+QTableWidget::item:selected {
+background-color: #404040;
+color: #ffffff;
+}
+
+QTableWidget::item:hover {
+background-color: #2a2a2a;
+}
+
+QTableWidget::item:selected:hover {
+background-color: #4a4a4a;
+}
+
+/* Чередование строк (если включено) */
+QTableWidget::item:alternate {
+background-color: #252525;
+}
+
+QTableWidget::item:alternate:selected {
+background-color: #404040;
+}
+
+QTableWidget::item:alternate:hover {
+background-color: #2d2d2d;
+}
+
+/* В стили таблицы добавь */
+QTableWidget::item {
+    outline: none;  /* убрать рамку фокуса */
+    border: none;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+QTableWidget:focus {
+    outline: none;
+}
+
+/* ===== ВИДЖЕТЫ ВНУТРИ QTableWidget ===== */
+
+/* QLineEdit внутри QTableWidget */
+QTableWidget QLineEdit {
+background-color: #2d2d2d;
+color: #ffffff;
+border: 1px solid #555555;
+border-radius: 3px;
+padding: 4px 8px;
+selection-background-color: #505050;
+selection-color: #ffffff;
+min-height: 24px;
+max-height: 28px;
+margin: 2px;
+font-size: 12px;
+}
+
+QTableWidget QLineEdit:focus {
+background-color: #333333;
+border: 1px solid #777777;
+}
+
+QTableWidget QLineEdit:hover {
+background-color: #353535;
+border: 1px solid #666666;
+}
+
+QTableWidget QLineEdit::placeholder {
+color: #888888;
+}
+
+QTableWidget QLineEdit:disabled {
+background-color: #1e1e1e;
+color: #666666;
+border: 1px solid #333333;
+}
+
+/* QComboBox внутри QTableWidget */
+QTableWidget QComboBox {
+background-color: #2d2d2d;
+color: #ffffff;
+border: 1px solid #555555;
+border-radius: 3px;
+padding: 4px 8px;
+min-height: 24px;
+max-height: 28px;
+margin: 2px;
+font-size: 12px;
+}
+
+QTableWidget QComboBox:focus {
+background-color: #333333;
+border: 1px solid #777777;
+}
+
+QTableWidget QComboBox:hover {
+background-color: #353535;
+border: 1px solid #666666;
+}
+
+/* Стрелка комбобокса внутри QTableWidget */
+QTableWidget QComboBox::drop-down {
+border: none;
+width: 24px;
+background-color: #3a3a3a;
+border-left: 1px solid #555555;
+border-top-right-radius: 3px;
+border-bottom-right-radius: 3px;
+}
+
+QTableWidget QComboBox::down-arrow {
+image: none;
+border-left: 5px solid transparent;
+border-right: 5px solid transparent;
+border-top: 5px solid #aaaaaa;
+width: 0;
+height: 0;
+}
+
+/* Выпадающий список комбобокса внутри QTableWidget */
+QTableWidget QComboBox QAbstractItemView {
+background-color: #2d2d2d;
+color: #ffffff;
+border: 1px solid #555555;
+outline: none;
+}
+
+QTableWidget QComboBox QAbstractItemView::item {
+height: 24px;
+padding: 4px 8px;
+}
+
+QTableWidget QComboBox QAbstractItemView::item:hover {
+background-color: #404040;
+}
+
+QTableWidget QComboBox QAbstractItemView::item:selected {
+background-color: #505050;
+color: #ffffff;
+}
+
+/* QSpinBox внутри QTableWidget */
+QTableWidget QSpinBox, QTableWidget QDoubleSpinBox {
+background-color: #2d2d2d;
+color: #ffffff;
+border: 1px solid #555555;
+border-radius: 3px;
+padding: 4px 8px;
+min-height: 24px;
+max-height: 28px;
+}
+
+/* Стрелки спинбокса внутри QTableWidget */
+QTableWidget QSpinBox::up-button, QTableWidget QDoubleSpinBox::up-button,
+QTableWidget QSpinBox::down-button, QTableWidget QDoubleSpinBox::down-button {
+background-color: #3a3a3a;
+border: none;
+width: 16px;
+}
+
+QTableWidget QSpinBox::up-button:hover, QTableWidget QDoubleSpinBox::up-button:hover,
+QTableWidget QSpinBox::down-button:hover, QTableWidget QDoubleSpinBox::down-button:hover {
+background-color: #4a4a4a;
+}
+
+/* Вертикальный заголовок внутри QTableWidget */
+QTableWidget QHeaderView::section:vertical {
+background-color: #252525;
+border: 1px solid #333333;
+}
+
+/* Горизонтальный заголовок внутри QTableWidget */
+QTableWidget QHeaderView::section:horizontal {
+background-color: #252525;
+border: 1px solid #333333;
+}
+
+/* Уголок между заголовками */
+QTableWidget QHeaderView::section:corner {
+background-color: #252525;
+border: 1px solid #333333;
+}
+
+/* Индикатор сортировки */
+QTableWidget QHeaderView::down-arrow, QTableWidget QHeaderView::up-arrow {
+subcontrol-origin: padding;
+subcontrol-position: center right;
+padding-right: 5px;
+width: 8px;
+height: 8px;
+}
+
+QTableWidget QHeaderView::down-arrow {
+image: none;
+border-left: 4px solid transparent;
+border-right: 4px solid transparent;
+border-top: 5px solid #aaaaaa;
+}
+
+QTableWidget QHeaderView::up-arrow {
+image: none;
+border-left: 4px solid transparent;
+border-right: 4px solid transparent;
+border-bottom: 5px solid #aaaaaa;
+}
+
+
+QTableWidget QLineEdit:focus, QTableWidget QComboBox:focus {
+    outline: none;
+    border: 1px solid #777777;  /* оставить границу, но без дополнительной рамки */
+}
