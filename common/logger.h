@@ -13,6 +13,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cstring>
+#include <QTextEdit>
 
 namespace vrsa {
 namespace common {
@@ -44,13 +45,20 @@ enum class LogLevel {
  */
 namespace LogCategory {
     constexpr const char* CORE      = "CORE";
+    constexpr const char* MEMORY    = "MEMORY";
+
     constexpr const char* GDAL      = "GDAL";
+    constexpr const char* PROJ      = "PROJ";
+    constexpr const char* NETWORK   = "NET";
+
     constexpr const char* VECTOR    = "VECTOR";
     constexpr const char* RASTER    = "RASTER";
-    constexpr const char* UI        = "UI";
     constexpr const char* DATABASE  = "DB";
+
     constexpr const char* RENDERING = "RENDER";
-    constexpr const char* MEMORY    = "MEMORY";
+    constexpr const char* UI        = "UI";
+
+
 }
 
 /**
@@ -63,21 +71,25 @@ namespace LogCategory {
  */
 class Logger {
 public:
-    // Singleton pattern
+
     static Logger& getInstance();
 
-    // Configuration
+
     void setLogLevel(LogLevel level);
     void setLogFile(const std::string& filename);
     void enableConsoleOutput(bool enable);
     void enableCategory(const std::string& category, bool enable);
 
-    // Logging methods
+    void setLogWidget(QTextEdit* widget);                          // главный виджет
+    void setCategoryWidget(const std::string& category, QTextEdit* widget);  // по категориям
+    void clearWidgets();
+
+
     void log(LogLevel level, const std::string& category, const std::string& message);
     void log(LogLevel level, const std::string& category, const std::string& message,
              const char* file, int line, const char* function);
 
-    // Convenience methods
+
     void trace(const std::string& category, const std::string& message,
                const char* file = "", int line = 0, const char* function = "");
     void debug(const std::string& category, const std::string& message,
@@ -91,7 +103,7 @@ public:
     void critical(const std::string& category, const std::string& message,
                   const char* file = "", int line = 0, const char* function = "");
 
-    // Performance monitoring
+
     void startTimer(const std::string& operation);
     void stopTimer(const std::string& operation);
     void logMemoryUsage(const std::string& context);
@@ -109,9 +121,12 @@ private:
     std::string formatMessage(LogLevel level, const std::string& category,
                              const std::string& message, const char* file,
                              int line, const char* function) const;
+    QString formatHtml(const std::string& message, LogLevel level, const std::string& category);
     bool shouldLog(LogLevel level, const std::string& category) const;
     void writeToFile(const std::string& message);
     void writeToConsole(const std::string& message);
+    void writeToWidgets(const std::string& formatted, LogLevel level, const std::string& category);
+    void writeToWidget(QTextEdit* widget, const QString& html);
 
 private:
     std::ofstream logFile;
@@ -122,6 +137,12 @@ private:
 
     std::unordered_map<std::string, bool> enabledCategories;
     std::unordered_map<std::string, std::chrono::steady_clock::time_point> timers;
+
+    //новые поля для GUI
+    QTextEdit* mMainWidget = nullptr;
+    std::unordered_map<std::string, QTextEdit*> mCategoryWidgets;
+    QStringList mPendingMessages;  // для сообщений до установки виджета
+    std::mutex mWidgetMutex;
 };
 
 }

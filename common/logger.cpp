@@ -5,13 +5,14 @@
 #include <sstream>
 #include <chrono>
 #include <thread>
+#include <QScrollBar>
 
 #ifdef _WIN32
-    #include <windows.h>
-    #include <psapi.h>
+#include <windows.h>
+#include <psapi.h>
 #else
-    #include <unistd.h>
-    #include <sys/resource.h>
+#include <unistd.h>
+#include <sys/resource.h>
 #endif
 
 namespace vrsa {
@@ -71,6 +72,33 @@ void Logger::enableCategory(const std::string& category, bool enable) {
     enabledCategories[category] = enable;
 }
 
+void Logger::setLogWidget(QTextEdit *widget)
+{
+    std::lock_guard<std::mutex> lock(mWidgetMutex);
+    mMainWidget = widget;
+
+    //выводим накопленные сообщения
+    if (mMainWidget && !mPendingMessages.isEmpty())
+    {
+        for (const auto& msg : mPendingMessages)
+            mMainWidget->append(msg);
+        mPendingMessages.clear();
+    }
+}
+
+void Logger::setCategoryWidget(const std::string &category, QTextEdit *widget)
+{
+    std::lock_guard<std::mutex> lock(mWidgetMutex);
+    mCategoryWidgets[category] = widget;
+}
+
+void Logger::clearWidgets()
+{
+    std::lock_guard<std::mutex> lock(mWidgetMutex);
+    mMainWidget = nullptr;
+    mCategoryWidgets.clear();
+}
+
 // Основные методы логирования
 void Logger::log(LogLevel level, const std::string& category, const std::string& message) {
     log(level, category, message, "", 0, "");
@@ -78,9 +106,9 @@ void Logger::log(LogLevel level, const std::string& category, const std::string&
 
 void Logger::log(LogLevel level, const std::string& category, const std::string& message,
                  const char* file, int line, const char* function) {
-    if (!shouldLog(level, category)) {
+    if (!shouldLog(level, category))
         return;
-    }
+
 
     std::string formatted_message = formatMessage(level, category, message, file, line, function);
 
@@ -93,6 +121,8 @@ void Logger::log(LogLevel level, const std::string& category, const std::string&
     if (logFile.is_open()) {
         writeToFile(formatted_message);
     }
+
+    writeToWidgets(formatted_message, level, category);
 }
 
 // Удобные методы
@@ -176,7 +206,7 @@ std::string Logger::getCurrentTime() const {
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-        now.time_since_epoch()) % 1000;
+                now.time_since_epoch()) % 1000;
 
     std::stringstream ss;
     ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
@@ -186,19 +216,19 @@ std::string Logger::getCurrentTime() const {
 
 std::string Logger::levelToString(LogLevel level) const {
     switch (level) {
-        case LogLevel::TRACE:    return "TRACE";
-        case LogLevel::DEBUG:    return "DEBUG";
-        case LogLevel::INFO:     return "INFO";
-        case LogLevel::WARNING:  return "WARN";
-        case LogLevel::ERROR:    return "ERROR";
-        case LogLevel::CRITICAL: return "CRITICAL";
-        default:                 return "UNKNOWN";
+    case LogLevel::TRACE:    return "TRACE";
+    case LogLevel::DEBUG:    return "DEBUG";
+    case LogLevel::INFO:     return "INFO";
+    case LogLevel::WARNING:  return "WARN";
+    case LogLevel::ERROR:    return "ERROR";
+    case LogLevel::CRITICAL: return "CRITICAL";
+    default:                 return "UNKNOWN";
     }
 }
 
 std::string Logger::formatMessage(LogLevel level, const std::string& category,
-                                 const std::string& message, const char* file,
-                                 int line, const char* function) const {
+                                  const std::string& message, const char* file,
+                                  int line, const char* function) const {
     std::stringstream ss;
     ss << "[" << getCurrentTime() << "] "
        << "[" << levelToString(level) << "] "
@@ -220,6 +250,49 @@ std::string Logger::formatMessage(LogLevel level, const std::string& category,
 
     ss << message;
     return ss.str();
+}
+
+QString Logger::formatHtml(const std::string &message, LogLevel level, const std::string &category)
+{
+    QString html;
+
+
+    static const QMap<QString, QString> categoryColors = {
+        {"CORE", "#8A2BE2"},      // фиолетовый
+        {"GDAL", "#1E90FF"},      // синий
+        {"VECTOR", "#32CD32"},    // зеленый
+        {"RASTER", "#FF8C00"},    // оранжевый
+        {"UI", "#FF1493"},        // розовый
+        {"DB", "#20B2AA"},        // бирюзовый
+        {"RENDER", "#FFD700"},    // золотой
+        {"MEMORY", "#A9A9A9"}     // серый
+    };
+
+    // Цвета для уровней
+    QString levelColor;
+    switch(level) {
+    case LogLevel::ERROR:
+    case LogLevel::CRITICAL:
+        levelColor = "#FF4444";  // красный
+        break;
+    case LogLevel::WARNING:
+        levelColor = "#FFA500";  // оранжевый
+        break;
+    case LogLevel::DEBUG:
+        levelColor = "#888888";  // серый
+        break;
+    default:
+        levelColor = "#FFFFFF";  // белый
+    }
+
+    QString catColor = categoryColors.value(QString::fromStdString(category), "#AAAAAA");
+    QString catStr = QString::fromStdString(category);
+    QString msgStr = QString::fromStdString(message);
+
+    html = QString("<font color='%1'>[%2]</font> <font color='%3'>%4</font>")
+            .arg(catColor, catStr, levelColor, msgStr);
+
+    return html;
 }
 
 bool Logger::shouldLog(LogLevel level, const std::string& category) const {
@@ -247,17 +320,17 @@ void Logger::writeToFile(const std::string& message) {
 void Logger::writeToConsole(const std::string& message) {
     // Цвета для разных уровней (только для поддерживающих терминалов)
     static const bool use_colors =
-#ifdef _WIN32
-        false; // Упрощаем для Windows
+        #ifdef _WIN32
+            false; // Упрощаем для Windows
 #else
-        isatty(fileno(stdout));
+            isatty(fileno(stdout));
 #endif
 
     if (use_colors) {
         // ANSI цвета
         std::string color_code;
         if (message.find("[ERROR]") != std::string::npos ||
-            message.find("[CRITICAL]") != std::string::npos) {
+                message.find("[CRITICAL]") != std::string::npos) {
             color_code = "\033[31m"; // Красный
         } else if (message.find("[WARN]") != std::string::npos) {
             color_code = "\033[33m"; // Желтый
@@ -274,6 +347,44 @@ void Logger::writeToConsole(const std::string& message) {
     }
 
     std::cout << message << std::endl;
+}
+
+void Logger::writeToWidgets(const std::string &formatted, LogLevel level, const std::string &category)
+{
+    std::lock_guard<std::mutex> lock(mWidgetMutex);
+    QString html = formatHtml(formatted, level, category);
+
+    if (mMainWidget)
+        writeToWidget(mMainWidget, html);
+
+    //в виджет категории
+    auto it = mCategoryWidgets.find(category);
+    if (it != mCategoryWidgets.end() && it->second) {
+        writeToWidget(it->second, html);
+    }
+
+    // Если нет ни одного виджета, сохраняем в буфер
+    if (!mMainWidget && mCategoryWidgets.empty()) {
+        mPendingMessages.append(html);
+        // Ограничиваем размер буфера
+        while (mPendingMessages.size() > 1000)
+            mPendingMessages.removeFirst();
+
+    }
+}
+
+void Logger::writeToWidget(QTextEdit *widget, const QString &html)
+{
+    if (!widget) return;
+
+    //вызов в GUI потоке
+    QMetaObject::invokeMethod(widget, [widget, html]()
+    {
+        widget->append(html);
+        //автоскролл
+        QScrollBar* sb = widget->verticalScrollBar();
+        if (sb) sb->setValue(sb->maximum());
+    });
 }
 
 } // namespace core
