@@ -23,9 +23,9 @@ void AttributeTableForm::setAttributeTable() const
     if (!mLayer)
         return;
     ui->attributeTable->blockSignals(true);
-    for (const auto& str: mLayer->getAttributesNames())
+    for (const auto& str: mLayer->getFieldNames())
         qDebug()<<QString::fromStdString(str);
-    auto attributeNames = mLayer->getAttributesNames();
+    auto attributeNames = mLayer->getFieldNames();
     ui->attributeTable->setColumnCount(attributeNames.size());
     ui->attributeTable->setRowCount(mLayer->getFeaturesCount());
 
@@ -54,9 +54,9 @@ void AttributeTableForm::setAttributeTable() const
         {
             std::string attrName = ui->attributeTable->horizontalHeaderItem(col)->text().toStdString();
             //const std::string& attrName = attributeNames[col];
-            auto value = feature->getAttribute(attrName);
+            auto value = feature->getAttributeAsQVariant(attrName);
             //qDebug() << QString::fromStdString(attrName) << " " << attributeValueToQVariant(value).toString();
-            auto var = attributeValueToQVariant(value).toString();
+            auto var = value.toString();
             if (var.isEmpty() || var.isNull())
                 var = "NULL";
             QTableWidgetItem* item = new QTableWidgetItem(var);
@@ -112,8 +112,9 @@ void AttributeTableForm::on_attributeTable_cellChanged(int row, int column)
     auto feature = item->data(vrsa::common::AttributeTableFeatureRole).value<vrsa::vector::VectorFeature*>();
     if (!feature) return;
     mLayer->getOGRLayer()->ResetReading();
-    if (feature->updateAttribute(ui->attributeTable->horizontalHeaderItem(column)->text().toStdString(),
-                             item->text().toStdString()))
+    //ВОТ ЭТО ПРАВИТЬ
+//    if (feature->updateAttribute(ui->attributeTable->horizontalHeaderItem(column)->text().toStdString(),
+//                             item->text().toStdString()))
         qDebug()<< "успех!!";
 
     mLayer->getOGRLayer()->SyncToDisk();

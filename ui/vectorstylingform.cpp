@@ -19,6 +19,7 @@
 VectorStylingForm::VectorStylingForm(vrsa::graphics::Symbol* symbol, LayerGeometryType type, QWidget *parent)
     : QDialog(parent),
       ui(new Ui::VectorStylingForm),
+      mGeomType{type},
       mSymbol{symbol},
       mScene{new QGraphicsScene},
       mLastSelectedItem{nullptr},

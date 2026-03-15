@@ -11,13 +11,13 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::gdalwrapper::GDALWriter::createLayer(con
     auto it = std::find(common::CORE_VECTOR_FORMATS.begin(), common::CORE_VECTOR_FORMATS.end(), driverName);
     if (it==common::CORE_VECTOR_FORMATS.end())
     {
-        VRSA_ERROR("GDALWriter", "Неподдерживаемый формат для создания слоя");
+        VRSA_ERROR("GDAL", "Неподдерживаемый формат для создания слоя");
         return nullptr;
     }
     GDALDriver* poDriver = GetGDALDriverManager()->GetDriverByName(driverName.c_str());
     if (!poDriver)
     {
-        VRSA_ERROR("GDALWriter", "Неподдерживаемый формат драйвера GDAL" + driverName);
+        VRSA_ERROR("GDAL", "Неподдерживаемый формат драйвера GDAL" + driverName);
         return nullptr;
     }
 
@@ -26,7 +26,7 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::gdalwrapper::GDALWriter::createLayer(con
     poDS = GdalDatasetPtr(poDriver->Create(layerName.c_str(), 0, 0, 0, GDT_Unknown, nullptr)); //createDatasetOptions().get())
     if (!poDS)
     {
-        VRSA_LOG_GDAL_ERROR("GDALWriter", "Failed to create dataset at: " + layerName);
+        VRSA_LOG_GDAL_ERROR("GDAL", "Failed to create dataset at: " + layerName);
         return nullptr;
     }
     std::string layerGPKG;
@@ -50,7 +50,7 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::gdalwrapper::GDALWriter::createLayer(con
         poLayer = poDS->CreateLayer(layerName.c_str(), crs, geomType, params.toGDALLayerOptions().get());
     if (!poLayer)
     {
-        VRSA_LOG_GDAL_ERROR("GDALWriter", "Failed to create layer in dataset at: " + layerName);
+        VRSA_LOG_GDAL_ERROR("GDAL", "Failed to create layer in dataset at: " + layerName);
         return nullptr;
     }
     for (const auto& field: fields)

@@ -30,40 +30,40 @@ VectorDatasetForm::~VectorDatasetForm()
 
 void VectorDatasetForm::setTreeItem(QTreeWidgetItem *item)
 {
-    loadFromItem(item);
-    ui->labelPath->setText(mFilePath);
-    auto &pM = vrsa::services::ProjectManager::instance();
-    auto str = mFilePath.toStdString();
+//    loadFromItem(item);
+//    ui->labelPath->setText(mFilePath);
+//    auto &pM = vrsa::services::mProjectManager;
+//    auto str = mFilePath.toStdString();
 
-    QWidget *parentWidget = ui->frame_7;
-    QVBoxLayout *parentLayout = qobject_cast<QVBoxLayout*>(parentWidget->layout());
+//    QWidget *parentWidget = ui->frame_7;
+//    QVBoxLayout *parentLayout = qobject_cast<QVBoxLayout*>(parentWidget->layout());
 
-    if (!parentLayout)
-        return;
+//    if (!parentLayout)
+//        return;
 
-    auto names = pM.getLayerNames(str);
-    for (int i=0; i<names.size(); ++i)
-    {
-        if (i==0)
-        {
-            ui->labelLayer->setText(QString::fromStdString(names[i]));
-            continue;
-        }
-        QFrame *newFrame = new QFrame(parentWidget);
-        newFrame->setFrameShape(QFrame::StyledPanel);
-        newFrame->setFrameShadow(QFrame::Raised);
-        newFrame->setMinimumHeight(30);
+//    auto names = pM->getLayerNames(str);
+//    for (int i=0; i<names.size(); ++i)
+//    {
+//        if (i==0)
+//        {
+//            ui->labelLayer->setText(QString::fromStdString(names[i]));
+//            continue;
+//        }
+//        QFrame *newFrame = new QFrame(parentWidget);
+//        newFrame->setFrameShape(QFrame::StyledPanel);
+//        newFrame->setFrameShadow(QFrame::Raised);
+//        newFrame->setMinimumHeight(30);
 
-        QHBoxLayout *frameLayout = new QHBoxLayout(newFrame);
-        frameLayout->setContentsMargins(5, 5, 5, 5);
+//        QHBoxLayout *frameLayout = new QHBoxLayout(newFrame);
+//        frameLayout->setContentsMargins(5, 5, 5, 5);
 
-        QLabel *newLabel = new QLabel(newFrame);
-        newLabel->setText(QString::fromStdString(names[i]));
-        newLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        frameLayout->addWidget(newLabel);
-        parentLayout->addWidget(newFrame);
-    }
-    parentLayout->addStretch();
+//        QLabel *newLabel = new QLabel(newFrame);
+//        newLabel->setText(QString::fromStdString(names[i]));
+//        newLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+//        frameLayout->addWidget(newLabel);
+//        parentLayout->addWidget(newFrame);
+//    }
+//    parentLayout->addStretch();
 
 }
 
@@ -79,7 +79,8 @@ bool VectorDatasetForm::eventFilter(QObject *obj, QEvent *event)
     return QDialog::eventFilter(obj, event);
 }
 
-void VectorDatasetForm::openFileLocation() {
+void VectorDatasetForm::openFileLocation()
+{
     QString filePath = ui->labelPath->text();
 
     if (filePath.isEmpty())

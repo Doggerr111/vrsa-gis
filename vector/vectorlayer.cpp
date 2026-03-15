@@ -20,6 +20,11 @@ void vrsa::vector::VectorLayer::setFeatures(featuresVec features)
 {
     mFeatures = std::move(features);
     applyStyleToFeatures();
+//    for (const auto& feat: mFeatures)
+//    {
+//        feat->setZValue(mZValue);
+//        feat->setVisible(true);
+//    }
 }
 
 vrsa::vector::VectorLayer::~VectorLayer() = default;

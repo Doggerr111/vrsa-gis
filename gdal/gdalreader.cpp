@@ -18,8 +18,8 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readD
     auto dS = gdalwrapper::createDataset(source, GDAL_OF_VECTOR | GDAL_OF_UPDATE);
     if (!dS)
     {
+        //VRSA_LOG_GDAL_ERROR("GDAL", "Failed to open data source: " + source);
         throw common::DataSetOpenException(source);
-        VRSA_LOG_GDAL_ERROR("GDAL", "Failed to open data source: " + source);
     }
     switch (detectDatasetType(dS.get()))
     {
@@ -34,7 +34,7 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readD
     }
     case common::DatasetType::Raster:
     {
-        VRSA_DEBUG("GDAL", "Reading Raster Dataset");
+        VRSA_DEBUG("GDAL", "Reading Raster Dataset...");
         auto channels = readChannels(dS.get());
         auto vrsaDs = std::make_unique<raster::RasterDataset>(std::move(dS), std::move(channels));
         vrsaDs->SetDatasetType(common::DatasetType::Raster);
@@ -47,7 +47,7 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readD
 
 
 }
-//TODO REFACTOR THIS....
+
 std::vector<std::unique_ptr<vrsa::raster::RasterChannel> > vrsa::gdalwrapper::GDALReader::readChannels
                                                                         (GDALDataset* ds) const
 {
@@ -87,7 +87,7 @@ std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALR
 {
     std::string source = ds->GetDescription();
     int layerCount = ds->GetLayerCount();
-    VRSA_DEBUG("GDAL", "Reading layers count:" + std::to_string(layerCount) + " from: " + source);
+    VRSA_INFO("GDAL", "Reading layers count:" + std::to_string(layerCount) + " from: " + source);
 
     if (layerCount == 0)
     {
@@ -117,14 +117,14 @@ std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALR
         }
         catch (const std::exception& e)
         {
-            VRSA_ERROR("GDAL", "Warning: Failed to convert layer " +  std::to_string(i) + ": " + e.what());
+            VRSA_ERROR("GDAL", "Warning: Failed to convert layer to internal data structures:" +  std::to_string(i) + ": " + e.what());
 
         }
     }
 
     if (layers.empty())
     {
-        VRSA_DEBUG("GDAL", "No valid layers could be read from: " + source);
+        VRSA_INFO("GDAL", "No valid layers could be read from: " + source);
         //throw std::runtime_error("No valid layers could be read from: " + source);
     }
 

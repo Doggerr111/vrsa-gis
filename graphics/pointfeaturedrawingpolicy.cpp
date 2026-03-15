@@ -298,7 +298,7 @@ QRectF vrsa::graphics::MultiPointFeatureDrawingPolicy::boundingRect(const Drawin
     double maxX = std::numeric_limits<double>::lowest();
     double maxY = std::numeric_limits<double>::lowest();
 
-    for (int i = 0; i < multiPoint->getNumGeometries(); i++)
+    for (int i = 0; i < multiPoint->getNumGeometries(); ++i)
     {
         OGRPoint* point = static_cast<OGRPoint*>(multiPoint->getGeometryRef(i));
         double x = point->getX() + offsetX;

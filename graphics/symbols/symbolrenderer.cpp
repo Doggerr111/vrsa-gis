@@ -85,7 +85,7 @@ void vrsa::graphics::SymbolRenderer::render(const Symbol *symbol, QPainter *pain
 {
 //    if (symbol->canHaveChildren())
 //    {
-//        for (int i=0; i<symbol->childCount(); i++)
+//        for (int i=0; i<symbol->childCount(); ++i)
 //        {
 //            render(symbol->child(i), painter, item, target);
 //        }
@@ -145,7 +145,7 @@ void vrsa::graphics::SymbolRenderer::setPainter(const Symbol *symbol, QPainter *
 {
     if (symbol->canHaveChildren())
     {
-        for (int i=0; i<symbol->childCount(); i++)
+        for (int i=0; i<symbol->childCount(); ++i)
         {
             setPainter(symbol->child(i), painter);
         }
@@ -205,7 +205,7 @@ void vrsa::graphics::SymbolRenderer::renderToPathItem(const Symbol *symbol, QPai
 {
     if (symbol->canHaveChildren())
     {
-        for (int i=0; i<symbol->childCount(); i++)
+        for (int i=0; i<symbol->childCount(); ++i)
         {
             renderToPathItem(symbol->child(i), path);
         }

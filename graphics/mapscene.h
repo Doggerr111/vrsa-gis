@@ -61,16 +61,17 @@ protected:
     void keyPressEvent(QKeyEvent *event);
 
 signals:
-    void mouseMoved(QPointF);
+    void mouseMoved(const QPointF&);
     void toolChanged(tools::MapTool*);
     void panningRequested(bool enable);
 public slots:
     void onMapHolderScaleChanged(int mapScale, double widgetScale);
 
     void onVectorLayerFeatureAdded(vector::VectorFeature*);
-    void onVectorLayerFeatureRemoved(vector::VectorFeature*);
+    void onVectorLayerFeatureRemoved(int64_t fid);
 
     void onNewFeatureGraphicsItemCreated(std::unique_ptr<graphics::FeatureGraphicsItem>& item);
+    void onFeatureGraphicsItemCreated(FeatureGraphicsItem* item); //from proj manager;
 
     void onMapHolderMousePressed(QMouseEvent* event);
 
@@ -82,6 +83,11 @@ private:
     std::vector<std::unique_ptr<graphics::TemporaryGraphicsItem>> mTempItems;
 
     std::unique_ptr<tools::MapTool> mCurrentMapTool;
+
+    static constexpr double X_MIN = -20037508.34;
+    static constexpr double Y_MAX = 20037508.34;
+    static constexpr double WIDTH = 40075016.68;
+    static constexpr double HEIGHT = 20037508.34;
 
 };
 

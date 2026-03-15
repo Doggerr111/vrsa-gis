@@ -2,60 +2,88 @@
 #define FEATUREGRAPHICSITEMFACTORY_H
 
 #include "graphics/featuregraphicsitem.h"
-//#include "graphics/vectorfeaturedrawingpolicy.h"
-#include "graphics/pointfeaturedrawingpolicy.h"
-#include "graphics/linefeaturedrawingpolicy.h"
 #include "vector/vectorfeature.h"
-#include "graphics/vectorfeaturestyle.h"
-#include "graphics/polygonfeaturedrawingpolicy.h"
+#include "graphics/mapscene.h"
 
 namespace vrsa
 {
 namespace graphics
 {
 
-class FeatureGraphicsItemFactory
+/**
+ * @english
+ * @brief Singleton factory for creating graphical representations of vector features
+ *
+ * Creates FeatureGraphicsItem objects and immediately emits a signal to add them
+ * to the scene. This decouples item creation from scene management.
+ *
+ * Connect to featureGraphicsItemCreated signal in your controller to handle
+ * new items (e.g., add them to MapScene).
+ *
+ * @russian
+ * @brief Фабрика-синглтон для создания графических объектов векторных фич
+ *
+ * Создает FeatureGraphicsItem и немедленно испускает сигнал для их добавления
+ * на сцену. Это разделяет создание объектов и управление сценой.
+ *
+ * Подключитесь к сигналу featureGraphicsItemCreated в контроллере для обработки
+ * новых объектов (например, добавления на MapScene).
+ */
+class FeatureGraphicsItemFactory: public QObject
 {
+    Q_OBJECT
 public:
-    FeatureGraphicsItemFactory();
-
-public:
+    static FeatureGraphicsItemFactory& instance()
+    {
+        static FeatureGraphicsItemFactory factory;
+        return factory;
+    }
+    /**
+     * @english
+     * @brief Checks if the featureGraphicsItemCreated signal has any connected slots
+     * @return true if at least one slot is connected to the signal
+     *
+     * @russian
+     * @brief Проверяет, есть ли подключенные слоты к сигналу featureGraphicsItemCreated
+     * @return true если хотя бы один слот подключен к сигналу
+     */
+    inline bool hasConnection() const
+    {
+        return receivers(SIGNAL(featureGraphicsItemCreated(FeatureGraphicsItem*))) > 0;
+    }
     //TODO ПЕРЕНЕСТИ СОЗДАНИЕ РЕНДЕРЕРА ВНУТРЬ ГРАФИЧЕСКОГО ОБЪЕКТА, А В ЕГО КОНСТРУКТОР ПЕРЕДАВАТЬ СТИЛЬ И ХРАНИТЬ!!!
     //КАК ВО ВРЕМЕННЫХ ОБЪЕКТАХ!!!!! И ДОБАВИТЬ ФУНКЦИЮ ОБНОВЛЕНИЯ СТИЛЯ С ПЕРЕСТРОЕНИЕМ ПОЛИТИК !!!
-    static std::unique_ptr<FeatureGraphicsItem> createForFeature(
-            vrsa::vector::VectorFeature* feature, vrsa::graphics::VectorFeatureStyle* style)
+
+    /**
+     * @english
+     * @brief Creates a graphics item for a vector feature
+     * @param feature Source vector feature
+     * @param addToScene If true, emits signal for immediate addition to scene
+     * @return Pointer to created FeatureGraphicsItem (ownership transferred to caller if addToScene=false)
+     *
+     * @russian
+     * @brief Создает графический объект для векторной фичи
+     * @param feature Исходная векторная фича
+     * @param addToScene Если true, испускает сигнал для немедленного добавления на сцену
+     * @return Указатель на созданный FeatureGraphicsItem (право владения передается вызывающему если addToScene=false)
+     */
+    FeatureGraphicsItem* createForFeature(vrsa::vector::VectorFeature* feature, bool addToScene = true)
     {
-        auto renderer = std::make_unique<FeatureGraphicsItemRenderer>(style, feature->getType());
-        auto item = std::make_unique<FeatureGraphicsItem>(std::move(renderer), feature);
-        QObject::connect(feature, &vector::VectorFeature::visibilityChanged,
-                         item.get(), &FeatureGraphicsItem::setVisible);
+        FeatureGraphicsItem* item = new FeatureGraphicsItem(feature);
+        if (!addToScene)
+            return item;
+        emit featureGraphicsItemCreated(item);
         return item;
     }
 
-
-    //static std::unique_ptr
+    //ectorLayer *parentLayer;
 private:
-//    static std::unique_ptr<VectorFeatureDrawingPolicy> createPainterPolicy(
-//            const vrsa::vector::VectorFeature* feature,
-//            VectorFeatureStyle& style
-//        ) {
-//            using namespace vrsa::common;
-//            switch (feature->getType()) {
-//            case GeometryType::Point:
-//                return std::make_unique<PointFeatureDrawingPolicy>(style);
-//            case GeometryType::MultiPoint:
-//                return std::make_unique<MultiPointFeatureDrawingPolicy>(style);
-//            case GeometryType::LineString:
-//                return std::make_unique<LineFeatureDrawingPolicy>(style);
-//            case GeometryType::MultiLineString:
-//                return std::make_unique<MultiLineFeatureDrawingPolicy>(style);
-//            case GeometryType::Polygon:
-//                return std::make_unique<PolygonFeatureDrawingPolicy>(style);
-//            case GeometryType::MultiPolygon:
-//                return std::make_unique<MultiPolygonFeatureDrawingPolicy>(style);
-//            }
+     FeatureGraphicsItemFactory() = default;
+     FeatureGraphicsItemFactory(const FeatureGraphicsItemFactory& other) = delete;
+     FeatureGraphicsItemFactory& operator=(const FeatureGraphicsItemFactory& other) = delete;
+signals:
+     void featureGraphicsItemCreated(FeatureGraphicsItem* item);
 
-//        }
 };
 }
 }

@@ -15,7 +15,7 @@ class FeatureGraphicsItem: public QObject, public QGraphicsItem
     using Renderer = std::unique_ptr<FeatureGraphicsItemRenderer>;
     using Feature = vrsa::vector::VectorFeature;
 public:
-    FeatureGraphicsItem(Renderer renderer, Feature *feature);
+    FeatureGraphicsItem(Feature *feature);
     inline void setScale(double s)
     {
         mWidgetScale = s;
@@ -37,20 +37,22 @@ public:
     const inline common::GeometryType getFeatureGeometryType() const
     {
         if (mFeature)
-            return mFeature->getType();
+            return mFeature->getGeometryType();
         return common::GeometryType::Unknown;
     };
 
 public slots:
     void setVisible(bool);
     void onZValueChanged(int zValue);
-    //пока что сигнал используется именно при работе с "резиновыми" линиями
+    //пока что слот используется именно при обработке сигнала с "резиновых" линий
     void onGeometryChanged(const geometry::Geometry& geometry);
+    void onFeatureStyleChanged(VectorFeatureStyle*);
+    void onVectorFeatureGeometryChanged();
 
 private:
     Renderer mRenderer;
     Feature* mFeature;
-    double mWidgetScale;
+    double mWidgetScale = 1.0;
     bool mIsSelected;
 };
 

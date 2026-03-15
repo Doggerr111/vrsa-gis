@@ -1,8 +1,8 @@
 #include "rasterdataset.h"
 
 
-vrsa::raster::RasterDataset::RasterDataset(gdalwrapper::GdalDatasetPtr dataset, const std::string source, channels channels)
-    : Dataset{std::move(dataset), source},
+vrsa::raster::RasterDataset::RasterDataset(gdalwrapper::GdalDatasetPtr dataset, channels channels)
+    : Dataset{std::move(dataset)},
       mRasterChannels{std::move(channels)}
 {
 

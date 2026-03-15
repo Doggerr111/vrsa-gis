@@ -28,6 +28,10 @@ void vrsa::graphics::LineFeatureDrawingPolicy::cacheGeometry(OGRGeometry *geom) 
 
 void vrsa::graphics::LineFeatureDrawingPolicy::paint(const DrawingContext &context)
 {
+
+    qDebug()<< context.option->levelOfDetailFromTransform(context.painter->worldTransform());
+    qDebug()<< context.sceneScale;;
+
     context.painter->save();
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);
@@ -65,8 +69,8 @@ QRectF vrsa::graphics::LineFeatureDrawingPolicy::boundingRect(const DrawingConte
         return mCache.boundingRect;
 
     QRectF rect = mCache.path.boundingRect();
-    double penWidth = mSymbol->pen().widthF();
-    double scaledPenWidth = penWidth / context.sceneScale;
+    double penWidth = mSymbol->pen().widthF(); //* 3;
+    double scaledPenWidth = penWidth / context.sceneScale + 1;
     double halfPenWidth = scaledPenWidth / 2.0;
 
     double offsetX = mSymbol->getXOffSet() / context.sceneScale;
@@ -80,7 +84,8 @@ QRectF vrsa::graphics::LineFeatureDrawingPolicy::boundingRect(const DrawingConte
                 -halfPenWidth, -halfPenWidth,
                 halfPenWidth, halfPenWidth
                 );
-    //return QRectF(-1000,-1000,100000,10000);
+//    static constexpr QRectF rect = QRectF(-1000,1000,100000,-10000);
+//    return rect;
 
 }
 
@@ -117,6 +122,8 @@ void vrsa::graphics::MultiLineFeatureDrawingPolicy::cacheGeometry(OGRGeometry *g
 void vrsa::graphics::MultiLineFeatureDrawingPolicy::paint(const DrawingContext &context)
 {
 
+//    qDebug()<< context.option->levelOfDetailFromTransform(context.painter->worldTransform());
+//    qDebug()<< context.sceneScale;;
     context.painter->save();
     if (!mCache.isGeomValid)
         cacheGeometry(context.geom);

@@ -70,7 +70,7 @@ namespace vectorlayertools
 
 //        auto exploded = explodeFeature(originalFeature);
 
-//        for (size_t i = 0; i < exploded.size(); i++) {
+//        for (size_t i = 0; i < exploded.size(); ++i) {
 //            auto& ef = exploded[i];
 
 //            // Создаем новую фичу в вашем слое
@@ -101,7 +101,7 @@ namespace vectorlayertools
 
 //        std::vector<ExplodedFeature> result;
 
-//        for (int i = 0; i < multiPoint->getNumGeometries(); i++) {
+//        for (int i = 0; i < multiPoint->getNumGeometries(); ++i) {
 //            OGRPoint* point = (OGRPoint*)multiPoint->getGeometryRef(i);
 //            if (point) {
 //                ExplodedFeature ef;
@@ -119,7 +119,7 @@ namespace vectorlayertools
 //    {
 //        std::vector<ExplodedFeature> result;
 
-//        for (int i = 0; i < multiLine->getNumGeometries(); i++) {
+//        for (int i = 0; i < multiLine->getNumGeometries(); ++i) {
 //            OGRLineString* line = (OGRLineString*)multiLine->getGeometryRef(i);
 //            if (line) {
 //                ExplodedFeature ef;
@@ -138,7 +138,7 @@ namespace vectorlayertools
 
 //        std::vector<ExplodedFeature> result;
 
-//        for (int i = 0; i < multiPoly->getNumGeometries(); i++) {
+//        for (int i = 0; i < multiPoly->getNumGeometries(); ++i) {
 //            OGRPolygon* poly = (OGRPolygon*)multiPoly->getGeometryRef(i);
 //            if (poly) {
 //                ExplodedFeature ef;
@@ -157,7 +157,7 @@ namespace vectorlayertools
 
 //        std::vector<ExplodedFeature> result;
 
-//        for (int i = 0; i < collection->getNumGeometries(); i++) {
+//        for (int i = 0; i < collection->getNumGeometries(); ++i) {
 //            OGRGeometry* geom = collection->getGeometryRef(i);
 //            if (geom) {
 //                // Рекурсивно разбиваем каждый элемент коллекции
@@ -181,7 +181,7 @@ namespace vectorlayertools
 
 //        OGRFeatureDefn* poDefn = srcFeature->GetDefnRef();
 
-//        for (int i = 0; i < poDefn->GetFieldCount(); i++) {
+//        for (int i = 0; i < poDefn->GetFieldCount(); ++i) {
 //            OGRFieldDefn* poFieldDefn = poDefn->GetFieldDefn(i);
 //            const char* fieldName = poFieldDefn->GetNameRef();
 
@@ -279,7 +279,7 @@ namespace vectorlayertools
 //           int explodedCount = 0;
 //           int originalFid = 0;
 
-//           for (int i = 0; i < yourLayer->getFeaturesCount(); i++)
+//           for (int i = 0; i < yourLayer->getFeaturesCount(); ++i)
 //           {
 //               auto* yourFeature = yourLayer->getFeatureAt(i);
 //               if (!yourFeature) continue;
@@ -356,7 +356,7 @@ namespace vectorlayertools
 ////           int explodedCount = 0;
 ////           int originalFid = 0;
 
-////           for (int i = 0; i < yourLayer->featureCount(); i++) {
+////           for (int i = 0; i < yourLayer->featureCount(); ++i) {
 ////               auto* yourFeature = yourLayer->featureAt(i);
 ////               if (!yourFeature) continue;
 
@@ -428,7 +428,7 @@ namespace vectorlayertools
 
 ////           // Копируем схему полей
 ////           OGRFeatureDefn* poSrcDefn = poSrcLayer->GetLayerDefn();
-////           for (int i = 0; i < poSrcDefn->GetFieldCount(); i++) {
+////           for (int i = 0; i < poSrcDefn->GetFieldCount(); ++i) {
 ////               OGRFieldDefn* poFieldDefn = poSrcDefn->GetFieldDefn(i);
 ////               poDstLayer->CreateField(poFieldDefn);
 ////           }
@@ -487,7 +487,7 @@ namespace vectorlayertools
 //                   type == wkbMultiPolygon || type == wkbGeometryCollection) {
 
 //                   auto* collection = (OGRGeometryCollection*)geom;
-//                   for (int i = 0; i < collection->getNumGeometries(); i++) {
+//                   for (int i = 0; i < collection->getNumGeometries(); ++i) {
 //                       OGRGeometry* subGeom = collection->getGeometryRef(i);
 //                       if (subGeom) {
 //                           result.push_back(subGeom->clone());

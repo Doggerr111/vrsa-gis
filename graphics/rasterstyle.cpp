@@ -54,7 +54,7 @@ void vrsa::graphics::RasterStyle::initializeAsRgb()
 //    int numPixels = width*height;
 //    QImage im = QImage(width, height, QImage::Format_ARGB32_Premultiplied);
 
-//    for (int i = 0; i < NumPixels; i++)
+//    for (int i = 0; i < NumPixels; ++i)
 //    {
 
 //        const auto pixelValue1 = mRasterData[mRGBStyle->bandIndex1-1][i];

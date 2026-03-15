@@ -12,7 +12,7 @@ class RasterDataset: public QObject, public gdalwrapper::Dataset
     Q_OBJECT
     using channels = std::vector<std::unique_ptr<RasterChannel>>;
 public:
-    RasterDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, const std::string source, channels = channels());
+    RasterDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, channels = channels());
 
     std::unique_ptr<RasterChannel>& getChannel(size_t index);
     inline std::size_t channelsCount() const noexcept

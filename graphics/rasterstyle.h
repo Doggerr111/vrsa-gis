@@ -1,7 +1,7 @@
 #ifndef RASTERSTYLE_H
 #define RASTERSTYLE_H
 #include "raster/rasterdataset.h"
-
+#include "GisDefines.h"
 
 namespace vrsa
 {

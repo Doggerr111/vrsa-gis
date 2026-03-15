@@ -46,7 +46,7 @@ LIPAttributeTableWidget::LIPAttributeTableWidget(QWidget* parent)
 //                {
 //                    QTableWidgetItem *item = new QTableWidgetItem(attribute.getValue().toString());
 //                    setItem(currentRow, i, item);
-//                    i++;
+//                    ++i;
 
 //                }
 //            }

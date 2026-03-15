@@ -71,22 +71,21 @@ void vrsa::tools::DigitizeHelper::DigitizeHelper::onGeometryCreated(vrsa::geomet
         return;
     if (!feature->setGeometry(geometry))
         return;
-    auto item = vrsa::graphics::FeatureGraphicsItemFactory::createForFeature(feature.get(),
-                                                                 mActiveLayer->getStyle(mActiveLayer->getGeomType())); //hmmm
-    if (!item)
-        return;
-    connect(mActiveLayer, &vrsa::vector::VectorLayer::ZValueChanged, item.get(),
-            &vrsa::graphics::FeatureGraphicsItem::onZValueChanged);
+
+
+//    connect(mActiveLayer, &vrsa::vector::VectorLayer::ZValueChanged, item.get(),
+//            &vrsa::graphics::FeatureGraphicsItem::onZValueChanged);
+    auto featRawPtr = feature.get();
     if (mActiveLayer->addFeature(std::move(feature)))
     {
-        emit featureGraphicsItemCreated(item);
+        auto item = graphics::FeatureGraphicsItemFactory::instance().createForFeature(featRawPtr);
+//        auto item = std::make_unique<graphics::FeatureGraphicsItem>(feature.get());
+
+//        emit featureGraphicsItemCreated(item);
         return;
     }
     else
-    {
-        item.reset();
         return;
-    }
 }
 
 
