@@ -63,9 +63,9 @@ double vrsa::calculations::MapCalculator::calculateGeographicDistance(const QRec
     return meters;
 }
 
-void vrsa::calculations::MapCalculator::setCRS(const gdalwrapper::SpatialReference &ref)
+void vrsa::calculations::MapCalculator::setCRS(const spatialref::SpatialReference &ref)
 {
-    isGeographicCRS = ref.GetOGRSpatialRef()->IsGeographic();
+    isGeographicCRS = ref.isGeographic();
 }
 
 

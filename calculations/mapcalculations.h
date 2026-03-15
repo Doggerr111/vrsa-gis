@@ -2,7 +2,7 @@
 #define MAPCALCULATIONS_H
 #include <QObject>
 #include <QRectF>
-#include <gdal/spatialreference.h>
+#include "spatialref/spatialreference.h"
 #include "common/logger.h"
 #include <numeric>
 namespace vrsa
@@ -35,7 +35,7 @@ public:
    */
     double calculateGeographicDistance( const QRectF &mapExtent ) const;
 
-    void setCRS(const gdalwrapper::SpatialReference& CRS);
+    void setCRS(const spatialref::SpatialReference& CRS);
 
 private:
 
