@@ -12,7 +12,7 @@ class MapHolder : public QGraphicsView
 {
     Q_OBJECT
 public:
-    MapHolder(QObject *parent);
+    MapHolder(QWidget *parent);
     /** Смещает видимую область виджета в bRect */
     void zoomToRect(QRectF bRect);
     /** Возвращает текущий масштаб */
@@ -33,7 +33,7 @@ public slots:
     /** Слот для изменения состояния добавления объектов на карту (при оцифровке) */
     void updateAddingFeaturesFlag(bool flag);
 
-    void onCrsChanged(vrsa::gdalwrapper::SpatialReference &crs);
+    void onCrsChanged(vrsa::spatialref::SpatialReference &crs);
 
     void recalculateScale();
     //для блокирования перемещения по сцене
@@ -75,7 +75,6 @@ private:
         QImage m_dragImage;
         double scaleF;
 
-    bool isAddingFeatures;
     double scaleFactor;
     int mCurrentScale;
     vrsa::calculations::MapCalculator mMapCalculator;

@@ -4,14 +4,57 @@
 #include "QScreen"
 #include "QElapsedTimer"
 #include "QOpenGLWidget"
-MapHolder::MapHolder(QObject *parent)
-    : QGraphicsView{},
-      //isDraging{false},
-      isAddingFeatures{false},
+MapHolder::MapHolder(QWidget *parent)
+    : QGraphicsView{parent},
       mMapCalculator{}
 {
-    Q_UNUSED(parent);
+
     mMapCalculator.SetDpi(QGuiApplication::primaryScreen()->logicalDotsPerInch());
+    setOptimizationFlags( QGraphicsView::DontSavePainterState | QGraphicsView::DontAdjustForAntialiasing);
+    setRenderHint(QPainter::Antialiasing, true);
+    setRenderHint(QPainter::SmoothPixmapTransform, false);
+    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setCacheMode(QGraphicsView::CacheNone);
+    // ui->graphicsView->scene()->setSceneRect(-180,90,360,-180);
+
+
+
+
+//       mMapScene->setMapHolderScale(mMapView->getMapHolderScale());
+//       mMapView->setScene(mMapScene);
+//       connect(mMapView, &MapHolder::scaleChanged, mMapScene, &graphics::MapScene::onMapHolderScaleChanged);
+//       connect(mMapScene, &graphics::MapScene::panningRequested, mMapView, &MapHolder::onPanningRequested);
+//       connect(mMapView, &MapHolder::mousePressed, mMapScene, &graphics::MapScene::onMapHolderMousePressed);
+//       mMapView->setOptimizationFlags(QGraphicsView::DontSavePainterState);
+//       mMapView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+//       mMapView->setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+
+//       view->setOptimizationFlags(
+//                   QGraphicsView::DontSavePainterState |
+//                   QGraphicsView::DontAdjustForAntialiasing
+//                   );
+
+
+
+//       view->setOptimizationFlags(QGraphicsView::DontSavePainterState);
+//       view->setRenderHint(QPainter::Antialiasing, true);
+//       view->setRenderHint(QPainter::SmoothPixmapTransform, false);
+
+//       // Отключаем кэширование фона
+//       view->setCacheMode(QGraphicsView::CacheNone);
+//       // ui->graphicsView->scene()->setSceneRect(-180,90,360,-180);
+//       double xMin = -20037508.34;
+//       double yMax = 20037508.34;
+//       double width = 40075016.68;
+//       double height = 20037508.34;
+
+//       // Установка сцены в пределах EPSG:3857 координат
+//       mMapView->scale(1,-1);
+//       mMapView->setSceneRect(xMin*4, 4*yMax, 4*width, -8*height);
+//       mMapView->recalculateScale();
+
+
 }
 
 void MapHolder::zoomToRect(QRectF targetRect)
@@ -62,22 +105,23 @@ void MapHolder::setMapCalculator(vrsa::calculations::MapCalculator &calc)
 
 void MapHolder::onAddingFeatures()
 {
-    isAddingFeatures=true;
+    //isAddingFeatures=true;
 }
 
 void MapHolder::onStopAddingFeatures()
 {
-    isAddingFeatures=false;
+    //isAddingFeatures=false;
 }
 
 void MapHolder::updateAddingFeaturesFlag(bool flag)
 {
-    isAddingFeatures=flag;
+    //isAddingFeatures=flag;
 }
 
-void MapHolder::onCrsChanged(vrsa::gdalwrapper::SpatialReference &crs)
+void MapHolder::onCrsChanged(vrsa::spatialref::SpatialReference &crs)
 {
     mMapCalculator.setCRS(crs);
+    recalculateScale();
 }
 
 void MapHolder::recalculateScale()
