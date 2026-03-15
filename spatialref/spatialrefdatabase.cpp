@@ -10,6 +10,8 @@ vrsa::spatialref::SpatialReferenceDatabase::CRSInfo vrsa::spatialref::SpatialRef
     throw std::runtime_error("CRS not found");
 }
 
+
+
 vrsa::spatialref::SpatialReference vrsa::spatialref::SpatialReferenceDatabase::createFromIndex(size_t index) const
 {
     if (index >= mCrsDB.size()) {
@@ -173,8 +175,25 @@ std::vector<vrsa::spatialref::SpatialReferenceDatabase::CRSInfo> vrsa::spatialre
 
 //=================ОТЕЧЕСТВЕННЫЕ СИСТЕМЫ КООРДИНАТ И ПРОЕКЦИИ================
 
+    //GKS 2011 в градусах
+    list.emplace_back(
+                "GSK-2011 (degrees)",
+                "EPSG",
+                7681,
+                "+proj=longlat +ellps=GSK2011 +no_defs +type=crs",
+                R"(GEOGCS["GSK-2011",
+                DATUM["Geodezicheskaya_Sistema_Koordinat_2011",
+                    SPHEROID["GSK-2011",6378136.5,298.2564151,
+                        AUTHORITY["EPSG","1025"]],
+                    AUTHORITY["EPSG","1159"]],
+                PRIMEM["Greenwich",0,
+                    AUTHORITY["EPSG","8901"]],
+                UNIT["degree",0.0174532925199433,
+                    AUTHORITY["EPSG","9122"]],
+                AUTHORITY["EPSG","7683"]])",
+                false);
 
-    //GKS-2011
+    //GKS-2011 в метрах
     list.emplace_back(
                 "GSK-2011 / Gauss-Kruger zone 20",
                 "EPSG",

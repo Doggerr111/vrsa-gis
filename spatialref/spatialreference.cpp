@@ -281,7 +281,7 @@ bool vrsa::spatialref::SpatialReference::isSame(const SpatialReference &other) c
     }
     if (!mCrs || !other.mCrs) return false;
 
-    return mCrs->IsSame(other.mCrs.get()) == OGRERR_NONE ? true : false;
+    return mCrs->IsSame(other.mCrs.get());
 }
 
 vrsa::gdalwrapper::OgrCoordinateTransformationRefPtr vrsa::spatialref::SpatialReference::createTransformTo

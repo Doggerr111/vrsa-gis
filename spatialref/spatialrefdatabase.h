@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <string>
+#include <QDebug>
 namespace vrsa
 {
 namespace spatialref
@@ -122,6 +123,19 @@ private:
     size_t mDBCapacity;
 
 };
+inline QDebug operator<<(QDebug debug, const vrsa::spatialref::SpatialReferenceDatabase::CRSInfo& crsInfo)
+{
+    QDebugStateSaver saver(debug);
+    debug.nospace() << "CRSInfo("
+                    << "name: " << QString::fromStdString(crsInfo.name) << ", "
+                    << "authName: " << QString::fromStdString(crsInfo.authName) << ", "
+                    << "authCode: " << crsInfo.authCode << ", "
+                    << "projString: " << (crsInfo.projString.empty() ? "(empty)" : QString::fromStdString(crsInfo.projString)) << ", "
+                    << "wktString: " << (crsInfo.wktString.empty() ? "(empty)" : "(wkt content)") << ", "
+                    << "isUserDefined: " << (crsInfo.isUserDefined ? "true" : "false")
+                    << ")";
+    return debug;
+}
 }
 }
 
