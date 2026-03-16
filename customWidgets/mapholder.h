@@ -7,7 +7,25 @@
 #include <QScrollBar>
 #include "calculations/mapcalculations.h"
 #include "ogr_spatialref.h"
-/** Данный класс представляет собой виджет для отображения цифровой карты */
+/**
+ * @english
+ * @brief Widget for displaying digital map with pan and zoom capabilities
+ *
+ * MapHolder extends QGraphicsView to provide a digital map view with:
+ * - Smooth panning using snapshots (drag image)
+ * - Smooth zooming using snapshots (zoom preview)
+ * - Scale calculation and display
+ * - Mouse interaction for panning and zooming
+ *
+ * @russian
+ * @brief Виджет для отображения цифровой карты с поддержкой панорамирования и масштабирования
+ *
+ * MapHolder расширяет QGraphicsView для отображения цифровой карты с возможностью:
+ * - Плавное панорамирование с использованием снимков (drag image)
+ * - Плавное масштабирование с использованием снимков (zoom preview)
+ * - Расчет и отображение текущего масштаба
+ * - Взаимодействие мышью для перемещения и масштабирования
+ */
 class MapHolder : public QGraphicsView
 {
     Q_OBJECT
@@ -26,15 +44,7 @@ public:
     void setMapCalculator(vrsa::calculations::MapCalculator& calc);
 
 public slots:
-    /** Слот вызывается, когда пользователь начинает добавлять объекты на карту (при оцифровке) */
-    void onAddingFeatures();
-    /** Слот вызывается, когда пользователь прекращает добавлять объекты на карту (при оцифровке) */
-    void onStopAddingFeatures();
-    /** Слот для изменения состояния добавления объектов на карту (при оцифровке) */
-    void updateAddingFeaturesFlag(bool flag);
-
     void onCrsChanged(vrsa::spatialref::SpatialReference &crs);
-
     void recalculateScale();
     //для блокирования перемещения по сцене
     void onPanningRequested(bool enable) { mPanningEnabled = enable; };
@@ -58,6 +68,12 @@ protected:
     //слоты для обработки различных событий с виджетом
     void resizeEvent(QResizeEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
+    //zooming
+
+    void startZoomSnapshot(const QPointF& mousePos);
+    void handleZoom(QWheelEvent* event);
+    void finishZoom();
+    void updateZoomPreview();
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
@@ -65,17 +81,22 @@ protected:
 
 
 private:
-//    QPointF clickPos;
-//    bool isDraging;
 
-    bool isDraging = false;
-        QPoint clickPos;
-        QPoint m_lastPos;
-        QPixmap m_dragPixmap;
-        QImage m_dragImage;
-        double scaleF;
-
-    double scaleFactor;
+    bool mIsDraging = false;
+    bool mIsZooming = false;
+    double mZoomDelta;
+    QPointF mZoomOffset;
+    QTimer* mZoomTimer = nullptr;
+    QPixmap mZoomPixmap;
+    double mZoomStartScale = 1.0;
+    QPointF mZoomMousePos;
+    QPoint mClickPos;
+    QPoint mLastPos;
+    QPixmap mDragPixmap;
+    QImage mDragImage;
+    double scaleF;
+    double mZoomInFactor = 1.2;
+    double mZoomOutFactor = 0.8;
     int mCurrentScale;
     vrsa::calculations::MapCalculator mMapCalculator;
     OGRSpatialReference* mCRS;
