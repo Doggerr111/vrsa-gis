@@ -9,3 +9,4 @@ vrsa::graphics::VectorFeatureDrawingPolicy::VectorFeatureDrawingPolicy()
 {
 
 }
+
