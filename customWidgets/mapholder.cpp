@@ -10,7 +10,7 @@ MapHolder::MapHolder(QWidget *parent)
       mMapCalculator{}
 {
     mMapCalculator.SetDpi(QGuiApplication::primaryScreen()->logicalDotsPerInch());
-    setOptimizationFlags( QGraphicsView::DontSavePainterState | QGraphicsView::DontAdjustForAntialiasing);
+    setOptimizationFlags (QGraphicsView::DontSavePainterState | QGraphicsView::DontAdjustForAntialiasing);
     setRenderHint(QPainter::Antialiasing, true);
     setRenderHint(QPainter::SmoothPixmapTransform, false);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
@@ -25,17 +25,6 @@ void MapHolder::zoomToRect(QRectF targetRect)
     Q_UNUSED(targetRect);
 }
 
-int MapHolder::getScale()
-{
-    QMatrix const matrix = this->matrix().inverted();
-    QRectF visibleRect = matrix.mapRect((viewport()->rect()));
-    visibleRect.moveTopLeft(matrix.map(QPoint(horizontalScrollBar()->value(),
-                                              verticalScrollBar()->value())));
-    QRectF visibleRect1 = mapToScene(viewport()->rect()).boundingRect();
-    double scale = mMapCalculator.calculate(visibleRect1, width());
-    return static_cast<int>(scale);
-}
-
 double MapHolder::getMapHolderScale() const
 {
     return transform().m11();
@@ -43,22 +32,7 @@ double MapHolder::getMapHolderScale() const
 
 QRectF MapHolder::getExtent()
 {
-    QMatrix const matrix = this->matrix().inverted();
-    QRectF visibleRect = matrix.mapRect((viewport()->rect()));
-    visibleRect.moveTopLeft(matrix.map(QPoint(horizontalScrollBar()->value(),
-                                              verticalScrollBar()->value())));
-    qDebug()<<visibleRect;
-    double topLat;
-    double leftLon;
-    double bottomLat;
-    double rightLon;
-    visibleRect.getRect(&topLat, &leftLon, &bottomLat, &rightLon);
-    bottomLat = topLat + bottomLat;
-    rightLon = leftLon - rightLon;
-    visibleRect.setWidth(bottomLat);
-    visibleRect.setHeight(rightLon);
-    qDebug()<<visibleRect;
-    return visibleRect;
+    return mapToScene(viewport()->rect()).boundingRect();
 }
 
 void MapHolder::setMapCalculator(vrsa::calculations::MapCalculator &calc)
@@ -92,40 +66,49 @@ void MapHolder::resizeEvent(QResizeEvent *event)
 void MapHolder::wheelEvent(QWheelEvent *event)
 {
     mIsDraging = false;
-    if (!mIsZooming)
-    {
-        //создаем снапшот
-        startZoomSnapshot(event->position());
-        mIsZooming = true;
-    }
-    // сразу применяем зум к сцене
+
     qreal factor = (event->angleDelta().y() > 0) ? mZoomInFactor : mZoomOutFactor;
-    scale(factor, factor);
-    mZoomDelta += event->angleDelta().y();
-    //обновляем снапшот
-    handleZoom(event);
-    recalculateScale();
-    if (mZoomTimer)
-    {
-        mZoomTimer->disconnect();  // отключаем старый
-        connect(mZoomTimer, &QTimer::timeout, this, &MapHolder::finishZoom, Qt::UniqueConnection);
-        mZoomTimer->stop();
-        mZoomTimer->start(300);
+    //предварительно рассчитываем будущий масштаб
+    double futureScale = mCurrentScale / factor;
+    mCurrentScale = futureScale;
+    static const double MIN_SCALE = 100.0;      // 1:100 - максимальный зум
+    static const double MAX_SCALE = 1000000000.0; // 1:100 000 0000 - минимальный зум
+    // Корректируем futureScale, если он выходит за границы
+    if (futureScale < MIN_SCALE) {
+        futureScale = MIN_SCALE;  // не прыгаем на 5000, а ставим на границу
+        qDebug() << "На границе min zoom:" << futureScale;
+    }
+    else if (futureScale > MAX_SCALE) {
+        futureScale = MAX_SCALE;  // ставим на границу
+        qDebug() << "На границе max zoom:" << futureScale;
     }
 
-    viewport()->update();
+    // Применяем зум только если масштаб реально изменился
+    if (!qFuzzyCompare(mCurrentScale, futureScale))
+    if (futureScale >= MIN_SCALE && futureScale <= MAX_SCALE)
+    {
+        if (!mIsZooming)
+        {
+            //создаем снапшот
+            startZoomSnapshot(event->position());
+            mIsZooming = true;
+        }
+        //сразу применяем зум к сцене
+        scale(factor, factor);
+        mZoomDelta += event->angleDelta().y();
+        handleZoom(event);  //обновляем снапшот
+        recalculateScale();
+        if (mZoomTimer)
+        {
+            mZoomTimer->disconnect();  // отключаем старый
+            connect(mZoomTimer, &QTimer::timeout, this, &MapHolder::finishZoom, Qt::UniqueConnection);
+            mZoomTimer->stop();
+            mZoomTimer->start(300);
+        }
+        viewport()->update();
+        return;
+    }
 
-    //    if (event->angleDelta().y()<0 )
-    //    {
-    //        scaleFactor=0.3;
-
-    //        scale(scaleFactor, scaleFactor);
-    //    }
-    //    else if (event->angleDelta().y()>0) {
-    //        scaleFactor=2;
-    //        scale(scaleFactor, scaleFactor);
-    //    }
-    //    recalculateScale();
 }
 
 void MapHolder::startZoomSnapshot(const QPointF &mousePos)
@@ -143,7 +126,6 @@ void MapHolder::startZoomSnapshot(const QPointF &mousePos)
     QPainter painter(&mZoomPixmap);
     render(&painter);
     painter.end();
-    //возвращаем
     setRenderHint(QPainter::Antialiasing, true);
     setRenderHint(QPainter::SmoothPixmapTransform, true);
 }
@@ -165,11 +147,8 @@ void MapHolder::handleZoom(QWheelEvent *event)
     }
 
     mZoomOffset = (mZoomOffset - mZoomMousePos) * zoomFactor + mZoomMousePos;
-    mZoomPixmap = mZoomPixmap.scaled(
-                mZoomPixmap.size() * zoomFactor,
-                Qt::KeepAspectRatio,
-                Qt::SmoothTransformation
-                );
+    mZoomPixmap = mZoomPixmap.scaled( mZoomPixmap.size() * zoomFactor,
+                       Qt::KeepAspectRatio, Qt::SmoothTransformation);
     viewport()->update();
 }
 
@@ -191,50 +170,41 @@ void MapHolder::mousePressEvent(QMouseEvent* event) {
     {
         if (!mPanningEnabled && event->button() == Qt::LeftButton)
         {
-
             mIsDraging = false;
             QGraphicsView::mousePressEvent(event);
             return;
         }
-
         mIsDraging = true;
         mClickPos = event->pos();
         mLastPos = event->pos();
-
         // Отключаем улучшения
         setRenderHint(QPainter::Antialiasing, false);
         setRenderHint(QPainter::SmoothPixmapTransform, false);
-
         // Замер времени начала
         QElapsedTimer timer;
         timer.start();
-
         // Рендерим в QImage (быстрее!)
         mDragImage = QImage(viewport()->size(), QImage::Format_ARGB32_Premultiplied);
         mDragImage.fill(Qt::transparent);
-
         QPainter painter(&mDragImage);
         render(&painter);
         painter.end();
-
-        // Замер времени окончания
+        //замер времени окончания
         qint64 elapsed = timer.elapsed();
         qDebug() << "Время рендера drag-изображения:" << elapsed << "мс";
-
-        // Конвертируем в QPixmap для отрисовки
+        //конвертируем в QPixmap для отрисовки
         mDragPixmap = QPixmap::fromImage(mDragImage);
-
-        // Возвращаем настройки
         setRenderHint(QPainter::Antialiasing, true);
         setRenderHint(QPainter::SmoothPixmapTransform, true);
-
         viewport()->update();
     }
     QGraphicsView::mousePressEvent(event);
 }
 
-void MapHolder::mouseMoveEvent(QMouseEvent* event) {
-    if (mIsDraging) {
+void MapHolder::mouseMoveEvent(QMouseEvent* event)
+{
+    if (mIsDraging)
+    {
         mLastPos = event->pos();
         viewport()->update();
     }
@@ -246,15 +216,12 @@ void MapHolder::mouseReleaseEvent(QMouseEvent* event)
     if (mIsDraging)
     {
         mIsDraging = false;
-
-        // Сдвигаем сцену
+        //сдвигаем сцену
         QPointF start = mapToScene(mClickPos);
         QPointF end = mapToScene(mLastPos);
         QPointF delta = end - start;
-
         QPointF newCenter = mapToScene(viewport()->rect().center()) - delta;
         centerOn(newCenter);
-
         mDragPixmap = QPixmap();
         viewport()->update();
     }
@@ -275,16 +242,14 @@ void MapHolder::paintEvent(QPaintEvent* event)
     {
         // Рисуем снапшот
         QPainter painter(viewport());
-        QPoint offset(
-                    (viewport()->width() - mZoomPixmap.width()) / 2,
-                    (viewport()->height() - mZoomPixmap.height()) / 2
-                    );
-
+        QPoint offset((viewport()->width() - mZoomPixmap.width()) / 2,
+                      (viewport()->height() - mZoomPixmap.height()) / 2);
         painter.drawPixmap(mZoomOffset, mZoomPixmap);
         return;
     }
 
-    if (mIsDraging && !mDragPixmap.isNull()) {
+    if (mIsDraging && !mDragPixmap.isNull())
+    {
         QPainter painter(viewport());
         //painter.fillRect(viewport()->rect(), Qt::lightGray);
         QPoint offset = mLastPos - mClickPos;

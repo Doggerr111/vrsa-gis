@@ -6,7 +6,6 @@
 #include <QWheelEvent>
 #include <QScrollBar>
 #include "calculations/mapcalculations.h"
-#include "ogr_spatialref.h"
 /**
  * @english
  * @brief Widget for displaying digital map with pan and zoom capabilities
@@ -34,7 +33,7 @@ public:
     /** Смещает видимую область виджета в bRect */
     void zoomToRect(QRectF bRect);
     /** Возвращает текущий масштаб */
-    int getScale();
+    int getMapScaleDenominator() const noexcept { return mCurrentScale; };
     /** Возвращает View->transform()->m11() */
     double getMapHolderScale() const;
     /** Возвращает текущую видимую область виджета */
@@ -56,11 +55,7 @@ signals:
     void MapHolderZoomed(double);
     /** Сигнал вызывается при изменением видимого окна карты */
     void extentChanged();
-
-    void CRSChanged(OGRSpatialReference*);
-
     void scaleChanged(int, double);
-
     //для перехвата его быстрее view в сцене, чтобы например заблокировать перемещение сцены
     void mousePressed(QMouseEvent *event);
     // QWidget interface
@@ -81,7 +76,6 @@ protected:
 
 
 private:
-
     bool mIsDraging = false;
     bool mIsZooming = false;
     double mZoomDelta;
