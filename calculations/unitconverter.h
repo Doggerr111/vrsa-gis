@@ -17,8 +17,14 @@ class UnitConversion {
 public:
     static double mmToPixels(double mm, double dpi = 96.0)
     {
-        static const double dots_per_millimeter = (QGuiApplication::primaryScreen()->physicalDotsPerInch() / 25.40);
-        return mm*dots_per_millimeter;
+        auto* screen = QGuiApplication::primaryScreen();
+        if (!screen) {
+            qDebug() << "No primary screen available, using default DPI";
+            return mm * (dpi / 25.40);  // fallback
+        }
+
+        static const double dots_per_millimeter = screen->physicalDotsPerInch() / 25.40;
+        return mm * dots_per_millimeter;
     };
     static double convertToPixels(double value, common::StyleUnit uni)
     {

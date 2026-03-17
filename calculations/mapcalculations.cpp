@@ -1,16 +1,24 @@
 #include "mapcalculations.h"
 
 vrsa::calculations::MapCalculator::MapCalculator()
-    : isGeographicCRS{}
+    : isGeographicCRS{true}
 {
 
 }
 
 double vrsa::calculations::MapCalculator::calculateScaleFactor(double scale, const QRectF &mapExtent, double canvasWidth)
 {
-    if (scale<=0.0)
-            return 1;
-    double conversionFactor = 1/0.0254;
+    if (scale <= 0.0 || std::isnan(scale) || std::isinf(scale))
+            return 1.0;
+    if (!mapExtent.isValid() || mapExtent.width() <= 0 || mapExtent.height() <= 0)
+            return 1.0;
+    if (!std::isfinite(canvasWidth) || canvasWidth <= 0.0 || canvasWidth > 1e6)
+            return 1.0;
+    if (!mapExtent.isValid() || !std::isfinite(mapExtent.width()) ||  mapExtent.width() <= 0.0 ||
+                                          mapExtent.width() > 1e9 || mapExtent.height() <= 0)
+            return 1.0;
+
+    double conversionFactor = 1/0.0254; //1 дюйм = 0.0254 метра
     QPointF rect_c= mapExtent.center();
     double xMin = rect_c.x()-mapExtent.width()/2.0;
     double xMax=xMin+mapExtent.width();
@@ -19,6 +27,11 @@ double vrsa::calculations::MapCalculator::calculateScaleFactor(double scale, con
     {
         currentDist = calculateGeographicDistance(mapExtent);
         conversionFactor = 39.3700787;
+        if (currentDist < 1.0 || currentDist > 1e9)
+        {
+            VRSA_DEBUG("MapHolder", "Расстояние слишком мало:" + std::to_string(currentDist));
+            currentDist = 1.0;
+        }
     }
 
     //получаем расстояние в метрах от левого края холста карты до правого при заданном масштабе
@@ -29,9 +42,13 @@ double vrsa::calculations::MapCalculator::calculateScaleFactor(double scale, con
     //double currentDist = calculateGeographicDistance(mapExtent); //вычисляем расстояние для текущего экстента
     double scaleFactor = currentDist/distance; //коээфицент масштаба
     //qDebug()<<QString::number(currentDist/distance,'f',2);
-    if (scaleFactor<=std::numeric_limits<double>::max())
-        return scaleFactor;
-    return 1;
+    if (scaleFactor > 1e9)
+        return 1e9;
+
+    if (scaleFactor < 1e-9)
+        return 1e-9;
+
+    return scaleFactor;
 }
 
 double vrsa::calculations::MapCalculator::calculate(const QRectF &mapExtent, double canvasWidth) const
@@ -39,8 +56,23 @@ double vrsa::calculations::MapCalculator::calculate(const QRectF &mapExtent, dou
     double conversionFactor = 0;
     double delta = 0;
     calculateMetrics( mapExtent, delta, conversionFactor );
-    const double scale = ( delta * conversionFactor ) / ( static_cast< double >( canvasWidth ) / mDpi );
-    return scale;
+    if (canvasWidth == 0 || mDpi == 0)
+        return 1.0;
+    double canvasWidthInches = static_cast<double>(canvasWidth) / mDpi;
+        if (canvasWidthInches <= 0.0)
+            return 1.0;
+    double result = (delta * conversionFactor) / canvasWidthInches;
+    if (!std::isfinite(result) || result <= 0.0)
+        return 1.0;
+    //защита от физически бессмысленных масштабов
+    static const double MAX_SCALE = 1e9;  // 1:1,000,000,000,
+    static const double MIN_SCALE = 1.0;   // 1:1
+    if (result > MAX_SCALE)
+        return MAX_SCALE;
+    if (result < MIN_SCALE)
+        return MIN_SCALE;
+    return result;
+
 }
 
 double vrsa::calculations::MapCalculator::calculateGeographicDistance(const QRectF &mapExtent) const
@@ -55,7 +87,7 @@ double vrsa::calculations::MapCalculator::calculateGeographicDistance(const QRec
     const double a = std::pow( std::cos( lat * RADS ), 2 );
     const double c = 2.0 * std::atan2( std::sqrt( a ), std::sqrt( 1.0 - a ) );
     static const double RA = 6378000; // [m]
-    // Эксцентриситет sqrt(1.0 - rb*rb/(ra*ra)) c rb в 6357000 m.
+    //эксцентриситет sqrt(1.0 - rb*rb/(ra*ra)) c rb в 6357000 m.
     static const double E = 0.0810820288;
     const double radius = RA * ( 1.0 - E * E ) /
             std::pow( 1.0 - E * E * std::sin( lat * RADS ) * std::sin( lat * RADS ), 1.5 );
