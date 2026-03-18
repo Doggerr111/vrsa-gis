@@ -38,3 +38,6 @@ TEST(SpatialRef, WGS84Test_with_DB)
 
     ASSERT_TRUE(WGS84.isSame(WGS84_DB));
 }
+
+
+
