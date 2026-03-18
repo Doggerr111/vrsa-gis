@@ -17,6 +17,7 @@ class VectorFeatureStyle
 public:
     VectorFeatureStyle();
     VectorFeatureStyle(std::unique_ptr<Symbol> symbol);
+    void setSymbol(std::unique_ptr<Symbol> symbol) { mSymbol = std::move(symbol); };
 
     inline Symbol* getSymbol()
     {
