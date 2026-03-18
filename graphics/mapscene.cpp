@@ -18,75 +18,7 @@ vrsa::graphics::MapScene::MapScene(QObject *parent)
     setItemIndexMethod(QGraphicsScene::NoIndex);
 }
 
-void vrsa::graphics::MapScene::addLayer(std::unique_ptr<vector::VectorLayer> &l)
-{
 
-//    if (l)
-//    {
-//        connect(l.get(), &vector::VectorLayer::featureAdded, this, &graphics::MapScene::onVectorLayerFeatureAdded);
-//        connect(l.get(), &vector::VectorLayer::featureRemoved, this, &graphics::MapScene::onVectorLayerFeatureRemoved);
-//    }
-//    auto pointStyle = VectorFeatureStyle::createDefaultVectorStyle(
-//                common::GeometryType::Point);
-//    auto lineStyle = VectorFeatureStyle::createDefaultVectorStyle(
-//                common::GeometryType::LineString);
-//    auto polygonStyle = VectorFeatureStyle::createDefaultVectorStyle(
-//                common::GeometryType::Polygon);
-
-
-//    //todo разделять слои принудительно по типу геометрии для форматов типа geojson poLayer->GetGeomType() = wkbUnknown
-//    std::unique_ptr<graphics::FeatureGraphicsItem> graphicsItem;
-//    for (int i=0; i<l->getFeaturesCount(); ++i)
-//    {
-//        auto feature = l->getFeatureAt(i);
-//        switch(feature->getType())
-//        {
-//        case common::GeometryType::Point:
-//        {
-//            graphicsItem = vrsa::graphics::
-//                    FeatureGraphicsItemFactory::createForFeature(feature, pointStyle.get());
-//            //qDebug()<<feature->getOGRGeometry()->toPoint()->getX();
-//            break;
-//        }
-//        case common::GeometryType::LineString:
-//        {
-//            graphicsItem = vrsa::graphics::
-//                    FeatureGraphicsItemFactory::createForFeature(feature, lineStyle.get());
-
-//            break;
-//        }
-
-//        case common::GeometryType::MultiLineString:
-//        {
-//            graphicsItem = vrsa::graphics::
-//                    FeatureGraphicsItemFactory::createForFeature(feature, lineStyle.get());
-//            break;
-//        }
-//        case common::GeometryType::Polygon:
-//        {
-//            graphicsItem = vrsa::graphics::
-//                    FeatureGraphicsItemFactory::createForFeature(feature, polygonStyle.get());
-//            break;
-//        }
-//        default:
-//            break;
-//        }
-
-//        if (graphicsItem)
-//        {
-//            addItem(graphicsItem.get());
-//            graphicsItem->setScale(mMapHolderScale);
-//            connect(l.get(), &vector::VectorLayer::ZValueChanged, graphicsItem.get(), &FeatureGraphicsItem::onZValueChanged);
-//            mFeatures.push_back(std::move(graphicsItem));
-//        }
-//    }
-
-//    l->setStyle(std::move(pointStyle), common::GeometryType::Point);
-//    l->setStyle(std::move(lineStyle), common::GeometryType::LineString);
-//    l->setStyle(std::move(polygonStyle), common::GeometryType::Polygon);
-//    qDebug() << mFeatures.size();
-//    update();
-}
 
 void vrsa::graphics::MapScene::addLayer(std::unique_ptr<raster::RasterChannel> &channel)
 {
@@ -202,17 +134,18 @@ void vrsa::graphics::MapScene::keyPressEvent(QKeyEvent *event)
 
 void vrsa::graphics::MapScene::onMapHolderScaleChanged(int mapScale, double widgetScale)
 {
+    //qDebug()<<"new scale:" << mapScale;
     mMapScale = mapScale;
     mMapHolderScale = widgetScale;
     for (const auto& feat: mFeatures) //для векторных объектов
     {
-        feat->setScale(mMapHolderScale);
+        feat->setScale(mMapScale, mMapHolderScale);
     }
     for (const auto& tempItem: mTempItems) //для временных объектов
     {
         tempItem->setScale(mMapHolderScale);
     }
-    //update();
+
 }
 
 void vrsa::graphics::MapScene::onVectorLayerFeatureAdded(vector::VectorFeature *)
@@ -228,11 +161,11 @@ void vrsa::graphics::MapScene::onVectorLayerFeatureRemoved(int64_t fid)
 //delete this
 void vrsa::graphics::MapScene::onNewFeatureGraphicsItemCreated(std::unique_ptr<FeatureGraphicsItem> &item)
 {
-    item->setScale(mMapHolderScale);
+    item->setScale(mMapScale, mMapHolderScale);
     addItem(item.get());
     mFeatures.push_back(std::move(item));
     //item->update();
-    update();
+    update(item->boundingRect());
 }
 
 //from proj manager::featureGraphicsItemCreated
@@ -244,7 +177,7 @@ void vrsa::graphics::MapScene::onFeatureGraphicsItemCreated(FeatureGraphicsItem 
         return;
     }
     addItem(item);
-    item->setScale(mMapHolderScale);
+    item->setScale(mMapScale, mMapHolderScale);
     mFeatures.push_back(std::unique_ptr<FeatureGraphicsItem>(item));
     update(item->boundingRect());
     qDebug()<<items().count();

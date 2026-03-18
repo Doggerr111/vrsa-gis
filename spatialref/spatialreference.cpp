@@ -1,6 +1,7 @@
 #include "spatialreference.h"
 #include "common/GisDefines.h"
 #include "logger.h"
+#include "coordinatetransformer.h"
 vrsa::spatialref::SpatialReference::SpatialReference(gdalwrapper::OgrSpatialRefPtr ogrSpatialRef)
     : mCrs{std::move(ogrSpatialRef)}
 {
@@ -284,7 +285,7 @@ bool vrsa::spatialref::SpatialReference::isSame(const SpatialReference &other) c
     return mCrs->IsSame(other.mCrs.get());
 }
 
-vrsa::gdalwrapper::OgrCoordinateTransformationRefPtr vrsa::spatialref::SpatialReference::createTransformTo
+std::unique_ptr<vrsa::spatialref::CoordinateTransformer> vrsa::spatialref::SpatialReference::createTransformTo
                                                                     (const SpatialReference &target) const
 {
     auto targetSpatialRef = target.GetOGRSpatialRef();
@@ -293,12 +294,12 @@ vrsa::gdalwrapper::OgrCoordinateTransformationRefPtr vrsa::spatialref::SpatialRe
         VRSA_ERROR("SpatialReference", "Failed to create coordinate transformation: nullptr source or target CRS");
         return nullptr;
     }
-    auto* rawTransform = OGRCreateCoordinateTransformation(mCrs.get(), targetSpatialRef);
-    if (!rawTransform)
-    {
-        VRSA_ERROR("SpatialReference", "Failed to create coordinate transformation");
-        return nullptr;
-    }
-    return gdalwrapper::OgrCoordinateTransformationRefPtr(rawTransform);
+//    auto* rawTransform = OGRCreateCoordinateTransformation(mCrs.get(), targetSpatialRef);
+//    if (!rawTransform)
+//    {
+//        VRSA_ERROR("SpatialReference", "Failed to create coordinate transformation");
+//        return nullptr;
+//    }
+    return std::make_unique<CoordinateTransformer>(*this, target);
 }
 

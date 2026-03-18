@@ -6,6 +6,14 @@
 #include <QSplitter>
 #include "vectorlayercreationform.h"
 #include "test_utils/vectorlayertest.h"
+
+#include <geos/geom/GeometryFactory.h>
+#include <geos/geom/Point.h>
+#include <geos/geom/LineString.h>
+#include <geos/geom/PrecisionModel.h>
+#include <geos/io/WKTReader.h>
+#include <geos/io/WKTWriter.h>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
@@ -132,34 +140,6 @@ void MainWindow::on_pushButtonSingleSelection_clicked(bool checked)
 
 void MainWindow::on_pushButton_testVectorLayerUtils_clicked()
 {
-//    auto scene = ui->graphicsView->scene();
-//    std::vector<QPainterPath> paths;
-//    for (int i=0; i<1000; ++i)
-//    {
-//        double lat = QRandomGenerator::global()->generateDouble() * 180 - 90;   // -90..90
-//        double lon = QRandomGenerator::global()->generateDouble() * 360 - 180;  // -180..180
-//        QPainterPath path;
-//        path.moveTo(lon, lat);
-//        for (int j=0; j<10; j++)
-//        {
-//            double lat = QRandomGenerator::global()->generateDouble() * 180 - 90;   // -90..90
-//            double lon = QRandomGenerator::global()->generateDouble() * 360 - 180;  // -180..180
-//            path.lineTo(lon,lat);
-
-//        }
-//        paths.push_back(path);
-
-//    }
-//    for (int i=0; i<1000; ++i)
-//    {
-//        //QGraphicsEllipseItem *item = new QGraphicsEllipseItem();
-//        QPen pen;
-//        pen.setWidthF(0.1);
-//        QGraphicsPathItem* it = new QGraphicsPathItem;
-//        it->setPen(pen);
-//        it->setPath(paths[i]);
-//        scene->addItem(it);
-//    }
 
 }
 

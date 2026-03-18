@@ -40,9 +40,7 @@ void vrsa::graphics::TemporaryGraphicsItem::setGeometry(const geometry::Geometry
 void vrsa::graphics::TemporaryGraphicsItem::setupRenderer()
 {
     if (!mRenderer)
-    {
         mRenderer = std::make_unique<FeatureGraphicsItemRenderer>(generateStyle(), mGeomType);
-    }
 }
 
 vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::generateStyle()
@@ -59,13 +57,11 @@ vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::gener
     case TemporaryItemRole::Selection:
     {
         mStyle = VectorFeatureStyle::createForSelection(mGeomType);
-        //qDebug()<<"стиль " << mStyle.get();
         break;
     }
     case TemporaryItemRole::RubberBand:
     {
         mStyle = VectorFeatureStyle::createForRubberBands(mGeomType);
-        //qDebug()<<"стиль " << mStyle.get();
         break;
     }
     case TemporaryItemRole::Measurement:
@@ -76,8 +72,9 @@ vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::gener
     {
         break;
     }
+    default:
+        break;
     }
-    //qDebug() << "Item: style" << static_cast<void*>(this);
     return mStyle.get();
 
 }

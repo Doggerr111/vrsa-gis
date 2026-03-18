@@ -10,7 +10,7 @@ enum class CRSDesctiptionFormat: int;
 }
 namespace spatialref
 {
-
+class CoordinateTransformer;
 class SpatialReference
 {
 public:
@@ -35,7 +35,8 @@ public:
     //методы для получения информации
     bool isValid() const;
     inline bool isGeographic() const { return mCrs ? mCrs->IsGeographic() : false; };  // градусы
-    inline bool isProjected() const { return mCrs ? mCrs->IsProjected() : false; };   // метры
+    inline bool isProjected() const  { return mCrs ? mCrs->IsProjected() : false; };   // метры
+    inline bool isGeoCentric() const { return mCrs ? mCrs->IsGeocentric() : false; };
     double getLinearUnits(std::string& unitName) const; // метры/футы и т.д.
     std::string getAuthorityCode() const; // например "4326"
     std::string getAuthorityName() const; // например "EPSG"
@@ -67,7 +68,7 @@ public:
      * @param target Целевая система координат
      * @return Умный указатель на трансформацию или nullptr при ошибке
      */
-    gdalwrapper::OgrCoordinateTransformationRefPtr createTransformTo(const SpatialReference& target) const;
+    std::unique_ptr<CoordinateTransformer> createTransformTo(const SpatialReference& target) const;
 
 
 private:
