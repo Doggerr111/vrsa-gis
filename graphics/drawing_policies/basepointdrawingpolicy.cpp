@@ -8,11 +8,18 @@ vrsa::graphics::BasePointDrawingPolicy::BasePointDrawingPolicy(const Symbol *sym
     mSymbol = static_cast<const SimplePointSymbol*>(symbol);
 }
 
+void vrsa::graphics::BasePointDrawingPolicy::updateSymbol(const Symbol *newSymbol)
+{
+    assert(newSymbol->type() == common::SymbolType::SimplePointSymbol);
+    mSymbol = static_cast<const SimplePointSymbol*>(newSymbol);
+    updateScaleDependentParams(mCache.sceneScale);
+}
+
 void vrsa::graphics::BasePointDrawingPolicy::paint(const DrawingContext &context)
 {
     context.painter->save();
     if (!mCache.isGeomValid) //если рисуем первый раз или если изменилась геометрия в фиче
-        cacheGeometry(context.geom, context.sceneScale);
+        cacheGeometry(context);
     //если масштаб равен тому, что хранили до этого, не надо перерассчитывать qpen width и offset
     if (!mCache.isScaleValid(context.sceneScale))
         updateScaleDependentParams(context.sceneScale);
@@ -53,10 +60,12 @@ void vrsa::graphics::BasePointDrawingPolicy::updateScaleDependentParams(double s
 QRectF vrsa::graphics::BasePointDrawingPolicy::boundingRect(const DrawingContext &context) const
 {
     if (!mCache.isGeomValid)
-        cacheGeometry(context.geom, context.sceneScale);
+        cacheGeometry(context);
     if (!mCache.isScaleValid(context.sceneScale))
         updateScaleDependentParams(context.sceneScale);
     if (!mCache.isStrokedPathValid)
         updateStrokePath();
     return mCache.strokePath.boundingRect();
 }
+
+

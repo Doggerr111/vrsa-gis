@@ -15,17 +15,18 @@ public:
     void paint         (const DrawingContext &context) override;
     QRectF boundingRect(const DrawingContext &context) const override;
     inline common::GeometryType getType()        const override {return vrsa::common::GeometryType::Unknown;};
+    void updateSymbol(const Symbol* newSymbol) override;
 protected:
     virtual void readGeometry(OGRGeometry* geom) const = 0;
     virtual void createPath() const = 0;
 private:
     //Так как точка - единственный тип геометрии, путь которой зависит от масштаба, то тут алгоритм другой:
     //сначала кешируем mX, mY, а в методе updateScaleDependentParams рассчитываем path
-    void cacheGeometry (OGRGeometry *geom, double scale)       const override
+    void cacheGeometry (const DrawingContext &context) const override
     {
-        readGeometry(geom);
-        if (!mCache.isScaleValid(scale))
-            updateScaleDependentParams(scale); //вот тут будем обновлять путь методом cachePath()
+        readGeometry(context.geom);
+        if (!mCache.isScaleValid(context.sceneScale))
+            updateScaleDependentParams(context.sceneScale); //вот тут будем обновлять путь методом cachePath()
         mCache.isGeomValid = true;
         //updateStrokePath();
     };
