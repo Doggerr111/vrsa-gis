@@ -358,37 +358,18 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
             QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
             auto selectedLayer = mProjectManager->getLayer(path.toStdString(), layerID);
-            auto layerGeometryType = selectedLayer->getGeomType();
-            auto style = selectedLayer->getStyle();
-            if (!style)
-                return;
-            auto symbol = style->getSymbol();
-            if (!symbol)
-                return;
-            VectorStylingForm form(symbol, layerGeometryType);
+//            auto layerGeometryType = selectedLayer->getGeomType();
+//            auto style = selectedLayer->getStyle();
+//            if (!style)
+//                return;
+//            auto symbol = style->getSymbol();
+//            if (!symbol)
+//                return;
+            VectorStylingForm form(selectedLayer);
             form.exec();
             QIcon icon = QIcon();
-            emit updateLegendIconsRequired(symbol, icon);
+            emit updateLegendIconsRequired(selectedLayer->getStyle()->getSymbol(), icon);
             clickedItem->setIcon(DATA_COLUMN, icon);
-
-            //            switch (selectedLayer->getGeomType())
-            //            {
-            //            case common::GeometryType::Point:
-            //                qDebug()<<"Point Layer";
-            //                break;
-            //            case common::GeometryType::MultiPoint:
-            //                qDebug()<<"MultiPoint Layer";
-            //                break;
-            //            case common::GeometryType::LineString:
-            //                qDebug()<<"Line Layer";
-            //                break;
-            //            case common::GeometryType::MultiLineString:
-            //                qDebug()<<"MultiLine Layer";
-            //                break;
-            //            case common::GeometryType::Unknown:
-            //                qDebug()<<"Unknown Layer";
-            //                break;
-            //            }
         });
 
         break;
