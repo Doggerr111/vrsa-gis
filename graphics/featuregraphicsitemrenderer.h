@@ -3,7 +3,7 @@
 
 #include "graphics/vectorfeaturestyle.h"
 #include "graphics/drawingcontext.h"
-#include "graphics/vectorfeaturedrawingpolicy.h"
+#include "graphics/drawing_policies/vectorfeaturedrawingpolicy.h"
 namespace vrsa
 {
 namespace graphics
@@ -20,6 +20,8 @@ public:
 //    void createPolicy(Symbol* symbol);
 //    void createSelectPolicy(Symbol* symbol);
     void update(); //вызывать каждый раз при изменении графического объекта,
+    void updateGeometry();
+    void redraw();
     void updateStyle(VectorFeatureStyle *newStyle); //вызывает перестроение политик для рисования!!!
     //например, при изменении геометрии для перестройки кеша политик
 
@@ -27,8 +29,11 @@ public:
     template<typename Container>
     void createPolicies(Symbol* symbol, Container& container);
 
+    //void updatePolicies(Symbol* symbol);
     VectorFeatureStyle* getStyle() const noexcept { return mStyle; };
     void setFeatureSelected(bool selected);
+
+    void updateSymbol();
 
 private:
     VectorFeatureStyle* mStyle;

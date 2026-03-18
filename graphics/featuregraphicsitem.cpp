@@ -1,5 +1,7 @@
 #include "featuregraphicsitem.h"
-
+#include "vector/vectorfeature.h"
+#include "graphics/drawingcontext.h"
+#include <QGraphicsScene>
 vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(Feature *feature)
     : QGraphicsItem(),
       mFeature{feature},
@@ -14,6 +16,7 @@ vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(Feature *feature)
         QObject::connect(feature, &vector::VectorFeature::geometryChanged, this,
                          &FeatureGraphicsItem::onVectorFeatureGeometryChanged);
         QObject::connect(feature, &vector::VectorFeature::ZValueChanged, this, &FeatureGraphicsItem::onZValueChanged);
+        QObject::connect(feature, &vector::VectorFeature::symbolUpdated, this, &FeatureGraphicsItem::onSymbolUpdated);
     }
 }
 
@@ -21,9 +24,9 @@ QRectF vrsa::graphics::FeatureGraphicsItem::boundingRect() const
 {
     if (!mFeature)
         return QRectF();
-    if (!mFeature->getOGRGeometry())
-        return QRectF();
-    DrawingContext context{nullptr, nullptr, nullptr, mFeature->getOGRGeometry(), mWidgetScale};
+    bool isLodNeeded = !mFeature->isGeographical();
+    DrawingContext context{nullptr, nullptr, nullptr, mFeature->getOGRGeometry(), mWidgetScale, mMapScale, isLodNeeded};
+    //qDebug()<< mFeature->getOGRGeometry();
     return mRenderer->boundingRect(context);
 }
 
@@ -31,12 +34,23 @@ void vrsa::graphics::FeatureGraphicsItem::paint(QPainter *painter, const QStyleO
 {
     if (!mFeature)
         return;
-    if (!mFeature->getOGRGeometry())
-        return;
-    DrawingContext context{painter, option, widget, mFeature->getOGRGeometry(), mWidgetScale};
+    bool isLodNeeded = !mFeature->isGeographical();
+    DrawingContext context{painter, option, widget, mFeature->getOGRGeometry(), mWidgetScale, mMapScale, isLodNeeded};
     mRenderer->paint(context);
+}
 
+const OGRGeometry *vrsa::graphics::FeatureGraphicsItem::getFeatureGeometry() const
+{
+    if (mFeature)
+        return mFeature->getOGRGeometry();
+    return nullptr;
+}
 
+const vrsa::common::GeometryType vrsa::graphics::FeatureGraphicsItem::getFeatureGeometryType() const
+{
+    if (mFeature)
+        return mFeature->getGeometryType();
+    return common::GeometryType::Unknown;
 }
 
 void vrsa::graphics::FeatureGraphicsItem::setSelected(const bool selected)
@@ -81,4 +95,15 @@ void vrsa::graphics::FeatureGraphicsItem::onFeatureStyleChanged(VectorFeatureSty
 void vrsa::graphics::FeatureGraphicsItem::onVectorFeatureGeometryChanged()
 {
     qDebug()<<"vector feature geometry changed!";
+}
+
+void vrsa::graphics::FeatureGraphicsItem::onSymbolUpdated()
+{
+
+    if (mRenderer)
+    {
+        prepareGeometryChange();
+        mRenderer->updateSymbol();
+        update();
+    }
 }

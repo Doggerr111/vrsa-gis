@@ -1,7 +1,10 @@
 #include "featuregraphicsitemrenderer.h"
-#include "pointfeaturedrawingpolicy.h"
-#include "linefeaturedrawingpolicy.h"
-#include "polygonfeaturedrawingpolicy.h"
+#include "graphics/drawing_policies/pointfeaturedrawingpolicy.h"
+#include "graphics/drawing_policies/multipointfeaturedrawingpolicy.h"
+#include "graphics/drawing_policies/linefeaturedrawingpolicy.h"
+#include "graphics/drawing_policies/multilinefeaturedrawingpolicy.h"
+#include "graphics/drawing_policies/polygonfeaturedrawingpolicy.h"
+#include "graphics/drawing_policies/multipolygonfeaturedrawingpolicy.h"
 
 
 vrsa::graphics::FeatureGraphicsItemRenderer::FeatureGraphicsItemRenderer(VectorFeatureStyle *style,
@@ -17,13 +20,13 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::paint(const DrawingContext &co
 {
     if (!mIsFeatureSelected)
     {
-        for (const auto& policy: mPolicies)
-            policy->paint(context);
+        for (auto it = mPolicies.rbegin(); it != mPolicies.rend(); ++it)
+            (*it)->paint(context);
     }
     else
     {
-        for (const auto& policy: mSelectPolicies)
-            policy->paint(context);
+        for (auto it = mSelectPolicies.rbegin(); it != mSelectPolicies.rend(); ++it)
+            (*it)->paint(context);
     }
 }
 
@@ -98,6 +101,18 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::update()
     }
 }
 
+void vrsa::graphics::FeatureGraphicsItemRenderer::redraw()
+{
+    for (const auto& policy: mPolicies)
+    {
+        policy->styleUpdated();
+    }
+    for (const auto& policy: mSelectPolicies)
+    {
+        policy->styleUpdated();
+    }
+}
+
 void vrsa::graphics::FeatureGraphicsItemRenderer::updateStyle(VectorFeatureStyle* newStyle)
 {
     if (!newStyle)
@@ -106,6 +121,7 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::updateStyle(VectorFeatureStyle
     mPolicies.clear();
     createPolicies(mStyle->getSymbol(), mPolicies);
 }
+
 
 void vrsa::graphics::FeatureGraphicsItemRenderer::setFeatureSelected(bool selected)
 {
@@ -126,6 +142,12 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::setFeatureSelected(bool select
     //qDebug()<<"Обновляем кеш политик!";
 }
 
+void vrsa::graphics::FeatureGraphicsItemRenderer::updateSymbol()
+{
+    mPolicies.clear();
+    createPolicies(mStyle->getSymbol(), mPolicies);
+}
+
 template<typename Container>
 void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
                                                                          Container
@@ -133,9 +155,6 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
 {
     if (!symbol) return;
     if (symbol->canHaveChildren()) {
-        //qDebug() << "Symbol type:" << static_cast<int>(symbol->type());
-        //qDebug() << "Symbol is container?" << symbol->canHaveChildren();
-        //qDebug() << "Child count:" << symbol->childCount();
         for (int i = 0; i < symbol->childCount(); ++i) {
             createPolicies(symbol->child(i), container);
         }

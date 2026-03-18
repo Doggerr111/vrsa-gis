@@ -17,6 +17,8 @@ struct DrawingContext
     QWidget* widget;
     OGRGeometry* geom;
     double sceneScale;
+    double mapScaleDenominator;
+    bool isLodOn{false};
     //vrsa::gdalwrapper::OgrGeometryPtr geometry;
 };
 
