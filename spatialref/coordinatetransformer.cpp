@@ -11,7 +11,7 @@ vrsa::spatialref::CoordinateTransformer::CoordinateTransformer(const SpatialRefe
     );
 
     if (!rawTransform) {
-        VRSA_LOG_GDAL_ERROR("CRS", "Failed to create coordinate transformation from "
+        VRSA_LOG_GDAL_ERROR("PROJ", "Failed to create coordinate transformation from "
                             + src.getAuthorityCode() + " to " + dst.getAuthorityCode());
         return;
     }
@@ -60,7 +60,7 @@ OGRGeometry* vrsa::spatialref::CoordinateTransformer::transformGeometry(const OG
 
     // Трансформируем клон
     if (clone->transform(m_transform.get()) != OGRERR_NONE) {
-        VRSA_LOG_GDAL_ERROR("CRS", "Failed to transform geometry");
+        VRSA_LOG_GDAL_ERROR("PROJ", "Failed to transform geometry");
         delete clone;
         return nullptr;
     }

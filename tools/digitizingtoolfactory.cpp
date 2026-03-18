@@ -27,4 +27,5 @@ std::unique_ptr<vrsa::tools::DigitizingTool> vrsa::tools::DigitizingToolFactory:
 //        return nullptr;
 //    }
 //    return nullptr;
+    return nullptr;
 }

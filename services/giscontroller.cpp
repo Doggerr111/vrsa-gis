@@ -34,7 +34,7 @@ vrsa::services::GISController::GISController(QObject *parent)
 {
     if (!mRenderer || !mVectorCreator || !mProjectManager)
     {
-        VRSA_ERROR("GISController", "Error while constructing GIScontroller");
+        VRSA_ERROR("CORE", "Error while constructing GIScontroller");
         throw std::runtime_error("Error while constructing GIScontroller");
     }
         connect(this, &GISController::updateLegendIconsRequired, mRenderer.get(),
@@ -129,10 +129,10 @@ void vrsa::services::GISController::setupViewComponents(const ViewComponents &co
     std::string errorMsg;
     if (!mComps.isValid(errorMsg))
     {
-        VRSA_ERROR("GISController", "Error while setting up view components:" + errorMsg);
+        VRSA_ERROR("CORE", "Error while setting up view components:" + errorMsg);
         return;
     }
-    VRSA_INFO("GISController", "View components successfully configured");
+    VRSA_INFO("CORE", "View components successfully configured");
     setup();
 }
 
@@ -232,7 +232,7 @@ void vrsa::services::GISController::ApplyCRS(std::string name)
 //        mProjCrs = vrsa::gdalwrapper::SpatialReference(std::to_string(*epsgCode), common::CRSDesctiptionFormat::EPSG);
 //    else
 //    {
-//        VRSA_ERROR("GISController", "Can't apply CRS:" + name);
+//        VRSA_ERROR("CORE", "Can't apply CRS:" + name);
 //        return;
 //    }
 //    emit projectCRSChanged(mProjCrs);
@@ -241,7 +241,7 @@ void vrsa::services::GISController::ApplyCRS(std::string name)
 
 bool vrsa::services::GISController::isCurrentCRSGeographic() const
 {
-    //return mProjCrs.GetOGRSpatialRefPtr()->IsGeographic();
+    return mProjCrs.isGeographic();
 }
 
 
@@ -690,12 +690,12 @@ void vrsa::services::GISController::onCRSComboBoxIndexChanged(int index)
     if (crs.isValid())
     {
         //auto crsInfo = spatialref::SpatialReferenceDatabase::instance().getCRSInfoByEPSG(std::stoi(crs.getAuthorityCode()));
-        VRSA_DEBUG("GISController", "Project CRS changed to:" + mComps.crsCombo->currentText().toStdString());
+        VRSA_DEBUG("CORE", "Project CRS changed to:" + mComps.crsCombo->currentText().toStdString());
         mProjCrs = crs;
         emit projectCRSChanged(crs);
         return;
     }
-    VRSA_DEBUG("GISController", "Invalid CRS set");
+    VRSA_DEBUG("CORE", "Invalid CRS set");
 }
 
 void vrsa::services::GISController::onToolEvent(tools::MapTool::ToolEventType type, const QVariant &data)
@@ -839,7 +839,7 @@ void vrsa::services::GISController::onVectorLayerCreationAccepted(const common::
 {
     if (!layerDef.isValid())
     {
-        VRSA_ERROR("GISController", "Can't create new vector layer. Reason: invalid layer definition");
+        VRSA_ERROR("CORE", "Can't create new vector layer. Reason: invalid layer definition");
         return;
     }
     vectorLayerCreationRequested(layerDef);

@@ -19,7 +19,7 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDa
     gdalwrapper::GDALWriter writer;
     common::GeometryType geomType = static_cast<common::GeometryType>(layerDef.geometryType);
     auto spatialRef = spatialref::SpatialReferenceDatabase::instance().createFromName(layerDef.crs);
-    VRSA_DEBUG("VectorLayerCreator", "spatial ref is valid:" + std::to_string(spatialRef.isValid()));
+    VRSA_DEBUG("VECTOR", "spatial ref is valid:" + std::to_string(spatialRef.isValid()));
     std::unordered_map<std::string, OGRFieldType> fieldsRefMap;
     fieldsRefMap.reserve(layerDef.fields.size());
     for (const auto& fieldRef: layerDef.fields)
@@ -38,10 +38,10 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDa
     auto gdalDsPtr = writer.createLayer(layerDef.filePath, gdalwrapper::ToOGR(geomType), spatialRef.GetOGRSpatialRef(),
                                         fieldsRefMap, layerDef.format, params);
     if (gdalDsPtr)
-        VRSA_DEBUG("VectorLayerCreator", "Мы смогли!");
+        VRSA_DEBUG("VECTOR", "Мы смогли!");
     else
     {
-        VRSA_DEBUG("VectorLayerCreator", "Увы! мы не смогли!(");
+        VRSA_DEBUG("VECTOR", "Увы! мы не смогли!(");
     }
 
     return gdalDsPtr;
@@ -89,7 +89,7 @@ vrsa::vector::VectorLayerCreator::~VectorLayerCreator() = default;
 
 void vrsa::vector::VectorLayerCreator::onLayerCreationRequested(const common::LayerDefinition &layerDef)
 {
-    VRSA_DEBUG("VectorLayerCreator", "WE CAUGHT SIGNAL AND GET LAYER DEF. DRIVER NAME:" + layerDef.format);
+    VRSA_DEBUG("VECTOR", "WE CAUGHT SIGNAL AND GET LAYER DEF. DRIVER NAME:" + layerDef.format);
     auto dS = createGDALDataset(layerDef);
     if (!dS)
         return;

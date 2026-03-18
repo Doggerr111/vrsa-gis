@@ -42,7 +42,7 @@ public:
         QImage im = createRGBImage(vecRGB);
         if (im.isNull())
         {
-            VRSA_ERROR("Raster Graphics Factory", "Can't create RGB image from DataSet");
+            VRSA_ERROR("RASTER", "Can't create RGB image from Dataset");
         }
         //TODO make unique ptr
         RasterGraphicsItem *item = new RasterGraphicsItem;
@@ -148,7 +148,7 @@ public:
     {
         if (channels.size() != 3)
         {
-            VRSA_ERROR("Raster Graphics Factory", "Wrong vector size");
+            VRSA_ERROR("RASTER", "Wrong channels size");
             return {};
         }
 
@@ -162,7 +162,7 @@ public:
                          ch->getDataType() == channels[0]->getDataType();
                          }))
         {
-            VRSA_ERROR("Raster Graphics Factory", "Channels mismatch");
+            VRSA_ERROR("RASTER", "Channels mismatch");
             return {};
         }
 
@@ -178,7 +178,7 @@ public:
         case GDT_Float32: processRGBChannels<float>(channels, mergedImage); break;
         case GDT_Float64: processRGBChannels<double>(channels, mergedImage); break;
         default:
-            VRSA_ERROR("Raster Graphics Factory", "Unsupported data type");
+            VRSA_ERROR("RASTER", "Unsupported data type");
             return {};
         }
         return mergedImage;

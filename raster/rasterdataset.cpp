@@ -17,7 +17,7 @@ QTransform vrsa::raster::RasterDataset::getGeoTransform()
 {
     double geoTransform[6];
     if (mDs->GetGeoTransform(geoTransform) != CE_None)
-        VRSA_ERROR("RasterDataset", "Raster Dataset without geotransform");
+        VRSA_ERROR("RASTER", "Raster Dataset without geotransform");
 
     QTransform transform;
     transform.translate(geoTransform[0], geoTransform[3]);

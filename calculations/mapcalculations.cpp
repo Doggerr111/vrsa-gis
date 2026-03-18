@@ -29,7 +29,7 @@ double vrsa::calculations::MapCalculator::calculateScaleFactor(double scale, con
         conversionFactor = 39.3700787;
         if (currentDist < 1.0 || currentDist > 1e9)
         {
-            VRSA_DEBUG("MapHolder", "Расстояние слишком мало:" + std::to_string(currentDist));
+            VRSA_DEBUG("CORE", "Расстояние слишком мало:" + std::to_string(currentDist));
             currentDist = 1.0;
         }
     }

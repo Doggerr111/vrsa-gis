@@ -135,6 +135,7 @@ file(GLOB CORE_HEADERS
 add_library(vrsa_core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
 #добавляем тестовые функции в ядре
 target_compile_definitions(vrsa_core PUBLIC VRSA_ENABLE_TEST_UTILS=$<BOOL:${VRSA_ENABLE_TEST_UTILS}>)
+target_include_directories(vrsa_core SYSTEM PRIVATE ${GEOS_INCLUDEDIR})
 target_include_directories(vrsa_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     gdal

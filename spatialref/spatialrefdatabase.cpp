@@ -53,7 +53,7 @@ std::vector<vrsa::spatialref::SpatialReference> vrsa::spatialref::SpatialReferen
         try {
             result.push_back(createFromCRSInfo(crsInfo));
         } catch (const std::exception& e) {
-            VRSA_WARNING("SpatialReferenceDatabase",
+            VRSA_WARNING("PROJ",
                 "Failed to create CRS " + crsInfo.name + ": " + e.what());
             // Можно добавить пустую SpatialReference или пропустить
         }
@@ -106,10 +106,10 @@ vrsa::spatialref::SpatialReference vrsa::spatialref::SpatialReferenceDatabase::c
              return reference;
     }
     if (info.isUserDefined)
-        VRSA_ERROR("SpatialReferenceDatabase", "Can't create SpatialReference for user defined CRS named:"
+        VRSA_ERROR("PROJ", "Can't create SpatialReference for user defined CRS named:"
                    + info.name + " with proj string:" + info.projString + " WKT:" + info.wktString);
     else
-        VRSA_ERROR("SpatialReferenceDatabase", "Can't create SpatialReference for CRS named:"
+        VRSA_ERROR("PROJ", "Can't create SpatialReference for CRS named:"
                    + info.name + " with proj string:" + info.projString + " WKT:" + info.wktString);
     return{};
 }

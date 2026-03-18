@@ -13,7 +13,7 @@ void vrsa::services::ProjectManager::AddDataset(DatasetPtr dS)
 {
     if (!dS)
     {
-        VRSA_DEBUG("ProjectManager", "Failed to add new dataset");
+        VRSA_DEBUG("CORE", "Failed to add new dataset");
         return;
     }
     graphics::FeatureGraphicsItemFactory &itemFactoryRef = graphics::FeatureGraphicsItemFactory::instance();
@@ -27,14 +27,14 @@ void vrsa::services::ProjectManager::AddDataset(DatasetPtr dS)
             auto vectorLayer = vectorDataset->getLayer(i);
             if (!vectorLayer)
             {
-                VRSA_DEBUG("ProjectManager", "Nullptr layer after VectorDataset::getLayer(size_t indx)");
+                VRSA_DEBUG("CORE", "Nullptr layer after VectorDataset::getLayer(size_t indx)");
                 continue;
             }
             for (auto vectorFeature: vectorLayer->getFeatures())
             {
                 if (!vectorFeature)
                 {
-                    VRSA_DEBUG("ProjectManager", "Nullptr feature in Vector Layer");
+                    VRSA_DEBUG("CORE", "Nullptr feature in Vector Layer");
                     continue;
                 }
                 itemFactoryRef.createForFeature(vectorFeature);
@@ -108,12 +108,12 @@ vrsa::vector::VectorLayer* vrsa::services::ProjectManager::getLayer(const std::s
     auto dS = getDatasetBySource(src);
     if (dS == nullptr)
     {
-        VRSA_ERROR("ProjectManager", "Can't find dataset:" + src);
+        VRSA_ERROR("CORE", "Can't find dataset:" + src);
         return nullptr;
     }
     if (dS->GetDatasetType() != common::DatasetType::Vector)
     {
-        VRSA_ERROR("ProjectManager", "Can't find vector dataset:" + src);
+        VRSA_ERROR("CORE", "Can't find vector dataset:" + src);
         return nullptr;
     }
     auto vDs = static_cast<vector::VectorDataset*>(getDatasetBySource(src));
@@ -133,7 +133,7 @@ void vrsa::services::ProjectManager::setActiveVectorLayer(const std::string &src
         mActiveVectorLayer=layer;
         return;
     }
-    VRSA_ERROR("ProjectManager", "Cant set active layer with given path:" + src +" and index:" + std::to_string(idx));
+    VRSA_ERROR("CORE", "Cant set active layer with given path:" + src +" and index:" + std::to_string(idx));
 }
 
 vrsa::vector::VectorLayer *vrsa::services::ProjectManager::getLayerAssociatedWithFeature(const vector::VectorFeature *feature) const
@@ -169,11 +169,11 @@ vrsa::gdalwrapper::Dataset *vrsa::services::ProjectManager::readDataset(const st
     }
     catch (const vrsa::common::DataSetOpenException& e)
     {
-        VRSA_DEBUG("ProjectManager", e.what());
+        VRSA_DEBUG("CORE", e.what());
     }
     if (!datasetUPtr)
     {
-        VRSA_ERROR("ProjectManager", "Can't read dataset: " + source);
+        VRSA_ERROR("CORE", "Can't read dataset: " + source);
         return nullptr;
     }
     auto rawDs = datasetUPtr.get();

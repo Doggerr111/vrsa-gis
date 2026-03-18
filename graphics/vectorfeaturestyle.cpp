@@ -311,6 +311,9 @@ std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatur
         return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
         break;
     }
+    default:
+        return{};
+        break;
     }
 }
 
@@ -349,6 +352,9 @@ std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatur
         return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
         break;
     }
+    default:
+        return{};
+        break;
     }
 }
 
