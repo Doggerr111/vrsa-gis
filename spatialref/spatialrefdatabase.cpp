@@ -179,7 +179,7 @@ std::vector<vrsa::spatialref::SpatialReferenceDatabase::CRSInfo> vrsa::spatialre
     list.emplace_back(
                 "GSK-2011 (degrees)",
                 "EPSG",
-                7681,
+                7683,
                 "+proj=longlat +ellps=GSK2011 +no_defs +type=crs",
                 R"(GEOGCS["GSK-2011",
                 DATUM["Geodezicheskaya_Sistema_Koordinat_2011",
@@ -193,7 +193,28 @@ std::vector<vrsa::spatialref::SpatialReferenceDatabase::CRSInfo> vrsa::spatialre
                 AUTHORITY["EPSG","7683"]])",
                 false);
 
-    //GKS-2011 в метрах
+    //GKS 2011 в метрах
+    list.emplace_back(
+                "GSK-2011 (meters)",
+                "EPSG",
+                7681,
+                "+proj=geocent +ellps=GSK2011 +units=m +no_defs +type=crs",
+                R"(GEOCCS["GSK-2011",
+                DATUM["Geodezicheskaya_Sistema_Koordinat_2011",
+                    SPHEROID["GSK-2011",6378136.5,298.2564151,
+                        AUTHORITY["EPSG","1025"]],
+                    AUTHORITY["EPSG","1159"]],
+                PRIMEM["Greenwich",0,
+                    AUTHORITY["EPSG","8901"]],
+                UNIT["metre",1,
+                    AUTHORITY["EPSG","9001"]],
+                AXIS["Geocentric X",OTHER],
+                AXIS["Geocentric Y",OTHER],
+                AXIS["Geocentric Z",NORTH],
+                AUTHORITY["EPSG","7681"]])",
+                false);
+
+    //GKS-2011 zone 20 в метрах
     list.emplace_back(
                 "GSK-2011 / Gauss-Kruger zone 20",
                 "EPSG",
