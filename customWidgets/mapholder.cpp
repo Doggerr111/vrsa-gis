@@ -70,17 +70,17 @@ void MapHolder::wheelEvent(QWheelEvent *event)
     qreal factor = (event->angleDelta().y() > 0) ? mZoomInFactor : mZoomOutFactor;
     //предварительно рассчитываем будущий масштаб
     double futureScale = mCurrentScale / factor;
-    mCurrentScale = futureScale;
+    //mCurrentScale = futureScale;
     static const double MIN_SCALE = 100.0;      // 1:100 - максимальный зум
-    static const double MAX_SCALE = 1000000000.0; // 1:100 000 0000 - минимальный зум
-    // Корректируем futureScale, если он выходит за границы
-    if (futureScale < MIN_SCALE) {
-        futureScale = MIN_SCALE;  // не прыгаем на 5000, а ставим на границу
-        qDebug() << "На границе min zoom:" << futureScale;
+    static const double MAX_SCALE = 1000000000.0; //минимальный зум
+    //корректируем futureScale, если он выходит за границы
+    if (futureScale < MIN_SCALE)
+    {
+        return;
     }
-    else if (futureScale > MAX_SCALE) {
-        futureScale = MAX_SCALE;  // ставим на границу
-        qDebug() << "На границе max zoom:" << futureScale;
+    else if (futureScale > MAX_SCALE)
+    {
+        return;
     }
 
     // Применяем зум только если масштаб реально изменился
