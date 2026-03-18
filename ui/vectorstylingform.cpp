@@ -11,21 +11,26 @@
 #include "customWidgets/stylingWidgets/stylingcomboboxes.h"
 #include "customWidgets/stylingWidgets/colorpushbutton.h"
 #include <QLabel>
-
+#include "vector/vectorlayer.h"
+#include "graphics/vectorfeaturestyle.h"
 #ifdef VRSA_ENABLE_TEST_UTILS
 #include "test_utils/testsymbolfactory.h"
 #endif
 
-VectorStylingForm::VectorStylingForm(vrsa::graphics::Symbol* symbol, LayerGeometryType type, QWidget *parent)
+VectorStylingForm::VectorStylingForm(VectorLayer *layer, QWidget *parent)
     : QDialog(parent),
       ui(new Ui::VectorStylingForm),
-      mGeomType{type},
-      mSymbol{symbol},
+      mLayer{layer},
       mScene{new QGraphicsScene},
       mLastSelectedItem{nullptr},
       mSymbolRenderer(mScene)
 {
     ui->setupUi(this);
+    if (mLayer)
+    {
+        mGeomType = layer->getGeomType();
+        mSymbol = layer->getStyle()->getSymbol();
+    }
     if (mSymbol)
         mClonedSymbol = mSymbol->clone();
 
@@ -1153,33 +1158,38 @@ void VectorStylingForm::on_toolButtonSaveSymbol_clicked()
 {
 
     //*mSymbol = *(mClonedSymbol->clone().get());
+    //mLayer->getStyle()->setSymbol(std::move(mClonedSymbol));
     switch(mSymbol->type())
     {
     case vrsa::common::SymbolType::LayerPointSymbol:
     {
-        auto LPS_orig = static_cast<vrsa::graphics::LayerPointSymbol*>(mSymbol);
+        //auto LPS_orig = static_cast<vrsa::graphics::LayerPointSymbol*>(mSymbol);
         auto LPS_cloned = static_cast<vrsa::graphics::LayerPointSymbol*>(mClonedSymbol.get());
-        *LPS_orig = *LPS_cloned;
+        if (LPS_cloned && mLayer)
+        mLayer->getStyle()->setSymbol(mClonedSymbol->clone());
         break;
     }
     case vrsa::common::SymbolType::LayerLineSymbol:
     {
-        auto LLS_orig = static_cast<vrsa::graphics::LayerLineSymbol*>(mSymbol);
+        //auto LLS_orig = static_cast<vrsa::graphics::LayerLineSymbol*>(mSymbol);
         auto LLS_cloned = static_cast<vrsa::graphics::LayerLineSymbol*>(mClonedSymbol.get());
-        *LLS_orig = *LLS_cloned;
+        if (LLS_cloned && mLayer)
+        mLayer->getStyle()->setSymbol(mClonedSymbol->clone());
         break;
     }
     case vrsa::common::SymbolType::LayerPolygonSymbol:
     {
-        auto LPS_orig = static_cast<vrsa::graphics::LayerPolygonSymbol*>(mSymbol);
+        //auto LPS_orig = static_cast<vrsa::graphics::LayerPolygonSymbol*>(mSymbol);
         auto LPS_cloned = static_cast<vrsa::graphics::LayerPolygonSymbol*>(mClonedSymbol.get());
-        *LPS_orig = *LPS_cloned;
+        if (LPS_cloned && mLayer)
+        mLayer->getStyle()->setSymbol(mClonedSymbol->clone());
         break;
     }
     default:
         break;
     }
-
-
+    if (mLayer)
+        mLayer->onSymbolUpdated();
+    mSymbol = mClonedSymbol.get();
 }
 

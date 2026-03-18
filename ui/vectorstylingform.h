@@ -3,11 +3,16 @@
 
 #include <QDialog>
 #include <QGraphicsItem>
-#include "common/GisDefines.h"
 #include "graphics/symbols/symbolrenderer.h"
 
 class QTreeWidgetItem;
 namespace vrsa{
+namespace common{
+enum class GeometryType: int;
+}
+namespace vector{
+class VectorLayer;
+}
 namespace graphics{
 class Symbol;
 class SymbolRenderer;
@@ -24,9 +29,10 @@ class VectorStylingForm : public QDialog
     using Symbol = vrsa::graphics::Symbol;
     using SymbolType = vrsa::common::SymbolType;
     using LayerGeometryType = vrsa::common::GeometryType;
+    using VectorLayer = vrsa::vector::VectorLayer;
 
 public:
-    explicit VectorStylingForm(Symbol* symbol, LayerGeometryType type, QWidget *parent = nullptr);
+    explicit VectorStylingForm(VectorLayer* layer, QWidget *parent = nullptr);
 #ifdef VRSA_ENABLE_TEST_UTILS
     explicit VectorStylingForm(int testCase, QWidget *parent = nullptr);
 #endif
@@ -59,6 +65,10 @@ private slots:
     void on_toolButtonAddSymbol_clicked();
     void on_toolButtonDeleteSymbol_clicked();
     void on_toolButtonCopySymbol_clicked();
+    void on_toolButtonMoveUp_clicked();
+    void on_toolButtonMoveDown_triggered(QAction *arg1);
+    void on_toolButtonMoveDown_clicked();
+    void on_toolButtonSaveSymbol_clicked();
 
     void om_TreeWidgetCurretItemChanged(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 
@@ -71,13 +81,6 @@ private slots:
     void on_PenCapCBoxIndexChanged(int indx);
     void on_PointTypeCBoxIndexChanged(int indx);
 
-    void on_toolButtonMoveUp_clicked();
-
-    void on_toolButtonMoveDown_triggered(QAction *arg1);
-
-    void on_toolButtonMoveDown_clicked();
-
-    void on_toolButtonSaveSymbol_clicked();
 
 signals:
     void symbolRenderRequired(Symbol*, QIcon&);
@@ -86,6 +89,7 @@ signals:
 private:
     Ui::VectorStylingForm *ui;
     Symbol* mSymbol;
+    vrsa::vector::VectorLayer* mLayer;
     std::unique_ptr<Symbol> mClonedSymbol;
     LayerGeometryType mGeomType;
     QGraphicsScene* mScene;
