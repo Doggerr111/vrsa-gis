@@ -7,10 +7,13 @@
 #include <QDebug>
 namespace vrsa
 {
-namespace common  {  enum class GeometryType : int;
-                    enum class FieldType : int; }
-namespace graphics{ class VectorFeatureStyle;   }
-namespace geometry{ class Geometry;             }
+namespace common{
+enum class GeometryType : int;
+enum class FieldType : int; }
+namespace graphics{
+class VectorFeatureStyle;}
+namespace geometry{
+class Geometry;}
 namespace vector
 {
 
@@ -106,6 +109,11 @@ public:
      */
     OGRGeometry* getOGRGeometry() const;
     /**
+     * @english @brief Returns OGR geometry for rendering with LOD simplify
+     * @russian @brief Возвращает OGR геометрию для рендеринга
+     */
+    OGRGeometry* getOGRGeometryForRendering() const;
+    /**
      * @english @brief Creates a copy of OGR geometry
      * @return OgrGeometryPtr unique pointer with OGRGeometryFactory::DestroyGeometry() deleter
      * @russian @brief Создает копию OGR геометрии
@@ -169,6 +177,18 @@ public:
     graphics::VectorFeatureStyle*  getStyle() noexcept { return mStyle; };
     void setZValue(int zVal);
     int getZValue() const noexcept {return mZValue; };
+
+    inline void setScale(double mapScaleDenominator, double mapHolderScaleFactor) noexcept
+    {
+        mCurrentMapScaleDenominator = mapScaleDenominator;
+        mCurrentMapHolderScaleFactor = mapHolderScaleFactor;
+    }
+    inline void updateSymbol() { emit symbolUpdated(); };
+
+//=======================ИНФОРМАЦИЯ О СК==============================
+    bool isProjected() const;
+    bool isGeoCentric() const;
+    bool isGeographical() const;
 
 
 //=======================АТТРИБУТЫ==============================
@@ -319,6 +339,10 @@ signals:
     void featureChanged();
     void styleChanged(graphics::VectorFeatureStyle* style);
     void ZValueChanged(int zValue);
+    void symbolUpdated();
+
+//public slots:
+
     //void featureSelected();
     //void attributesChanged(const std::string& name, const AttributeValue& value)
 
@@ -357,19 +381,26 @@ public:
     std::vector<std::unique_ptr<VectorFeature>> explodeToSimpleFeatures() const;
     std::unique_ptr<VectorFeature> clone() const;
 
-
-
 private:
     vrsa::gdalwrapper::OgrFeaturePtr mFeature;
     OGRLayer* mParentLayer;
+    mutable OGRGeometry* geomSimplified = nullptr;
     //поле для хранения информации о типах полей
     std::unordered_map<std::string, vrsa::common::FieldType> mFieldTypes;
     //сами атрибуты
     AttributeMap mAttributes;
     bool mIsVisible;
     bool mIsSelected;
+    double mCurrentMapScaleDenominator; //текущий масштаб карты (для lod-оптимизации)
+    double mCurrentMapHolderScaleFactor; //текущий масштаб виджета (для рендеринга графики)
     graphics::VectorFeatureStyle* mStyle;
     int mZValue;
+    bool mIsLodOn = true;
+
+
+
+
+
 
 };
 

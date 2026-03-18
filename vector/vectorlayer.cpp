@@ -10,10 +10,14 @@ vrsa::vector::VectorLayer::VectorLayer(OGRLayer* ogrLayer)
       mIsSelected{false},
       geomType{common::GeometryType::Unknown},
       mStyle{graphics::VectorFeatureStyle::createDefaultVectorStyle(getGeomType())},
-      mStyles{}
+      mStyles{},
+      mCrs{nullptr}
 {
     if (mStyle)
         applyStyleToFeatures();
+    if (mOGRLayer)
+        if (auto ogrRef = mOGRLayer->GetSpatialRef())
+            mCrs = std::make_unique<spatialref::SpatialReference>(ogrRef->Clone());
 }
 
 void vrsa::vector::VectorLayer::setFeatures(featuresVec features)
@@ -271,6 +275,20 @@ void vrsa::vector::VectorLayer::applyZValueToFeatures()
         else
             VRSA_DEBUG("VectorLayer", "Nullptr feature detected");
 
+    }
+}
+
+void vrsa::vector::VectorLayer::onProjCrsChanged(spatialref::SpatialReference *ref)
+{
+
+}
+
+void vrsa::vector::VectorLayer::onSymbolUpdated()
+{
+    for (const auto& feature: mFeatures)
+    {
+        if (feature)
+            feature->updateSymbol();
     }
 };
 

@@ -5,7 +5,7 @@
 #include <QRectF>
 #include "gdal/gdalresourcehandles.h"
 #include "vector/vectorfeature.h"
-
+#include "spatialref/spatialreference.h"
 
 namespace vrsa
 {
@@ -15,7 +15,7 @@ class VectorFeatureStyle;
 }
 namespace geometry
 {
-    class Geometry;
+class Geometry;
 }
 namespace common
 {
@@ -207,19 +207,24 @@ public:
                                      const std::string& outputPath = "",
                                      bool explodeMultiGeometries = true) const;
 
-
+    //===========================ПЕРЕПРОЕЦИРОВАНИЕ=====================================
 
 private:
     //void buildFieldTypesCache() const;
     void applyStyleToFeatures();
     void applyZValueToFeatures();
 
+public slots:
+    void onSymbolUpdated();
+private slots:
+    void onProjCrsChanged(spatialref::SpatialReference *ref);
+
+
 signals:
     void featureAdded(VectorFeature*);
     void featureRemoved(int64_t);
     void visibilityChanged(bool);
     void ZValueChanged(int);
-
     void styleChanged(graphics::VectorFeatureStyle* newStyle);
 
 private:
@@ -235,6 +240,7 @@ private:
     std::unordered_map<common::GeometryType, std::unique_ptr<graphics::VectorFeatureStyle>> mStyles;
     //mutable std::unordered_map<std::string, vrsa::common::FieldType> mFieldTypesCache;
     mutable bool mFieldTypesCacheValid = false;
+    std::unique_ptr<spatialref::SpatialReference> mCrs;
 
 };
 

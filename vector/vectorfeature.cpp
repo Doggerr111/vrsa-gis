@@ -3,8 +3,10 @@
 #include "gdal/ogrconverter.h"
 #include "gdal/geometrytypeconverter.h"
 #include "geometry/geometry.h"
+#include "geometry/geometryconverter.h"
 #include "graphics/vectorfeaturestyle.h"
 #include "gdal/typeconversions.h"
+#include <geos/simplify/DouglasPeuckerSimplifier.h>
 vrsa::vector::VectorFeature::VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr rawFeature, OGRLayer* layer)
     : mFeature{std::move(rawFeature)},
       mParentLayer{layer},
@@ -15,8 +17,9 @@ vrsa::vector::VectorFeature::VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr rawF
     {
         //это очень замедляет загрузку больших слоев с большим количеством атрибутов, возможно не стоит так делать ...
         constructFromOGRfeature(mFeature.get());  //cинхронизируем атрибуты
-        setVisible(true);
+
     }
+    setVisible(true);
 }
 
 bool vrsa::vector::VectorFeature::setGeometry(gdalwrapper::OgrGeometryPtr ptr)
@@ -148,6 +151,36 @@ void vrsa::vector::VectorFeature::setZValue(int zVal)
     emit ZValueChanged(mZValue);
 }
 
+bool vrsa::vector::VectorFeature::isProjected() const
+{
+    if (mParentLayer)
+    {
+        auto spatialRef = mParentLayer->GetSpatialRef();
+        return spatialRef ? spatialRef->IsProjected() : false;
+    }
+    return false;
+}
+
+bool vrsa::vector::VectorFeature::isGeoCentric() const
+{
+    if (mParentLayer)
+    {
+        auto spatialRef = mParentLayer->GetSpatialRef();
+        return spatialRef ? spatialRef->IsGeocentric() : false;
+    }
+    return false;
+}
+
+bool vrsa::vector::VectorFeature::isGeographical() const
+{
+    if (mParentLayer)
+    {
+        auto spatialRef = mParentLayer->GetSpatialRef();
+        return spatialRef ? spatialRef->IsGeographic() : false;
+    }
+    return false;
+}
+
 vrsa::common::GeometryType vrsa::vector::VectorFeature::getType() const
 {
     if (!mFeature)
@@ -177,8 +210,37 @@ OGRwkbGeometryType vrsa::vector::VectorFeature::getOGRGeometryType() const
 
 OGRGeometry *vrsa::vector::VectorFeature::getOGRGeometry() const
 {
+//    if (!geomSimplified)
+//    {
+//        //OGRGeometryFactory::createFromGEOS()
+//    auto geosGeom = geometry::GeometryConverter::fromOGR(mFeature->GetGeometryRef());
+//    std::unique_ptr<geos::geom::Geometry> simplified =
+//        geos::simplify::DouglasPeuckerSimplifier::simplify(
+//            geosGeom.get(),
+//            1000.0  // tolerance - максимальное отклонение в метрах
+//        );
+//    return geomSimplified = geometry::GeometryConverter::toOGR(simplified.get());
+//    }
+//    return geomSimplified;
+
     //возвращается оригинальная геометрия
     return mFeature ? mFeature->GetGeometryRef(): nullptr;
+}
+
+OGRGeometry *vrsa::vector::VectorFeature::getOGRGeometryForRendering() const
+{
+//    if (!mIsLodOn)
+//        return getOGRGeometry();
+//    if (auto ref = mParentLayer->GetSpatialRef())
+//    {
+//        if (ref->IsProjected())
+//        {
+//            if (!mIsLodCacheValid) precomputeLOD();
+//            return mLodCache->getForScale(mCurrentMapScaleDenominator);
+//        }
+
+//    }
+    return getOGRGeometry();
 }
 
 vrsa::gdalwrapper::OgrGeometryPtr vrsa::vector::VectorFeature::cloneOGRGeometry() const
@@ -399,14 +461,14 @@ std::unique_ptr<vrsa::vector::VectorFeature> vrsa::vector::VectorFeature::clone(
     }
 
     for (const auto& [name, value] : mAttributes)
-        newFeature->setAttribute(name, value);
+        if (newFeature->setAttribute(name, value))
+            VRSA_DEBUG("CORE", "Error while cloning feature. Can't set attribute:" + name);
 
     //newFeature->setName(mName);
     newFeature->setVisible(mIsVisible);
 
     return newFeature;
 }
-
 
 bool vrsa::vector::VectorFeature::setAttribute(const std::string& name, const QVariant& value)
 {       
