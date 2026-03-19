@@ -8,6 +8,8 @@ vrsa::raster::RasterDataset::RasterDataset(gdalwrapper::GdalDatasetPtr dataset, 
 
 }
 
+vrsa::raster::RasterDataset::~RasterDataset() = default;
+
 std::unique_ptr<vrsa::raster::RasterChannel> &vrsa::raster::RasterDataset::getChannel(size_t index)
 {
     return mRasterChannels.at(index);
