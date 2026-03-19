@@ -166,6 +166,7 @@ void vrsa::graphics::MapScene::onNewFeatureGraphicsItemCreated(std::unique_ptr<F
     mFeatures.push_back(std::move(item));
     //item->update();
     update(item->boundingRect());
+    qDebug()<<mFeatures.size();
 }
 
 //from proj manager::featureGraphicsItemCreated

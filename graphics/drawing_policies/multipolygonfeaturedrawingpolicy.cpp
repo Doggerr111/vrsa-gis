@@ -13,7 +13,8 @@ QPainterPath vrsa::graphics::MultiPolygonFeatureDrawingPolicy::createPathFromOGR
     if (!geom) return path;
     OGRMultiPolygon* multiPoly = dynamic_cast<OGRMultiPolygon*>(geom);
     if (!multiPoly) return path;
-    //cобираем все точки
+    VRSA_DEBUG("MULTI", "MultiPolygon has " + std::to_string(multiPoly->getNumGeometries()) + " parts");
+    //cобираем все
     for (int polyIdx = 0; polyIdx < multiPoly->getNumGeometries(); ++polyIdx)
     {
         OGRPolygon* polygon = dynamic_cast<OGRPolygon*>(multiPoly->getGeometryRef(polyIdx));
