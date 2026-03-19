@@ -37,6 +37,18 @@ enum class DatasetType {
     Empty
 };
 
+enum class DatasetSource {
+    File,       ///< Датасет из файла
+    PostGIS,    ///< Датасет из БД PostgreSQL с расширением PostGIS
+    TMS,        ///< Tile Map Service
+    XYZ,        ///< XYZ tiles
+    WMS,        ///< Web Map Service
+    WMTS,       ///< Web Map Tile Service
+    WFS,        ///< Web Feature Service
+    Memory,     ///< "Виртуальный" датасет в памяти
+    Unknown     ///< Неизвестный источник
+};
+
 enum class CRSDesctiptionFormat {
     WKT,
     Proj,
@@ -79,18 +91,52 @@ enum class GeometryType {
     Triangle = 17         // Треугольник
 };
 
+/**
+ * @brief Типы алгоритмов, используемые для LOD-оптимизации
+ */
+enum class LodAlgorithmType
+{
+    DouglasPeucker, ///< Алгоритм Дугласа-Пекера (не сохраняет топологию, но работает гораздо быстрее)
+    TopologyPreservingSimplifier ///< Алгоритм, сохраняющий топологию
+};
+
+/**
+ * @brief Типы веб-сервисов, поддерживаемые GDAL
+ */
+enum class WebServiceType {
+    Unknown = 0,
+    //растровые данные
+    TMS,        ///< Tile Map Service
+    XYZ,        ///< XYZ tiles
+    WMS,        ///< Web Map Service
+    WMTS,       ///< Web Map Tile Service
+    //векторные данные
+    WFS,        ///< Web Feature Service (векторные данные)
+};
+
+//вспомогательная функция для отображения в UI
+inline QString webServiceTypeToString(WebServiceType type) {
+    switch (type) {
+        case WebServiceType::TMS:    return "TMS (Tile Map Service)";
+        case WebServiceType::XYZ:    return "XYZ";
+        case WebServiceType::WMS:    return "WMS (Web Map Service)";
+        case WebServiceType::WMTS:   return "WMTS (Web Map Tile Service)";
+        case WebServiceType::WFS:    return "WFS (Web Feature Service)";
+        default: return "Unknown";
+    }
+}
 
 enum class FieldType {
-    Integer,      // целые числа (32-bit)
-    Integer64,    // целые числа (64-bit)
-    Real,         // числа с плавающей точкой
-    String,       // строки
-    Date,         // дата
-    Time,         // время
-    DateTime,     // дата и время
-    Binary,       // бинарные данные
-    Boolean,      // булевы значения (true/false)
-    Unknown       // неизвестный тип
+    Integer,      ///< целые числа (32-bit)
+    Integer64,    ///< целые числа (64-bit)
+    Real,         ///< числа с плавающей точкой
+    String,       ///< строки
+    Date,         ///< дата
+    Time,         ///< время
+    DateTime,     ///< дата и время
+    Binary,       ///< бинарные данные
+    Boolean,      ///< булевы значения (true/false)
+    Unknown       ///< неизвестный тип
 };
 
 inline const char* fieldTypeToString(FieldType type)
@@ -327,5 +373,7 @@ Q_DECLARE_METATYPE(vrsa::common::GeometryType);
 Q_DECLARE_METATYPE(vrsa::common::DatasetType);
 Q_DECLARE_METATYPE(vrsa::common::TreeItemType);
 Q_DECLARE_METATYPE(vrsa::common::StyleParametr);
+Q_DECLARE_METATYPE(vrsa::common::LodAlgorithmType);
+
 
 #endif // LIPTYPES_H
