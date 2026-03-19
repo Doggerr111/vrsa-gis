@@ -63,6 +63,8 @@ public:
 */
     std::unique_ptr<vrsa::gdalwrapper::Dataset> readDataset(const std::string& source,
                                                             unsigned int flags = GDAL_OF_ALL | GDAL_OF_UPDATE) const;
+    std::unique_ptr<vrsa::gdalwrapper::Dataset> readTMSDataset(const std::string& source,
+                                                            unsigned int flags = GDAL_OF_RASTER | GDAL_OF_READONLY) const;
 
 
     std::vector<std::unique_ptr<vrsa::raster::RasterChannel>> readChannels(GDALDataset* ds) const;

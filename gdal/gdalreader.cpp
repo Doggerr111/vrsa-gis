@@ -3,11 +3,13 @@
 #include "vector/vectorfeature.h"
 #include "vector/vectordataset.h"
 #include "raster/rasterdataset.h"
+#include "raster/webrasterdataset.h"
 #include "common/GisDefines.h"
 #include <gdal_priv.h>
 #include "gdal/gdalresourcehandles.h"
 #include "common/logger.h"
 #include "common/gisexceptions.h"
+
 
 vrsa::gdalwrapper::GDALReader::GDALReader() = default;
 
@@ -49,7 +51,23 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readD
 
 }
 
-std::vector<std::unique_ptr<vrsa::raster::RasterChannel> > vrsa::gdalwrapper::GDALReader::readChannels
+std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readTMSDataset(const std::string &source, unsigned int flags) const
+{
+    //создаем уникальный указатель с кастомным удалителем
+    auto dS = gdalwrapper::createDataset(source, flags);
+    if (!dS)
+    {
+        throw common::DataSetOpenException(source);
+    }
+    assert (detectDatasetType(dS.get()) == common::DatasetType::Raster);
+    VRSA_INFO("GDAL", "Reading Raster TMS Dataset...");
+    auto vrsaDs = std::make_unique<raster::WebRasterDataset>(std::move(dS));
+    vrsaDs->SetDatasetType(common::DatasetType::Raster);
+    return vrsaDs;
+
+}
+
+std::vector<std::unique_ptr<vrsa::raster::RasterChannel>> vrsa::gdalwrapper::GDALReader::readChannels
                                                                         (GDALDataset* ds) const
 {
     if (!ds)
@@ -74,7 +92,7 @@ std::vector<std::unique_ptr<vrsa::raster::RasterChannel> > vrsa::gdalwrapper::GD
             VRSA_ERROR("GDAL", std::string("Warning: Failed to get raster channel") + std::to_string(i) + " from: " + source);
             continue;
         }
-        channels.push_back(std::make_unique<raster::RasterChannel>(band));
+        channels.emplace_back(std::make_unique<raster::RasterChannel>(band));
 
     }
 
