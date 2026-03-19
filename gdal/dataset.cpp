@@ -9,6 +9,7 @@ vrsa::gdalwrapper::Dataset::Dataset(gdalwrapper::GdalDatasetPtr ds)
         mSource = mDs->GetDescription();
 }
 
+vrsa::gdalwrapper::Dataset::~Dataset() = default;
 void vrsa::gdalwrapper::Dataset::SetDatasetType(common::DatasetType dsType) noexcept
 {
     mType = dsType;

@@ -14,7 +14,7 @@ class Dataset
 {
 public:
     Dataset(vrsa::gdalwrapper::GdalDatasetPtr mDs);
-
+    virtual ~Dataset();
     void SetDatasetType(vrsa::common::DatasetType dsType) noexcept;
     vrsa::common::DatasetType GetDatasetType() const noexcept;
     inline std::string getSource() const noexcept { return mSource; }

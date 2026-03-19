@@ -27,6 +27,7 @@ class VectorDataset: public vrsa::gdalwrapper::Dataset
     using vecLayers=std::vector<std::unique_ptr<vrsa::vector::VectorLayer>>;
 public:
     VectorDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset, vecLayers = vecLayers());
+    ~VectorDataset();
     inline std::size_t layersCount()     const noexcept {return mLayers.size();};
     inline VectorLayer* getLayer(size_t index) noexcept
                     {return (index < mLayers.size()) ? mLayers[index].get() : nullptr;};
