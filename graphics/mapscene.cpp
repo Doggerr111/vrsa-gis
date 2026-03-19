@@ -9,7 +9,7 @@ vrsa::graphics::MapScene::MapScene(QObject *parent)
     : QGraphicsScene{parent},
       mMapScale{0.0},
       mMapHolderScale{0.0},
-      mFeatures{},
+      mMapItems{},
       mCurrentMapTool{nullptr}
 {
     //устанавливаем sceneRect в координатах EPSG:3857
@@ -27,7 +27,7 @@ void vrsa::graphics::MapScene::addLayer(std::unique_ptr<raster::RasterChannel> &
 
 void vrsa::graphics::MapScene::addRasterDataset(raster::RasterDataset *dS)
 {
-    addItem(RasterGraphicsItemFactory::createForDataset(dS));
+    //addItem(RasterGraphicsItemFactory::createForDataset(dS));
 }
 
 void vrsa::graphics::MapScene::addTemporaryItem(std::unique_ptr<TemporaryGraphicsItem> item)
@@ -137,8 +137,9 @@ void vrsa::graphics::MapScene::onMapHolderScaleChanged(int mapScale, double widg
     //qDebug()<<"new scale:" << mapScale;
     mMapScale = mapScale;
     mMapHolderScale = widgetScale;
-    for (const auto& feat: mFeatures) //для векторных объектов
+    for (const auto& feat: mMapItems) //для векторных объектов
     {
+
         feat->setScale(mMapScale, mMapHolderScale);
     }
     for (const auto& tempItem: mTempItems) //для временных объектов
@@ -163,13 +164,13 @@ void vrsa::graphics::MapScene::onNewFeatureGraphicsItemCreated(std::unique_ptr<F
 {
     item->setScale(mMapScale, mMapHolderScale);
     addItem(item.get());
-    mFeatures.push_back(std::move(item));
+    mMapItems.push_back(std::move(item));
     //item->update();
     update(item->boundingRect());
-    qDebug()<<mFeatures.size();
+    qDebug()<<mMapItems.size();
 }
 
-//from proj manager::featureGraphicsItemCreated
+//from factory::featureGraphicsItemCreated
 void vrsa::graphics::MapScene::onFeatureGraphicsItemCreated(FeatureGraphicsItem *item)
 {
     if (!item)
@@ -179,17 +180,22 @@ void vrsa::graphics::MapScene::onFeatureGraphicsItemCreated(FeatureGraphicsItem 
     }
     addItem(item);
     item->setScale(mMapScale, mMapHolderScale);
-    mFeatures.push_back(std::unique_ptr<FeatureGraphicsItem>(item));
+    mMapItems.push_back(std::unique_ptr<FeatureGraphicsItem>(item));
     update(item->boundingRect());
     qDebug()<<items().count();
 }
-
-//void vrsa::graphics::MapScene::onFeatureGraphicsItemCreated(std::unique_ptr<FeatureGraphicsItem> item)
-//{
-//    addItem(item.get());
-//    mFeatures.push_back(std::move(item));
-//    update(item->boundingRect());
-//}
+//from raster factory
+void vrsa::graphics::MapScene::onRasterGraphicsItemCreated(RasterGraphicsItem *item)
+{
+    if (!item)
+    {
+        VRSA_WARNING("RENDERING", "Failed to add Raster Graphics Item (nullptr) to scene");
+        return;
+    }
+    addItem(item->getPixmapGraphicsItem());
+    mRasterItems.push_back(std::unique_ptr<RasterGraphicsItem>(item));
+    //todo cast raster item and connect right signals
+}
 
 void vrsa::graphics::MapScene::onMapHolderMousePressed(QMouseEvent *event)
 {

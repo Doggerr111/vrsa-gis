@@ -71,15 +71,19 @@ public slots:
     void onVectorLayerFeatureRemoved(int64_t fid);
 
     void onNewFeatureGraphicsItemCreated(std::unique_ptr<graphics::FeatureGraphicsItem>& item);
+
     void onFeatureGraphicsItemCreated(FeatureGraphicsItem* item); //from proj manager;
+    void onRasterGraphicsItemCreated(RasterGraphicsItem *item); //from proj manager;
 
     void onMapHolderMousePressed(QMouseEvent* event);
 
 private:
     double mMapScale;
     double mMapHolderScale;
-    double mPanningForViewEnabled;
-    std::vector<std::unique_ptr<graphics::FeatureGraphicsItem>> mFeatures;
+    bool mPanningForViewEnabled = true ;
+    //TODO: Сделать базовый класс для всех объектов карты.... и хранить в едином векторе...
+    std::vector<std::unique_ptr<graphics::FeatureGraphicsItem>> mMapItems;
+    std::vector<std::unique_ptr<RasterGraphicsItem>> mRasterItems;
     std::vector<std::unique_ptr<graphics::TemporaryGraphicsItem>> mTempItems;
 
     std::unique_ptr<tools::MapTool> mCurrentMapTool;
