@@ -33,6 +33,10 @@ public:
 
     std::vector<DatasetPtr>& getDatasets() noexcept;
     explicit ProjectManager(QObject *parent = nullptr);
+    ~ProjectManager()
+    {
+        qDebug()<< "bla bla ";
+    }
     /**
      * @english
      * @brief Finds and returns a dataset by its source path
@@ -113,6 +117,8 @@ private:
 
     std::unique_ptr<gdalwrapper::Dataset> readPostGISDataset(const std::string& connectionString);
     gdalwrapper::Dataset* readDataset(const std::string& src, unsigned int flags = GDAL_OF_ALL | GDAL_OF_UPDATE);
+    gdalwrapper::Dataset* readTMSDataset(const std::string& xml, bool xyz = false,
+                                         unsigned int flags = GDAL_OF_RASTER | GDAL_OF_READONLY);
 private:
     std::vector<DatasetPtr> mDatasets;
     vector::VectorLayer* mActiveVectorLayer;
