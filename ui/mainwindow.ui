@@ -107,10 +107,10 @@ border-bottom: 3px solid black
        <property name="bottomMargin">
         <number>0</number>
        </property>
-       <item alignment="Qt::AlignLeft">
+       <item>
         <widget class="QFrame" name="frameMapTools">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -203,7 +203,7 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../icons.qrc">
+             <iconset>
               <normaloff>:/images/icons/Tools/digitize.png</normaloff>:/images/icons/Tools/digitize.png</iconset>
             </property>
             <property name="iconSize">
@@ -258,7 +258,7 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../icons.qrc">
+             <iconset>
               <normaloff>:/images/icons/selectFeature2.png</normaloff>:/images/icons/selectFeature2.png</iconset>
             </property>
             <property name="iconSize">
@@ -301,7 +301,7 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../icons.qrc">
+             <iconset>
               <normaloff>:/images/icons/rectangleSelection.png</normaloff>:/images/icons/rectangleSelection.png</iconset>
             </property>
             <property name="iconSize">
@@ -341,7 +341,7 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../icons.qrc">
+             <iconset>
               <normaloff>:/images/icons/Tools/node.png</normaloff>:/images/icons/Tools/node.png</iconset>
             </property>
             <property name="iconSize">
@@ -355,6 +355,44 @@ QPushButton:hover {
             </property>
            </widget>
           </item>
+         </layout>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignLeft">
+        <widget class="QFrame" name="frameMainToolBar">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+border:none;
+}
+QPushButton:checked { 
+background-color: gray;
+border: 1px solid
+}
+
+QPushButton:hover {
+	border: 1px solid;
+    border-color: #333; /* Цвет рамки при наведении */
+}</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_8">
           <item>
            <widget class="QPushButton" name="pushButtonShowAttributeTable">
             <property name="sizePolicy">
@@ -396,7 +434,7 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset resource="../icons.qrc">
+             <iconset>
               <normaloff>:/images/icons/metaData.png</normaloff>:/images/icons/metaData.png</iconset>
             </property>
             <property name="iconSize">
@@ -411,37 +449,6 @@ QPushButton:hover {
            </widget>
           </item>
          </layout>
-        </widget>
-       </item>
-       <item alignment="Qt::AlignRight">
-        <widget class="QFrame" name="frameMainToolBar">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QPushButton {
-border:none;
-}
-QPushButton:checked { 
-background-color: gray;
-border: 1px solid
-}
-
-QPushButton:hover {
-	border: 1px solid;
-    border-color: #333; /* Цвет рамки при наведении */
-}</string>
-         </property>
-         <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_8"/>
         </widget>
        </item>
       </layout>
@@ -640,7 +647,7 @@ QPushButton:hover {
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="../icons.qrc">
+                       <iconset>
                         <normaloff>:/images/icons/removeLayer.png</normaloff>:/images/icons/removeLayer.png</iconset>
                       </property>
                       <property name="iconSize">
@@ -657,7 +664,7 @@ QPushButton:hover {
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="../icons.qrc">
+                       <iconset>
                         <normaloff>:/images/icons/moveUp.png</normaloff>:/images/icons/moveUp.png</iconset>
                       </property>
                      </widget>
@@ -668,7 +675,7 @@ QPushButton:hover {
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="../icons.qrc">
+                       <iconset>
                         <normaloff>:/images/icons/moveDown.png</normaloff>:/images/icons/moveDown.png</iconset>
                       </property>
                      </widget>
@@ -679,7 +686,7 @@ QPushButton:hover {
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset resource="../icons.qrc">
+                       <iconset>
                         <normaloff>:/images/icons/zoomToLayer.png</normaloff>:/images/icons/zoomToLayer.png</iconset>
                       </property>
                      </widget>
@@ -873,7 +880,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset resource="../icons.qrc">
+                    <iconset>
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -918,7 +925,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset resource="../icons.qrc">
+                    <iconset>
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -963,7 +970,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset resource="../icons.qrc">
+                    <iconset>
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -1008,7 +1015,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset resource="../icons.qrc">
+                    <iconset>
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -1053,7 +1060,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset resource="../icons.qrc">
+                    <iconset>
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -1158,7 +1165,7 @@ width: 80px;     /* ширина вкладки */
 </string>
                </property>
                <property name="currentIndex">
-                <number>1</number>
+                <number>0</number>
                </property>
                <property name="elideMode">
                 <enum>Qt::ElideRight</enum>
@@ -1382,6 +1389,26 @@ background-color: rgb(68,68,68)
          <layout class="QHBoxLayout" name="horizontalLayout_7"/>
         </widget>
        </item>
+       <item>
+        <widget class="QToolButton" name="toolButtonLOD">
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>:/images/icons/common/icon_earth_black.png</normaloff>:/images/icons/common/icon_earth_black.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item alignment="Qt::AlignLeft">
         <widget class="QFrame" name="frame_5">
          <property name="sizePolicy">
@@ -1501,7 +1528,7 @@ background-color: rgb(68,68,68)
     <property name="title">
      <string>База данных</string>
     </property>
-    <addaction name="actionConnect_to_PostGIS"/>
+    <addaction name="actionConnectToPostGIS"/>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
@@ -1535,6 +1562,15 @@ background-color: rgb(68,68,68)
     </property>
     <addaction name="actionRenderMap"/>
    </widget>
+   <widget class="QMenu" name="menu_5">
+    <property name="title">
+     <string>Веб-сервис</string>
+    </property>
+    <addaction name="actionConnectToWMS"/>
+    <addaction name="action_WMTS"/>
+    <addaction name="action_TMS"/>
+    <addaction name="actionConnectToXYZ"/>
+   </widget>
    <addaction name="menuf"/>
    <addaction name="menuf_2"/>
    <addaction name="menu"/>
@@ -1542,6 +1578,7 @@ background-color: rgb(68,68,68)
    <addaction name="menu_3"/>
    <addaction name="menuDatabase"/>
    <addaction name="menu_4"/>
+   <addaction name="menu_5"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="enabled">
@@ -1559,7 +1596,7 @@ background-color: rgb(68,68,68)
   </widget>
   <action name="actionNew_point_layer">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/pointLayer.png</normaloff>:/images/icons/pointLayer.png</iconset>
    </property>
    <property name="text">
@@ -1568,7 +1605,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionNew_line_layer">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/lineLayer.png</normaloff>:/images/icons/lineLayer.png</iconset>
    </property>
    <property name="text">
@@ -1577,7 +1614,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionNew_polygon_layer">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/polygonLayer.png</normaloff>:/images/icons/polygonLayer.png</iconset>
    </property>
    <property name="text">
@@ -1586,16 +1623,16 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionLoad_vector_layer">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/common/load_icon_black.png</normaloff>:/images/icons/common/load_icon_black.png</iconset>
    </property>
    <property name="text">
     <string>Зазгрузить векторный слой</string>
    </property>
   </action>
-  <action name="actionConnect_to_PostGIS">
+  <action name="actionConnectToPostGIS">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/postgis.png</normaloff>:/images/icons/postgis.png</iconset>
    </property>
    <property name="text">
@@ -1604,7 +1641,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionGeosTriangulation">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/triangulate.png</normaloff>:/images/icons/triangulate.png</iconset>
    </property>
    <property name="text">
@@ -1613,7 +1650,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionIntersection">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/intersection.png</normaloff>:/images/icons/intersection.png</iconset>
    </property>
    <property name="text">
@@ -1622,7 +1659,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionVoronoiDiagram">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/voronoiDiagram.png</normaloff>:/images/icons/voronoiDiagram.png</iconset>
    </property>
    <property name="text">
@@ -1661,7 +1698,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="action">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/folder.png</normaloff>:/images/icons/folder.png</iconset>
    </property>
    <property name="text">
@@ -1670,7 +1707,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionVectorReproject">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/world.png</normaloff>:/images/icons/world.png</iconset>
    </property>
    <property name="text">
@@ -1679,7 +1716,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionAssignVectorProjection">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/assign.png</normaloff>:/images/icons/assign.png</iconset>
    </property>
    <property name="text">
@@ -1688,7 +1725,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionCutRasterByVectorMask">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/imageCut.png</normaloff>:/images/icons/imageCut.png</iconset>
    </property>
    <property name="text">
@@ -1697,7 +1734,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionRasterReproject">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/transform.png</normaloff>:/images/icons/transform.png</iconset>
    </property>
    <property name="text">
@@ -1706,7 +1743,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionRasterContours">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/contour.png</normaloff>:/images/icons/contour.png</iconset>
    </property>
    <property name="text">
@@ -1715,7 +1752,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionSettings">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/setting.png</normaloff>:/images/icons/setting.png</iconset>
    </property>
    <property name="text">
@@ -1724,7 +1761,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionOpenRasterLayer">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/rasterTreeItem.png</normaloff>:/images/icons/rasterTreeItem.png</iconset>
    </property>
    <property name="text">
@@ -1733,7 +1770,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionXYZService">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/tiles.png</normaloff>:/images/icons/tiles.png</iconset>
    </property>
    <property name="text">
@@ -1742,7 +1779,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionNewLayer">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/geometry/shapes_icon_black.png</normaloff>:/images/icons/geometry/shapes_icon_black.png</iconset>
    </property>
    <property name="text">
@@ -1750,6 +1787,34 @@ background-color: rgb(68,68,68)
    </property>
    <property name="toolTip">
     <string>Создать новый векторный слой с выбором типа геометрии</string>
+   </property>
+  </action>
+  <action name="actionConnectToWMS">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/images/icons/common/icon_WMS_black.png</normaloff>:/images/icons/common/icon_WMS_black.png</iconset>
+   </property>
+   <property name="text">
+    <string>Подключиться к WMS</string>
+   </property>
+  </action>
+  <action name="action_WMTS">
+   <property name="text">
+    <string>Подключиться к WMTS</string>
+   </property>
+  </action>
+  <action name="action_TMS">
+   <property name="text">
+    <string>Подключиться к TMS</string>
+   </property>
+  </action>
+  <action name="actionConnectToXYZ">
+   <property name="icon">
+    <iconset>
+     <normaloff>:/images/icons/common/icon_tiles_black.png</normaloff>:/images/icons/common/icon_tiles_black.png</iconset>
+   </property>
+   <property name="text">
+    <string>Подключиться к XYZ</string>
    </property>
   </action>
  </widget>
@@ -1770,8 +1835,6 @@ background-color: rgb(68,68,68)
    <header>customWidgets/treewidget.h</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../icons.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
