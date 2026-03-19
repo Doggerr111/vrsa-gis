@@ -98,6 +98,7 @@ vrsa::services::ViewComponents MainWindow::createViewComponents()
     comps.coordEdit = ui->lineEditCoordinates;
     comps.scaleEdit = ui->lineEditScale;
     comps.crsCombo = ui->crsComboBox;
+    comps.lodBtn = ui->toolButtonLOD;
     comps.statusBar = ui->statusbar;
     comps.activeLayerLabel = ui->labelActiveLayer;
 
@@ -105,12 +106,18 @@ vrsa::services::ViewComponents MainWindow::createViewComponents()
     comps.mainLegendTree = ui->LayerTree;
     comps.rightTab = ui->rightTabWidget;
     comps.featureSelectionTree = ui->treeWidgetSelection;
+    comps.postGisTree = ui->DBLayerTree;
 
     comps.actionOpenLayer = ui->actionLoad_vector_layer;
     comps.actionCreateLayer = ui->actionNewLayer;
     comps.actionCreatePointLayer = ui->actionNew_point_layer;
     comps.actionCreateLineLayer = ui->actionNew_line_layer;
     comps.actionCreatePolygonLayer = ui->actionNew_polygon_layer;
+
+    comps.actionWMSConnection = ui->actionConnectToWMS;
+    comps.actionXYZConnection = ui->actionConnectToXYZ;
+
+    comps.actionPostGisConnection = ui->actionConnectToPostGIS;
 
     return comps;
 }
