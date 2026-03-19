@@ -4,15 +4,25 @@
 #include <QGraphicsItem>
 #include <QObject>
 namespace vrsa{
+namespace gdalwrapper{
+class Dataset;
+}
 namespace graphics
 {
-class RasterGraphicsItem :public QObject, public QGraphicsPixmapItem
+class RasterGraphicsItem :public QObject
 {
     Q_OBJECT
 public:
-    using QGraphicsPixmapItem::QGraphicsPixmapItem;  // наследуем конструкторы
+    RasterGraphicsItem(gdalwrapper::Dataset *dS = nullptr);
+    void setPixmap(const QPixmap& pixmap);
+    void setTransform(const QTransform& transform);
+    QGraphicsPixmapItem* getPixmapGraphicsItem() noexcept {return mItem.get(); };
 public slots:
     void onZValueChanged(int zValue);
+protected:
+    std::unique_ptr<QGraphicsPixmapItem> mItem;
+private:
+    gdalwrapper::Dataset* mBaseDs;
 };
 }
 }
