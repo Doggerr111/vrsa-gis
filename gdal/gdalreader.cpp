@@ -12,10 +12,11 @@
 vrsa::gdalwrapper::GDALReader::GDALReader() = default;
 
 
-std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readDataset(const std::string &source) const
+std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readDataset
+(const std::string &source, unsigned int flags) const
 {
     //создаем уникальный указатель с кастомным удалителем
-    auto dS = gdalwrapper::createDataset(source, GDAL_OF_VECTOR | GDAL_OF_UPDATE);
+    auto dS = gdalwrapper::createDataset(source, flags);
     if (!dS)
     {
         //VRSA_LOG_GDAL_ERROR("GDAL", "Failed to open data source: " + source);
@@ -164,6 +165,46 @@ vrsa::common::DatasetType vrsa::gdalwrapper::GDALReader::detectDatasetType(GDALD
     else
         return DatasetType::Empty;
 
+}
+
+bool vrsa::gdalwrapper::GDALReader::validatePostGisConnectionString(const std::string &connectionString)
+{
+    if (connectionString.empty()) return false;
+    return gdalwrapper::createDataset(connectionString, GDAL_OF_VECTOR | GDAL_OF_UPDATE) ? true : false;
+}
+
+bool vrsa::gdalwrapper::GDALReader::validateTMSConnection(const std::string &xml)
+{
+    if (xml.empty()) return false;
+    bool hasServerUrl = xml.find("<ServerUrl>") != std::string::npos;
+    bool hasServiceName = xml.find("name=\"TMS\"") != std::string::npos ||
+            xml.find("<Service name=\"TMS\"") != std::string::npos;
+    bool hasDataWindow = xml.find("<DataWindow>") != std::string::npos;
+
+    if (!hasServerUrl) {
+        VRSA_ERROR("TMS", "Missing <ServerUrl> in XML config");
+        return false;
+    }
+
+    if (!hasServiceName) {
+        VRSA_WARNING("TMS", "Service name not explicitly set to TMS, will attempt anyway");
+    }
+
+    if (!hasDataWindow) {
+        VRSA_WARNING("TMS", "Missing <DataWindow>, GDAL will use defaults");
+    }
+
+    // Проверяем базовую структуру XML
+    if (xml.find("<GDAL_WMS>") == std::string::npos) {
+        VRSA_ERROR("TMS", "Root element <GDAL_WMS> not found");
+        return false;
+    }
+
+    if (xml.find("</GDAL_WMS>") == std::string::npos) {
+        VRSA_ERROR("TMS", "Closing </GDAL_WMS> not found");
+        return false;
+    }
+    return gdalwrapper::createDataset(xml, GDAL_OF_RASTER | GDAL_OF_READONLY) ? true : false;
 }
 
 

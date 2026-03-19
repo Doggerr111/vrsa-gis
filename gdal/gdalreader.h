@@ -61,7 +61,8 @@ public:
 * вызовите метод getDatasetType()
 * @endrussian
 */
-    std::unique_ptr<vrsa::gdalwrapper::Dataset> readDataset(const std::string& source) const;
+    std::unique_ptr<vrsa::gdalwrapper::Dataset> readDataset(const std::string& source,
+                                                            unsigned int flags = GDAL_OF_ALL | GDAL_OF_UPDATE) const;
 
 
     std::vector<std::unique_ptr<vrsa::raster::RasterChannel>> readChannels(GDALDataset* ds) const;
@@ -97,32 +98,9 @@ public:
     */
     vrsa::common::DatasetType detectDatasetType(GDALDataset *GdalDs) const;
 
+    static bool validatePostGisConnectionString(const std::string& connectionString);
+    static bool validateTMSConnection(const std::string& xml);
 
-    //    std::unique_ptr<vrsa::vector::VectorFeature> convertOGRFeatureToVectorFeature(OGRFeature* rawOgrFeature, OGRLayer* layer);
-
-    //    vrsa::vector::VectorFeature::AttributeValue convertOGRFieldValue(OGRFeature *feature,
-    //                                                                   OGRFieldDefn* fieldDef,
-    //                                                                   int fieldIndex);
-
-
-
-
-
-
-
-
-    //    bool canRead(const std::string& source) const;
-
-    //    // Информационные методы
-    //    std::string getFormatName() const;
-    //    std::vector<std::string> getSupportedExtensions() const;
-    //    vrsa::common::GeometryType getSupportedGeometryType() const;
-
-    //    // Метаданные
-    //    int getFeatureCount() const;
-    //    vrsa::common::BoundingBox getBoundingBox() const;
-
-    //    std::vector<std::unique_ptr<vrsa::vector::VectorFeature>> readFeatures(int start = 0, int count = -1);
 
 
 
