@@ -2,8 +2,6 @@
 #define FEATUREGRAPHICSITEMFACTORY_H
 
 #include "graphics/featuregraphicsitem.h"
-#include "vector/vectorfeature.h"
-#include "graphics/mapscene.h"
 
 namespace vrsa
 {
@@ -21,7 +19,7 @@ namespace graphics
  * new items (e.g., add them to MapScene).
  *
  * @russian
- * @brief Фабрика-синглтон для создания графических объектов векторных фич
+ * @brief Фабрика-синглтон для создания графических объектов векторных обьектов
  *
  * Создает FeatureGraphicsItem и немедленно испускает сигнал для их добавления
  * на сцену. Это разделяет создание объектов и управление сценой.
@@ -51,8 +49,6 @@ public:
     {
         return receivers(SIGNAL(featureGraphicsItemCreated(FeatureGraphicsItem*))) > 0;
     }
-    //TODO ПЕРЕНЕСТИ СОЗДАНИЕ РЕНДЕРЕРА ВНУТРЬ ГРАФИЧЕСКОГО ОБЪЕКТА, А В ЕГО КОНСТРУКТОР ПЕРЕДАВАТЬ СТИЛЬ И ХРАНИТЬ!!!
-    //КАК ВО ВРЕМЕННЫХ ОБЪЕКТАХ!!!!! И ДОБАВИТЬ ФУНКЦИЮ ОБНОВЛЕНИЯ СТИЛЯ С ПЕРЕСТРОЕНИЕМ ПОЛИТИК !!!
 
     /**
      * @english
