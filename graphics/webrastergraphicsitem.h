@@ -16,9 +16,16 @@ class WebRasterGraphicsItem : public RasterGraphicsItem
     Q_OBJECT
 public:
     WebRasterGraphicsItem(raster::WebRasterDataset* webDs);
+    ~WebRasterGraphicsItem();
+    // RasterGraphicsItem interface
+protected:
+    void notifyExtentChanged(const QRectF &mapExtent, const QRect &widgetRect) override;
 
 private:
     raster::WebRasterDataset* mDataset;
+    std::atomic<bool> mCancelled{false};
+
+
 };
 }
 }
