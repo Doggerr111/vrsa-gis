@@ -29,7 +29,21 @@ public:
      * @param height Высота выходного изображения в пикселях (высота viewport)
      * @return QImage с прочитанными данными или пустой QImage при ошибке
     */
-    QImage readExtent(const QRectF& extent, int width, int height);
+    QImage readExtent(const QRectF& extent, int width, int height, QRectF& actualExtent);
+
+private:
+    std::atomic<int> mActiveReads{0};
+//    QTransform getGeoTransform()
+//    {
+//        double geoTransform[6];
+//        if (mDs->GetGeoTransform(geoTransform) != CE_None)
+//            VRSA_ERROR("RASTER", "Raster Dataset without geotransform");
+
+//        QTransform transform;
+//        transform.translate(geoTransform[0], geoTransform[3]);
+//        transform.scale(geoTransform[1], geoTransform[5]);
+//        return transform;
+//    }
 
 };
 
