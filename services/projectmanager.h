@@ -33,10 +33,7 @@ public:
 
     std::vector<DatasetPtr>& getDatasets() noexcept;
     explicit ProjectManager(QObject *parent = nullptr);
-    ~ProjectManager()
-    {
-        qDebug()<< "bla bla ";
-    }
+    ~ProjectManager();
     /**
      * @english
      * @brief Finds and returns a dataset by its source path
@@ -107,9 +104,11 @@ public slots:
 signals:
     void datasetAdded(gdalwrapper::Dataset* dS);
     void vectorLayerAdded(vector::VectorLayer* layer);
-    void featureGraphicsItemCreated(graphics::FeatureGraphicsItem*);
+    void featureGraphicsItemCreated(graphics::FeatureGraphicsItem*);//todo delete
     void datasetsChanged();
     void postGisDatasetReady(gdalwrapper::Dataset* pgDs);
+
+    void datasetAboutToBeRemoved(gdalwrapper::Dataset* dS);
 private:
     // Удаляем конструкторы копирования и присваивания
     ProjectManager(const ProjectManager&) = delete;

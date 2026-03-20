@@ -12,6 +12,12 @@ vrsa::services::ProjectManager::ProjectManager(QObject *parent)
 
 }
 
+vrsa::services::ProjectManager::~ProjectManager()
+{
+    for (auto& dataset: mDatasets)
+        emit datasetAboutToBeRemoved(dataset.get());
+}
+
 
 void vrsa::services::ProjectManager::AddDataset(DatasetPtr dS)
 {

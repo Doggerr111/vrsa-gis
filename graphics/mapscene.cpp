@@ -4,6 +4,8 @@
 #include "graphics/featuregraphicsitemfactory.h"
 #include <QGraphicsView>
 #include <QMessageBox>
+#include "vector/vectordataset.h"
+#include <unordered_set>
 
 vrsa::graphics::MapScene::MapScene(QObject *parent)
     : QGraphicsScene{parent},
@@ -149,6 +151,13 @@ void vrsa::graphics::MapScene::onMapHolderScaleChanged(int mapScale, double widg
 
 }
 
+void vrsa::graphics::MapScene::onMapHolderExtentChanged(const QRectF &extent, const QRect &widgetRect)
+{
+    mExtent = extent;
+    mMapHolderRect = widgetRect;
+    emit visibleExtentChanged(mExtent, mMapHolderRect);
+}
+
 void vrsa::graphics::MapScene::onVectorLayerFeatureAdded(vector::VectorFeature *)
 {
 
@@ -193,16 +202,67 @@ void vrsa::graphics::MapScene::onRasterGraphicsItemCreated(RasterGraphicsItem *i
         return;
     }
     addItem(item->getPixmapGraphicsItem());
+    connect(this, &MapScene::visibleExtentChanged, item, &RasterGraphicsItem::onVisibleExtentChanged);
     mRasterItems.push_back(std::unique_ptr<RasterGraphicsItem>(item));
     //todo cast raster item and connect right signals
+}
+
+void vrsa::graphics::MapScene::onDatasetRemoved(gdalwrapper::Dataset *dataset)
+{
+    if (!dataset) return;
+    switch(dataset->GetDatasetType())
+    {
+    case common::DatasetType::Vector:
+    {
+        auto vDs = static_cast<vector::VectorDataset*>(dataset);
+        for (const auto& layer: vDs->getLayers())
+        {
+            if (!layer) continue;
+            std::unordered_set<vector::VectorFeature*> featuresToRemove;
+            for (auto& feature : layer->getFeatures())
+                featuresToRemove.insert(feature);
+            std::vector<std::unique_ptr<FeatureGraphicsItem>> toRemove;
+            for (auto& item : mMapItems)
+            {
+                if (featuresToRemove.count(item->getFeature()))
+                    toRemove.push_back(std::move(item));
+            }
+            for (auto& item : toRemove)
+            {
+                removeItem(item.get());
+                auto it = std::find_if(mMapItems.begin(), mMapItems.end(),
+                                       [&](const std::unique_ptr<FeatureGraphicsItem>& ptr) {
+                    return ptr.get() == item.get();
+                });
+                if (it != mMapItems.end())
+                    mMapItems.erase(it);
+            }
+
+        }
+        return;
+    }
+    case common::DatasetType::Raster:
+    {
+        for (auto it = mRasterItems.begin(); it != mRasterItems.end(); )
+        {
+            if ((*it)->getDataset() == dataset)
+            {
+                removeItem((*it)->getPixmapGraphicsItem());
+                it = mRasterItems.erase(it);
+            }
+            else
+                ++it;
+        }
+        return;
+    }
+    default:
+        break;
+    }
 }
 
 void vrsa::graphics::MapScene::onMapHolderMousePressed(QMouseEvent *event)
 {
     emit panningRequested(mPanningForViewEnabled);
-
-
-
 }
 
 

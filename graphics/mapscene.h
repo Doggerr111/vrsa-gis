@@ -64,8 +64,10 @@ signals:
     void mouseMoved(const QPointF&);
     void toolChanged(tools::MapTool*);
     void panningRequested(bool enable);
+    void visibleExtentChanged(const QRectF& extent, const QRect& widgetRect);
 public slots:
     void onMapHolderScaleChanged(int mapScale, double widgetScale);
+    void onMapHolderExtentChanged(const QRectF& extent, const QRect& widgetRect);
 
     void onVectorLayerFeatureAdded(vector::VectorFeature*);
     void onVectorLayerFeatureRemoved(int64_t fid);
@@ -75,11 +77,15 @@ public slots:
     void onFeatureGraphicsItemCreated(FeatureGraphicsItem* item); //from proj manager;
     void onRasterGraphicsItemCreated(RasterGraphicsItem *item); //from proj manager;
 
+    void onDatasetRemoved(gdalwrapper::Dataset* dataset); //from proj manager;
+
     void onMapHolderMousePressed(QMouseEvent* event);
 
 private:
     double mMapScale;
     double mMapHolderScale;
+    QRect mMapHolderRect;
+    QRectF mExtent;
     bool mPanningForViewEnabled = true ;
     //TODO: Сделать базовый класс для всех объектов карты.... и хранить в едином векторе...
     std::vector<std::unique_ptr<graphics::FeatureGraphicsItem>> mMapItems;

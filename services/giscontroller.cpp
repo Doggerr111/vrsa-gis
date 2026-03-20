@@ -71,17 +71,21 @@ void vrsa::services::GISController::setupViewAndIntitizlizeScene()
 
     connect(view, &MapHolder::scaleChanged, mMapScene, &graphics::MapScene::onMapHolderScaleChanged);
     connect(view, &MapHolder::mousePressed, mMapScene, &graphics::MapScene::onMapHolderMousePressed);
+    connect(view, &MapHolder::scaleChanged, this, &GISController::onMapHolderScaleChanged);
+    connect(view, &MapHolder::extentChanged, mMapScene, &graphics::MapScene::onMapHolderExtentChanged);
+    connect(mMapScene, &graphics::MapScene::panningRequested, view, &MapHolder::onPanningRequested);
+
     connect(this, &vrsa::services::GISController::projectCRSChanged, view, &MapHolder::onCrsChanged);
     //связываем сигналы с фабрик (синглтон), для создания графических объектов и их автоматического добавления на сцену
     connect(&graphics::FeatureGraphicsItemFactory::instance(), &graphics::FeatureGraphicsItemFactory::featureGraphicsItemCreated,
             mMapScene, &graphics::MapScene::onFeatureGraphicsItemCreated);
-
     connect(&graphics::RasterGraphicsItemFactory::instance(), &graphics::RasterGraphicsItemFactory::rasterGraphicsItemCreated,
             mMapScene, &graphics::MapScene::onRasterGraphicsItemCreated);
-
-    connect(mMapScene, &graphics::MapScene::panningRequested, view, &MapHolder::onPanningRequested);
-    connect(mComps.mapView, &MapHolder::scaleChanged, this, &GISController::onMapHolderScaleChanged);
     connect(mMapScene, &vrsa::graphics::MapScene::mouseMoved, this, &GISController::onMouseCoordinatesChanged);
+
+    //сигнал для очищения графических объектов при удалении датасета
+    connect(mProjectManager.get(), &ProjectManager::datasetAboutToBeRemoved,
+            mMapScene, &graphics::MapScene::onDatasetRemoved);
     view->scale(1,-1);
     view->recalculateScale();
 }
