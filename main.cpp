@@ -12,7 +12,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    QFile file(":/app_styles/dark.qss");
+    QFile file(":/app_styles/dark_2.qss");
     if (file.open(QFile::ReadOnly))
     {
         QString styleSheet = QString::fromUtf8(file.readAll());

@@ -25,8 +25,8 @@
 }
 
 QTreeWidget{
-	color: rgb(242,242,242);
-}
+	color: rgb(242,1,242);
+} 
 QMenuBar{
 	color: rgb(242,242,242);
 }
@@ -45,9 +45,11 @@ color: rgb(242,242,242);
     </sizepolicy>
    </property>
    <property name="styleSheet">
-    <string notr="true">QFrame {
+    <string notr="true">
+QFrame {
 	border:0px solid black
-}</string>
+}
+</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <property name="spacing">
@@ -154,16 +156,16 @@ QPushButton:hover {
            <number>0</number>
           </property>
           <property name="leftMargin">
-           <number>9</number>
+           <number>0</number>
           </property>
           <property name="topMargin">
-           <number>9</number>
+           <number>0</number>
           </property>
           <property name="rightMargin">
-           <number>9</number>
+           <number>0</number>
           </property>
           <property name="bottomMargin">
-           <number>9</number>
+           <number>0</number>
           </property>
           <item alignment="Qt::AlignVCenter">
            <widget class="QPushButton" name="pushButton_addFeature">
@@ -203,13 +205,13 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../icons.qrc">
               <normaloff>:/images/icons/Tools/digitize.png</normaloff>:/images/icons/Tools/digitize.png</iconset>
             </property>
             <property name="iconSize">
              <size>
-              <width>50</width>
-              <height>50</height>
+              <width>35</width>
+              <height>35</height>
              </size>
             </property>
             <property name="checkable">
@@ -258,7 +260,7 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../icons.qrc">
               <normaloff>:/images/icons/selectFeature2.png</normaloff>:/images/icons/selectFeature2.png</iconset>
             </property>
             <property name="iconSize">
@@ -301,13 +303,13 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../icons.qrc">
               <normaloff>:/images/icons/rectangleSelection.png</normaloff>:/images/icons/rectangleSelection.png</iconset>
             </property>
             <property name="iconSize">
              <size>
-              <width>45</width>
-              <height>45</height>
+              <width>35</width>
+              <height>35</height>
              </size>
             </property>
             <property name="checkable">
@@ -341,13 +343,13 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../icons.qrc">
               <normaloff>:/images/icons/Tools/node.png</normaloff>:/images/icons/Tools/node.png</iconset>
             </property>
             <property name="iconSize">
              <size>
-              <width>45</width>
-              <height>45</height>
+              <width>35</width>
+              <height>35</height>
              </size>
             </property>
             <property name="checkable">
@@ -434,7 +436,7 @@ QPushButton:hover {
              <string/>
             </property>
             <property name="icon">
-             <iconset>
+             <iconset resource="../icons.qrc">
               <normaloff>:/images/icons/metaData.png</normaloff>:/images/icons/metaData.png</iconset>
             </property>
             <property name="iconSize">
@@ -647,7 +649,7 @@ QPushButton:hover {
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset>
+                       <iconset resource="../icons.qrc">
                         <normaloff>:/images/icons/removeLayer.png</normaloff>:/images/icons/removeLayer.png</iconset>
                       </property>
                       <property name="iconSize">
@@ -664,7 +666,7 @@ QPushButton:hover {
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset>
+                       <iconset resource="../icons.qrc">
                         <normaloff>:/images/icons/moveUp.png</normaloff>:/images/icons/moveUp.png</iconset>
                       </property>
                      </widget>
@@ -675,7 +677,7 @@ QPushButton:hover {
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset>
+                       <iconset resource="../icons.qrc">
                         <normaloff>:/images/icons/moveDown.png</normaloff>:/images/icons/moveDown.png</iconset>
                       </property>
                      </widget>
@@ -686,7 +688,7 @@ QPushButton:hover {
                        <string/>
                       </property>
                       <property name="icon">
-                       <iconset>
+                       <iconset resource="../icons.qrc">
                         <normaloff>:/images/icons/zoomToLayer.png</normaloff>:/images/icons/zoomToLayer.png</iconset>
                       </property>
                      </widget>
@@ -709,13 +711,14 @@ QPushButton:hover {
                     </size>
                    </property>
                    <property name="styleSheet">
-                    <string notr="true">QTreeWidget{
-border:3px solid black;
-border-radius: 14px;
-
-};
-
-</string>
+                    <string notr="true">QTreeWidget {
+background-color: #353535;
+color: #e0e0e0;
+gridline-color: #333333;
+outline: none;
+border: 2px solid #333333;
+border-style: solid;
+}</string>
                    </property>
                    <property name="sizeAdjustPolicy">
                     <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
@@ -843,7 +846,7 @@ border-top: 0px solid black</string>
           <item>
            <widget class="QTabWidget" name="tabWidgetConsoleLog">
             <property name="currentIndex">
-             <number>4</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="tabLoggerCommon">
              <attribute name="title">
@@ -880,7 +883,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset>
+                    <iconset resource="../icons.qrc">
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -925,7 +928,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset>
+                    <iconset resource="../icons.qrc">
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -970,7 +973,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset>
+                    <iconset resource="../icons.qrc">
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -1015,7 +1018,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset>
+                    <iconset resource="../icons.qrc">
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -1048,6 +1051,18 @@ border-top: 0px solid black</string>
                  <enum>QFrame::Raised</enum>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_16">
+                 <property name="leftMargin">
+                  <number>2</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
                  <item alignment="Qt::AlignTop">
                   <widget class="QToolButton" name="toolButtonClearTechLogger">
                    <property name="sizePolicy">
@@ -1060,7 +1075,7 @@ border-top: 0px solid black</string>
                     <string>...</string>
                    </property>
                    <property name="icon">
-                    <iconset>
+                    <iconset resource="../icons.qrc">
                      <normaloff>:/images/icons/common/broom_icon_black_no_border.png</normaloff>:/images/icons/common/broom_icon_black_no_border.png</iconset>
                    </property>
                    <property name="iconSize">
@@ -1391,11 +1406,17 @@ background-color: rgb(68,68,68)
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonLOD">
+         <property name="toolTip">
+          <string>Включить LOD</string>
+         </property>
+         <property name="toolTipDuration">
+          <number>-1</number>
+         </property>
          <property name="text">
           <string>...</string>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="../icons.qrc">
            <normaloff>:/images/icons/common/icon_earth_black.png</normaloff>:/images/icons/common/icon_earth_black.png</iconset>
          </property>
          <property name="iconSize">
@@ -1596,7 +1617,7 @@ background-color: rgb(68,68,68)
   </widget>
   <action name="actionNew_point_layer">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/pointLayer.png</normaloff>:/images/icons/pointLayer.png</iconset>
    </property>
    <property name="text">
@@ -1605,7 +1626,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionNew_line_layer">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/lineLayer.png</normaloff>:/images/icons/lineLayer.png</iconset>
    </property>
    <property name="text">
@@ -1614,7 +1635,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionNew_polygon_layer">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/polygonLayer.png</normaloff>:/images/icons/polygonLayer.png</iconset>
    </property>
    <property name="text">
@@ -1623,7 +1644,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionLoad_vector_layer">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/common/load_icon_black.png</normaloff>:/images/icons/common/load_icon_black.png</iconset>
    </property>
    <property name="text">
@@ -1632,7 +1653,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionConnectToPostGIS">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/postgis.png</normaloff>:/images/icons/postgis.png</iconset>
    </property>
    <property name="text">
@@ -1641,7 +1662,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionGeosTriangulation">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/triangulate.png</normaloff>:/images/icons/triangulate.png</iconset>
    </property>
    <property name="text">
@@ -1650,7 +1671,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionIntersection">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/intersection.png</normaloff>:/images/icons/intersection.png</iconset>
    </property>
    <property name="text">
@@ -1659,7 +1680,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionVoronoiDiagram">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/voronoiDiagram.png</normaloff>:/images/icons/voronoiDiagram.png</iconset>
    </property>
    <property name="text">
@@ -1698,7 +1719,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="action">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/folder.png</normaloff>:/images/icons/folder.png</iconset>
    </property>
    <property name="text">
@@ -1707,7 +1728,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionVectorReproject">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/world.png</normaloff>:/images/icons/world.png</iconset>
    </property>
    <property name="text">
@@ -1716,7 +1737,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionAssignVectorProjection">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/assign.png</normaloff>:/images/icons/assign.png</iconset>
    </property>
    <property name="text">
@@ -1725,7 +1746,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionCutRasterByVectorMask">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/imageCut.png</normaloff>:/images/icons/imageCut.png</iconset>
    </property>
    <property name="text">
@@ -1734,7 +1755,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionRasterReproject">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/transform.png</normaloff>:/images/icons/transform.png</iconset>
    </property>
    <property name="text">
@@ -1743,7 +1764,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionRasterContours">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/contour.png</normaloff>:/images/icons/contour.png</iconset>
    </property>
    <property name="text">
@@ -1752,7 +1773,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionSettings">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/setting.png</normaloff>:/images/icons/setting.png</iconset>
    </property>
    <property name="text">
@@ -1761,7 +1782,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionOpenRasterLayer">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/rasterTreeItem.png</normaloff>:/images/icons/rasterTreeItem.png</iconset>
    </property>
    <property name="text">
@@ -1770,7 +1791,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionXYZService">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/tiles.png</normaloff>:/images/icons/tiles.png</iconset>
    </property>
    <property name="text">
@@ -1779,7 +1800,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionNewLayer">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/geometry/shapes_icon_black.png</normaloff>:/images/icons/geometry/shapes_icon_black.png</iconset>
    </property>
    <property name="text">
@@ -1791,7 +1812,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionConnectToWMS">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/common/icon_WMS_black.png</normaloff>:/images/icons/common/icon_WMS_black.png</iconset>
    </property>
    <property name="text">
@@ -1810,7 +1831,7 @@ background-color: rgb(68,68,68)
   </action>
   <action name="actionConnectToXYZ">
    <property name="icon">
-    <iconset>
+    <iconset resource="../icons.qrc">
      <normaloff>:/images/icons/common/icon_tiles_black.png</normaloff>:/images/icons/common/icon_tiles_black.png</iconset>
    </property>
    <property name="text">
@@ -1835,6 +1856,8 @@ background-color: rgb(68,68,68)
    <header>customWidgets/treewidget.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
