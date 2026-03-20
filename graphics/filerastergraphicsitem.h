@@ -14,6 +14,7 @@ class FileRasterGraphicsItem : public RasterGraphicsItem
     Q_OBJECT
 public:
     FileRasterGraphicsItem(raster::RasterDataset* dS);
+    ~FileRasterGraphicsItem();
 
 private:
     raster::RasterDataset* mDataset;

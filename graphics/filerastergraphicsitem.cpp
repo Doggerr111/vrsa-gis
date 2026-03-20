@@ -11,3 +11,5 @@ vrsa::graphics::FileRasterGraphicsItem::FileRasterGraphicsItem(raster::RasterDat
         QObject::connect(dS, &raster::RasterDataset::ZValueChanged, this, &RasterGraphicsItem::onZValueChanged);
     }
 }
+
+vrsa::graphics::FileRasterGraphicsItem::~FileRasterGraphicsItem() = default;
