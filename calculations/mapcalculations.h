@@ -25,14 +25,15 @@ public:
     {
         return mDpi;
     }
-    double calculateScaleFactor(double scale, const QRectF &mapExtent, double canvasWidth);
-    /**
-   * mapExtent - видимая область графической сцены
-   * canvasWidth - ширина виджета MapHolder в пикселях
-   */
+    //double calculateScaleFactor(double scale, const QRectF &mapExtent, double canvasWidth);
+   /**
+    * mapExtent - видимая область графической сцены
+    * canvasWidth - ширина виджета MapHolder в пикселях
+    */
     double calculate( const QRectF &mapExtent, double canvasWidth ) const;
-    /** mapExtent видимая область графической сцены
-   */
+   /**
+    *  mapExtent видимая область графической сцены
+    */
     double calculateGeographicDistance( const QRectF &mapExtent ) const;
 
     void setCRS(const spatialref::SpatialReference& CRS);

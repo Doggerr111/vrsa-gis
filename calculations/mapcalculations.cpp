@@ -6,50 +6,7 @@ vrsa::calculations::MapCalculator::MapCalculator()
 
 }
 
-double vrsa::calculations::MapCalculator::calculateScaleFactor(double scale, const QRectF &mapExtent, double canvasWidth)
-{
-    if (scale <= 0.0 || std::isnan(scale) || std::isinf(scale))
-            return 1.0;
-    if (!mapExtent.isValid() || mapExtent.width() <= 0 || mapExtent.height() <= 0)
-            return 1.0;
-    if (!std::isfinite(canvasWidth) || canvasWidth <= 0.0 || canvasWidth > 1e6)
-            return 1.0;
-    if (!mapExtent.isValid() || !std::isfinite(mapExtent.width()) ||  mapExtent.width() <= 0.0 ||
-                                          mapExtent.width() > 1e9 || mapExtent.height() <= 0)
-            return 1.0;
 
-    double conversionFactor = 1/0.0254; //1 дюйм = 0.0254 метра
-    QPointF rect_c= mapExtent.center();
-    double xMin = rect_c.x()-mapExtent.width()/2.0;
-    double xMax=xMin+mapExtent.width();
-    double currentDist = xMax - xMin;
-    if (isGeographicCRS) //если географическая ск вычисляем дистанцию по формуле Хаверсина
-    {
-        currentDist = calculateGeographicDistance(mapExtent);
-        conversionFactor = 39.3700787;
-        if (currentDist < 1.0 || currentDist > 1e9)
-        {
-            VRSA_DEBUG("CORE", "Расстояние слишком мало:" + std::to_string(currentDist));
-            currentDist = 1.0;
-        }
-    }
-
-    //получаем расстояние в метрах от левого края холста карты до правого при заданном масштабе
-    const double distance = scale * (canvasWidth / mDpi) / conversionFactor;
-    if (distance<=0.0)
-        return 1;
-
-    //double currentDist = calculateGeographicDistance(mapExtent); //вычисляем расстояние для текущего экстента
-    double scaleFactor = currentDist/distance; //коээфицент масштаба
-    //qDebug()<<QString::number(currentDist/distance,'f',2);
-    if (scaleFactor > 1e9)
-        return 1e9;
-
-    if (scaleFactor < 1e-9)
-        return 1e-9;
-
-    return scaleFactor;
-}
 
 double vrsa::calculations::MapCalculator::calculate(const QRectF &mapExtent, double canvasWidth) const
 {
@@ -105,3 +62,49 @@ void vrsa::calculations::MapCalculator::calculateMetrics(const QRectF &mapExtent
     double xMax=xMin+mapExtent.width();
     delta = xMax - xMin;
 }
+
+
+//double vrsa::calculations::MapCalculator::calculateScaleFactor(double scale, const QRectF &mapExtent, double canvasWidth)
+//{
+//    if (scale <= 0.0 || std::isnan(scale) || std::isinf(scale))
+//            return 1.0;
+//    if (!mapExtent.isValid() || mapExtent.width() <= 0 || mapExtent.height() <= 0)
+//            return 1.0;
+//    if (!std::isfinite(canvasWidth) || canvasWidth <= 0.0 || canvasWidth > 1e6)
+//            return 1.0;
+//    if (!mapExtent.isValid() || !std::isfinite(mapExtent.width()) ||  mapExtent.width() <= 0.0 ||
+//                                          mapExtent.width() > 1e9 || mapExtent.height() <= 0)
+//            return 1.0;
+
+//    double conversionFactor = 1/0.0254; //1 дюйм = 0.0254 метра
+//    QPointF rect_c= mapExtent.center();
+//    double xMin = rect_c.x()-mapExtent.width()/2.0;
+//    double xMax=xMin+mapExtent.width();
+//    double currentDist = xMax - xMin;
+//    if (isGeographicCRS) //если географическая ск вычисляем дистанцию по формуле Хаверсина
+//    {
+//        currentDist = calculateGeographicDistance(mapExtent);
+//        conversionFactor = 39.3700787;
+//        if (currentDist < 1.0 || currentDist > 1e9)
+//        {
+//            VRSA_DEBUG("CORE", "Расстояние слишком мало:" + std::to_string(currentDist));
+//            currentDist = 1.0;
+//        }
+//    }
+
+//    //получаем расстояние в метрах от левого края холста карты до правого при заданном масштабе
+//    const double distance = scale * (canvasWidth / mDpi) / conversionFactor;
+//    if (distance<=0.0)
+//        return 1;
+
+//    //double currentDist = calculateGeographicDistance(mapExtent); //вычисляем расстояние для текущего экстента
+//    double scaleFactor = currentDist/distance; //коээфицент масштаба
+//    //qDebug()<<QString::number(currentDist/distance,'f',2);
+//    if (scaleFactor > 1e9)
+//        return 1e9;
+
+//    if (scaleFactor < 1e-9)
+//        return 1e-9;
+
+//    return scaleFactor;
+//}
