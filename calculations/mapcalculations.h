@@ -39,7 +39,7 @@ public:
 
 private:
 
-    void calculateMetrics( const QRectF &mapExtent, double &delta, double &conversionFactor ) const;
+    void calculateMetrics( const QRectF &mapExtent, double &delta) const;
     double mDpi;
     bool isGeographicCRS;
 
