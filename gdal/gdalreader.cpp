@@ -53,7 +53,12 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readD
 
 std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readTMSDataset(const std::string &source, unsigned int flags) const
 {
+
+//    CPLSetConfigOption("CPL_DEBUG", "ON");
+//    CPLSetConfigOption("CPL_LOG", "gdal_wms.log");
     //создаем уникальный указатель с кастомным удалителем
+
+    CPLSetConfigOption("GDAL_CACHEMAX", "64"); //64 мб
     auto dS = gdalwrapper::createDataset(source, flags);
     if (!dS)
     {
