@@ -32,7 +32,15 @@ double MapHolder::getMapHolderScale() const
 
 QRectF MapHolder::getExtent()
 {
-    return mapToScene(viewport()->rect()).boundingRect();
+    if (!viewport()) return QRectF();
+    QPolygonF scenePoly = mapToScene(viewport()->rect());
+    QRectF sceneRect = scenePoly.boundingRect();
+    double minX = sceneRect.left();
+    double maxX = sceneRect.right();
+    double minY = sceneRect.bottom();  // юг
+    double maxY = sceneRect.top();     // север
+    qDebug() << QRectF(minX, minY, maxX - minX, maxY - minY);
+    return QRectF(minX, minY, maxX - minX, maxY - minY);
 }
 
 void MapHolder::setMapCalculator(vrsa::calculations::MapCalculator &calc)
@@ -57,9 +65,11 @@ void MapHolder::recalculateScale()
 
 void MapHolder::resizeEvent(QResizeEvent *event)
 {
-    emit MapHolderResized();
+    //emit MapHolderResized();
     QGraphicsView::resizeEvent(event);
     recalculateScale();
+    //qDebug()<<getExtent() << viewport()->rect();
+    emit extentChanged(getExtent(), viewport()->rect());
 
 }
 
@@ -106,6 +116,7 @@ void MapHolder::wheelEvent(QWheelEvent *event)
             mZoomTimer->start(300);
         }
         viewport()->update();
+        emit extentChanged(getExtent(), viewport()->rect());
         return;
     }
 
@@ -224,6 +235,7 @@ void MapHolder::mouseReleaseEvent(QMouseEvent* event)
         centerOn(newCenter);
         mDragPixmap = QPixmap();
         viewport()->update();
+        emit extentChanged(getExtent(), viewport()->rect());
     }
     if (mIsZooming)
     {
