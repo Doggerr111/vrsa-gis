@@ -13,6 +13,9 @@
 
 namespace vrsa
 {
+namespace vector{
+class VectorLayer;
+}
 namespace geometry
 {
 /**
@@ -190,6 +193,23 @@ public:
             return gdalwrapper::OgrGeometryPtr(toOGRViaWKT(geosGeom));
         } // switch
     }
+
+    /**
+     * @brief Извлекает все точки из векторного слоя в GEOS MultiPoint
+     *
+     * Поддерживаемые типы геометрий:
+     * - Point: добавляется как одна точка
+     * - LineString: все вершины линии
+     * - Polygon: все вершины внешнего и внутренних колец
+     * - MultiPoint/MultiLineString/MultiPolygon: рекурсивно обрабатываются
+     *
+     * @param layer Указатель на векторный слой
+     * @return std::unique_ptr<geos::geom::Geometry> MultiPoint с точками
+     * @return nullptr если слой пуст или не содержит точек
+     *
+     * @note Дублирующиеся точки сохраняются
+     */
+    static std::unique_ptr<geos::geom::Geometry> createGEOSPointCollectionFromVectorLayer(vector::VectorLayer* layer);
 
 };
 }
