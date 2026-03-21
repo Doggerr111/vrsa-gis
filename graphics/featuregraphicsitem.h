@@ -8,6 +8,8 @@ namespace vrsa
 namespace vector{
 class VectorFeature;
 }
+
+
 namespace graphics
 {
 
@@ -28,9 +30,9 @@ public:
 public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
-    const inline Feature* getFeature() const noexcept {return mFeature; };
+    inline Feature* getFeature() const noexcept {return mFeature; };
     const OGRGeometry* getFeatureGeometry() const;;
-    const common::GeometryType getFeatureGeometryType() const;;
+    const common::GeometryType getFeatureGeometryType() const;
 
 public slots:
     void setVisible(bool);
@@ -40,6 +42,7 @@ public slots:
     void onFeatureStyleChanged(VectorFeatureStyle*);
     void onVectorFeatureGeometryChanged();
     void onSymbolUpdated();
+    void onLodSettingsChanged(bool enabled, common::LodAlgorithmType type);
 
 private:
     Renderer mRenderer;
@@ -47,6 +50,9 @@ private:
     double mWidgetScale = 1.0;
     double mMapScale;
     bool mIsSelected;
+    bool mIsLodEnabled;
+    common::LodAlgorithmType mLodAlgo;
+
 };
 
 

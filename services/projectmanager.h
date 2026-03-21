@@ -25,15 +25,15 @@ class ProjectManager : public QObject
     Q_OBJECT
 public:
 
-//    //синглтон  Майерса
 //    static ProjectManager& instance() {
 //        static ProjectManager s_instance;
 //        return s_instance;
 //    }
     void AddDataset(DatasetPtr dS);
-
+    void removeDataset(gdalwrapper::Dataset* dS);
     std::vector<DatasetPtr>& getDatasets() noexcept;
     explicit ProjectManager(QObject *parent = nullptr);
+    ~ProjectManager();
     /**
      * @english
      * @brief Finds and returns a dataset by its source path
@@ -92,20 +92,33 @@ public:
         return mActiveVectorLayer;
     }
 
+    vrsa::vector::VectorDataset* getDatasetAssociatedWithVectorLayer(const vector::VectorLayer*) const;
     vrsa::vector::VectorLayer* getLayerAssociatedWithFeature(const vrsa::vector::VectorFeature* feature) const;
+    int getLayerID(const vector::VectorLayer*layer) const;
 
-    gdalwrapper::Dataset* readDataset(const std::string& src);
-
+    void createPostGISConnection(const QString &connectionName, const std::string& connectionString);
+    void createXYZConnection(const QString& connectionName, const std::string& xmlString);
+    void addPostGISLayer(vector::VectorLayer* pgLayer);
 public slots:
     void onVectorLayerReadingRequested(const std::string& src);
 signals:
-     void datasetAdded(gdalwrapper::Dataset* dS);
-     void featureGraphicsItemCreated(graphics::FeatureGraphicsItem*);
-     void datasetsChanged();
+    void datasetAdded(gdalwrapper::Dataset* dS);
+    void vectorLayerAdded(vector::VectorLayer* layer);
+    void featureGraphicsItemCreated(graphics::FeatureGraphicsItem*);//todo delete
+    void datasetsChanged();
+    void postGisDatasetReady(gdalwrapper::Dataset* pgDs);
+
+    void datasetAboutToBeRemoved(gdalwrapper::Dataset* dS);
 private:
- // Удаляем конструкторы копирования и присваивания
- ProjectManager(const ProjectManager&) = delete;
- ProjectManager& operator=(const ProjectManager&) = delete;
+    // Удаляем конструкторы копирования и присваивания
+    ProjectManager(const ProjectManager&) = delete;
+    ProjectManager& operator=(const ProjectManager&) = delete;
+
+    std::unique_ptr<gdalwrapper::Dataset> readPostGISDataset(const std::string& connectionString);
+    gdalwrapper::Dataset* readDataset(const std::string& src, unsigned int flags = GDAL_OF_ALL | GDAL_OF_UPDATE);
+    gdalwrapper::Dataset* readTMSDataset(const std::string& xml, bool xyz = false,
+                                         unsigned int flags = GDAL_OF_RASTER | GDAL_OF_READONLY);
+private:
     std::vector<DatasetPtr> mDatasets;
     vector::VectorLayer* mActiveVectorLayer;
 };

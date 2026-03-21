@@ -40,7 +40,7 @@ QRectF vrsa::vector::VectorLayer::getBoundingBox() const
     auto er=mOGRLayer->GetExtent(&envelope, true);
     if (er!=OGRERR_NONE)
     {
-        VRSA_LOG_GDAL_ERROR("VectorLayer", "Can't get bounding box from OGRLayer");
+        VRSA_LOG_GDAL_ERROR("VECTOR", "Can't get bounding box from OGRLayer");
         return QRectF();
     }
     double minX = envelope.MinX;
@@ -56,7 +56,7 @@ OGREnvelope vrsa::vector::VectorLayer::getOGRBoundingBox() const
     auto er = mOGRLayer->GetExtent(&envelope, true);
     if (er!=OGRERR_NONE)
     {
-        VRSA_LOG_GDAL_ERROR("VectorLayer", "Can't get bounding box from OGRLayer");
+        VRSA_LOG_GDAL_ERROR("VECTOR", "Can't get bounding box from OGRLayer");
         return {};
     }
     return envelope;
@@ -87,14 +87,14 @@ bool vrsa::vector::VectorLayer::addFeature(std::unique_ptr<VectorFeature> featur
     auto ogrF = feature->getOGRFeature();
     if (!ogrF)
     {
-        VRSA_ERROR("VectorLayer", "Vector feature on input has nullptr OGRfeature");
+        VRSA_ERROR("VECTOR", "Vector feature on input has nullptr OGRfeature");
         return false;
     }
     auto err = mOGRLayer->CreateFeature(ogrF);
 
     if (err == OGRERR_NONE)
     {
-        VRSA_DEBUG("VectorLayer", "Feature added! FID:" + std::to_string(ogrF->GetFID()));
+        VRSA_DEBUG("VECTOR", "Feature added! FID:" + std::to_string(ogrF->GetFID()));
         feature->setZValue(mZValue);
         feature->setStyle(mStyle.get());
         mFeatures.push_back(std::move(feature));
@@ -103,7 +103,7 @@ bool vrsa::vector::VectorLayer::addFeature(std::unique_ptr<VectorFeature> featur
     }
     else
     {
-        VRSA_LOG_GDAL_ERROR("VectorLayer", "Can't add vector feature to layer");
+        VRSA_LOG_GDAL_ERROR("VECTOR", "Can't add vector feature to layer");
         return false;
     }
 }
@@ -112,14 +112,14 @@ bool vrsa::vector::VectorLayer::deleteFeature(int64_t fid)
 {
     if (!mOGRLayer)
     {
-        VRSA_ERROR("VectorLayer", "Can't delete feature:" + std::to_string(fid)+ " VectorLayer has nullptr OGRLayer");
+        VRSA_ERROR("VECTOR", "Can't delete feature:" + std::to_string(fid)+ " VectorLayer has nullptr OGRLayer");
         return false;
     }
 
     OGRErr err = mOGRLayer->DeleteFeature(fid);
     if (err != OGRERR_NONE)
     {
-        VRSA_ERROR("VectorLayer", "Can't delete feature:" + std::to_string(fid)+ " OGR error:" + std::to_string(err));
+        VRSA_ERROR("VECTOR", "Can't delete feature:" + std::to_string(fid)+ " OGR error:" + std::to_string(err));
         return false;
     }
     auto it = std::remove_if(mFeatures.begin(), mFeatures.end(),
@@ -262,7 +262,7 @@ void vrsa::vector::VectorLayer::applyStyleToFeatures()
         if (feature)
             feature->setStyle(mStyle.get());
         else
-            VRSA_DEBUG("VectorLayer", "Nullptr feature detected");
+            VRSA_DEBUG("VECTOR", "Nullptr feature detected");
     }
 }
 
@@ -273,7 +273,7 @@ void vrsa::vector::VectorLayer::applyZValueToFeatures()
         if (feature)
             feature->setZValue(mZValue);
         else
-            VRSA_DEBUG("VectorLayer", "Nullptr feature detected");
+            VRSA_DEBUG("VECTOR", "Nullptr feature detected");
 
     }
 }
@@ -334,7 +334,7 @@ std::vector<std::unique_ptr<vrsa::vector::VectorFeature>> vrsa::vector::VectorLa
         return {};
     //устанавливаем атрибутный фильтр на OGR слой
     if (mOGRLayer->SetAttributeFilter(attributeFilter.c_str()) != OGRERR_NONE)
-        VRSA_LOG_GDAL_ERROR("VectorLayer", "Invalid attribute filter: " + attributeFilter);
+        VRSA_LOG_GDAL_ERROR("VECTOR", "Invalid attribute filter: " + attributeFilter);
 
     auto result = getClonedFeatures();
     mOGRLayer->SetAttributeFilter(nullptr);
@@ -349,7 +349,7 @@ std::vector<vrsa::gdalwrapper::OgrFeaturePtr> vrsa::vector::VectorLayer::getClon
         return {};
     //устанавливаем атрибутный фильтр на OGR слой
     if (mOGRLayer->SetAttributeFilter(attributeFilter.c_str()) != OGRERR_NONE)
-        VRSA_LOG_GDAL_ERROR("VectorLayer", "Invalid attribute filter: " + attributeFilter);
+        VRSA_LOG_GDAL_ERROR("VECTOR", "Invalid attribute filter: " + attributeFilter);
 
     auto result = getClonedOGRFeatures();
     mOGRLayer->SetAttributeFilter(nullptr);
@@ -364,7 +364,7 @@ std::vector<vrsa::vector::VectorFeature*> vrsa::vector::VectorLayer::getOriginal
         return {};
     //устанавливаем атрибутный фильтр на OGR слой
     if (mOGRLayer->SetAttributeFilter(attributeFilter.c_str()) != OGRERR_NONE)
-        VRSA_LOG_GDAL_ERROR("VectorLayer", "Invalid attribute filter: " + attributeFilter);
+        VRSA_LOG_GDAL_ERROR("VECTOR", "Invalid attribute filter: " + attributeFilter);
 
     auto result = getOriginalFeatures();
     mOGRLayer->SetAttributeFilter(nullptr);
@@ -384,7 +384,7 @@ std::vector<std::unique_ptr<vrsa::vector::VectorFeature> > vrsa::vector::VectorL
             if (feat)
                 result.push_back(feat.get()->clone());
             else
-                VRSA_DEBUG("VectorLayer", "Nullptr feature in mFeatures!");
+                VRSA_DEBUG("VECTOR", "Nullptr feature in mFeatures!");
         }
         return result;
     }
@@ -427,7 +427,7 @@ std::vector<vrsa::gdalwrapper::OgrFeaturePtr> vrsa::vector::VectorLayer::getClon
                     result.emplace_back(gdalwrapper::OgrFeaturePtr(ogrFeat->Clone()));
             }
             else
-                VRSA_DEBUG("VectorLayer", "Nullptr OGRfeature in mFeatures!");
+                VRSA_DEBUG("VECTOR", "Nullptr OGRfeature in mFeatures!");
         }
         return result;
     }
@@ -453,7 +453,7 @@ std::vector<vrsa::vector::VectorFeature*> vrsa::vector::VectorLayer::getOriginal
             if (feat)
                 result.push_back(feat.get());
             else
-                VRSA_DEBUG("VectorLayer", "Nullptr feature in mFeatures!");
+                VRSA_DEBUG("VECTOR", "Nullptr feature in mFeatures!");
         return result;
     }
     // если есть фильтр проходим по фичам через gdal api
@@ -521,7 +521,7 @@ bool vrsa::vector::VectorLayer::setAttributeFilter(const std::string &filter)
         return false;
     if (mOGRLayer->SetAttributeFilter(filter.c_str()) != OGRERR_NONE)
     {
-        VRSA_LOG_GDAL_ERROR("VectorLayer", "Invalid attribute filter: " + filter);
+        VRSA_LOG_GDAL_ERROR("VECTOR", "Invalid attribute filter: " + filter);
         return false;
     }
     return true;
@@ -599,7 +599,7 @@ GDALDataset* vrsa::vector::VectorLayer::exportToGDALDataset(const std::string& f
 
     GDALDriver* poDriver = GetGDALDriverManager()->GetDriverByName(format.c_str());
     if (!poDriver) {
-        VRSA_DEBUG("ERROR", "Driver not found: " + format);
+        VRSA_DEBUG("VECTOR", "Driver not found: " + format);
         return nullptr;
     }
 
@@ -611,7 +611,7 @@ GDALDataset* vrsa::vector::VectorLayer::exportToGDALDataset(const std::string& f
     }
 
     if (!poDS) {
-        VRSA_DEBUG("ERROR", "Failed to create dataset");
+        VRSA_DEBUG("VECTOR", "Failed to create dataset");
         return nullptr;
     }
 
@@ -633,7 +633,7 @@ GDALDataset* vrsa::vector::VectorLayer::exportToGDALDataset(const std::string& f
                 );
 
     if (!poLayer) {
-        VRSA_DEBUG("ERROR", "Failed to create layer");
+        VRSA_DEBUG("VECTOR", "Failed to create layer");
         GDALClose(poDS);
         return nullptr;
     }
@@ -720,7 +720,7 @@ GDALDataset* vrsa::vector::VectorLayer::exportToGDALDataset(const std::string& f
         originalFid++;
     }
 
-    VRSA_DEBUG("INFO", "Exported " + std::to_string(featureCount) +
+    VRSA_INFO("VECTOR", "Exported " + std::to_string(featureCount) +
                " features to dataset");
 
     return poDS;

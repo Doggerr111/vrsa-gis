@@ -7,5 +7,7 @@ vrsa::vector::VectorDataset::VectorDataset(vrsa::gdalwrapper::GdalDatasetPtr dat
 
 }
 
+vrsa::vector::VectorDataset::~VectorDataset() = default;
+
 
 

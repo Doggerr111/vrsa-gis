@@ -71,7 +71,7 @@ inline GDALDataset* createTestDataset( const std::string& layerName, OGRwkbGeome
 
     GDALDriver* poDriver = GetGDALDriverManager()->GetDriverByName(format.c_str());
     if (!poDriver) {
-        VRSA_DEBUG("ERROR", "Driver not found: " + format);
+        VRSA_DEBUG("TEST", "Driver not found: " + format);
         return nullptr;
     }
 
@@ -262,7 +262,7 @@ inline GDALDataset* createCompleteTestDataset(const std::string& format = "Memor
             poFeature->SetField("val", i * 1.5);
 
             if (poLayer->CreateFeature(poFeature) != OGRERR_NONE)
-                VRSA_LOG_GDAL_ERROR("WARNING", "Failed to create feature in layer: " + name);
+                VRSA_LOG_GDAL_ERROR("TEST", "Failed to create feature in layer: " + name);
 
 
             OGRFeature::DestroyFeature(poFeature);

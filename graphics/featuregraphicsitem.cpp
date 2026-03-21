@@ -2,13 +2,16 @@
 #include "vector/vectorfeature.h"
 #include "graphics/drawingcontext.h"
 #include <QGraphicsScene>
+#include "common/applicationsettings.h"
 vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(Feature *feature)
     : QGraphicsItem(),
       mFeature{feature},
-      mIsSelected{false}
+      mIsSelected{false},
+      mIsLodEnabled{false}
 {
     if (mFeature)
     {
+        auto& settings = common::ApplicationSettings::instance();
         mRenderer = std::make_unique<FeatureGraphicsItemRenderer>(feature->getStyle(), feature->getGeometryType());
         qDebug()<<feature->getStyle()->getSymbol()->type();
         QObject::connect(feature, &vector::VectorFeature::visibilityChanged, this, &FeatureGraphicsItem::setVisible);
@@ -17,6 +20,8 @@ vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(Feature *feature)
                          &FeatureGraphicsItem::onVectorFeatureGeometryChanged);
         QObject::connect(feature, &vector::VectorFeature::ZValueChanged, this, &FeatureGraphicsItem::onZValueChanged);
         QObject::connect(feature, &vector::VectorFeature::symbolUpdated, this, &FeatureGraphicsItem::onSymbolUpdated);
+        QObject::connect(&settings, &common::ApplicationSettings::lodSettingsChanged,
+                         this, &FeatureGraphicsItem::onLodSettingsChanged);
     }
 }
 
@@ -24,7 +29,11 @@ QRectF vrsa::graphics::FeatureGraphicsItem::boundingRect() const
 {
     if (!mFeature)
         return QRectF();
-    bool isLodNeeded = !mFeature->isGeographical();
+    bool isLodNeeded;
+    if (mIsLodEnabled && !mFeature->isGeographical())
+        isLodNeeded = true;
+    else
+        isLodNeeded = false;
     DrawingContext context{nullptr, nullptr, nullptr, mFeature->getOGRGeometry(), mWidgetScale, mMapScale, isLodNeeded};
     //qDebug()<< mFeature->getOGRGeometry();
     return mRenderer->boundingRect(context);
@@ -34,7 +43,11 @@ void vrsa::graphics::FeatureGraphicsItem::paint(QPainter *painter, const QStyleO
 {
     if (!mFeature)
         return;
-    bool isLodNeeded = !mFeature->isGeographical();
+    bool isLodNeeded;
+    if (mIsLodEnabled && !mFeature->isGeographical())
+        isLodNeeded = true;
+    else
+        isLodNeeded = false;
     DrawingContext context{painter, option, widget, mFeature->getOGRGeometry(), mWidgetScale, mMapScale, isLodNeeded};
     mRenderer->paint(context);
 }
@@ -64,7 +77,6 @@ void vrsa::graphics::FeatureGraphicsItem::setSelected(const bool selected)
 
 void vrsa::graphics::FeatureGraphicsItem::setVisible(bool flagVisible)
 {
-    qDebug()<<flagVisible;
     QGraphicsItem::setVisible(flagVisible);
 }
 
@@ -106,4 +118,11 @@ void vrsa::graphics::FeatureGraphicsItem::onSymbolUpdated()
         mRenderer->updateSymbol();
         update();
     }
+}
+
+void vrsa::graphics::FeatureGraphicsItem::onLodSettingsChanged(bool enabled, common::LodAlgorithmType type)
+{
+    mIsLodEnabled = enabled;
+    mLodAlgo = type;
+    mRenderer->update();
 }

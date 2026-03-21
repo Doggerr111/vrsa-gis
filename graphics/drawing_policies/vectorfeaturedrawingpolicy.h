@@ -116,7 +116,7 @@ protected:
 
             if (!geometry)
             {
-                VRSA_DEBUG("Drawing Policy", "nullptr geometry input param");
+                VRSA_DEBUG("RENDERING", "nullptr geometry input");
                 return;
             }
 

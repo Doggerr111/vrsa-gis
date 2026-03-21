@@ -153,6 +153,16 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
                                                                          Container
                                                                          &container)
 {
+
+    static int succespol = 0;
+    static int failedpol = 0;
+    static int pointCount;
+    static int multiPointCount;
+    static int lineCount;
+    static int multiLineCount;
+    static int polygonCount;
+    static int multiPolygonCount;
+    static int unknownCount;
     if (!symbol) return;
     if (symbol->canHaveChildren()) {
         for (int i = 0; i < symbol->childCount(); ++i) {
@@ -167,9 +177,16 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
     {
         //qDebug()<<"SimplePointSymbol";
         if (mFeatureType == common::GeometryType::Point)
+        {
+            pointCount++;
             container.push_back(std::make_unique<PointFeatureDrawingPolicy>(symbol));
+        }
         else if (mFeatureType == common::GeometryType::MultiPoint)
+        {
+            multiPointCount++;
             container.push_back(std::make_unique<MultiPointFeatureDrawingPolicy>(symbol));
+        }
+        succespol++;
         break;
 
     }
@@ -177,25 +194,50 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
     {
         //qDebug()<<"SimpleLineSymbol";
         if (mFeatureType == common::GeometryType::LineString)
+        {
+            lineCount++;
             container.push_back(std::make_unique<LineFeatureDrawingPolicy>(symbol));
+        }
         else if (mFeatureType == common::GeometryType::MultiLineString)
+        {
+            multiLineCount++;
             container.push_back(std::make_unique<MultiLineFeatureDrawingPolicy>(symbol));
+        }
+        succespol++;
         break;
     }
     case common::SymbolType::SimplePolygonSymbol:
     {
         //qDebug()<<"SimplePolygonSymbol";
         if (mFeatureType == common::GeometryType::Polygon)
+        {
+            polygonCount++;
             container.push_back(std::make_unique<PolygonFeatureDrawingPolicy>(symbol));
+        }
         else if (mFeatureType == common::GeometryType::MultiPolygon)
+        {
+            multiPolygonCount++;
             container.push_back(std::make_unique<MultiPolygonFeatureDrawingPolicy>(symbol));
+        }
+        succespol++;
         break;
 
     }
     default:
-        return;
+        failedpol++;
+        break;
     }
-
+//    qDebug()<<"success:" << succespol;
+//    qDebug()<<"failed:" << failedpol;
+//    VRSA_DEBUG("RENDERING", "=== DRAWING POLICY STATS ===");
+//    VRSA_DEBUG("RENDERING", "Points:        " + std::to_string(pointCount));
+//    VRSA_DEBUG("RENDERING", "MultiPoints:   " + std::to_string(multiPointCount));
+//    VRSA_DEBUG("RENDERING", "Lines:         " + std::to_string(lineCount));
+//    VRSA_DEBUG("RENDERING", "MultiLines:    " + std::to_string(multiLineCount));
+//    VRSA_DEBUG("RENDERING", "Polygons:      " + std::to_string(polygonCount));
+//    VRSA_DEBUG("RENDERING", "MultiPolygons: " + std::to_string(multiPolygonCount));
+//    VRSA_DEBUG("RENDERING", "Unknown:       " + std::to_string(unknownCount));
+//    VRSA_DEBUG("STATS", "============================");
 }
 
 

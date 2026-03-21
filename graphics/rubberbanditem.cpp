@@ -47,8 +47,8 @@ void vrsa::graphics::RubberBandItem::setTargetItem(FeatureGraphicsItem *target)
             mapScene->addItem(vertex.get());
         else
         {
-            VRSA_DEBUG("RubberBandItem", "Error while setting mTargetFeatureItem item:"
-                                         "Can't add anchor point to rubber band, before setting mTargetFeatureItem item"
+            VRSA_DEBUG("CORE", "Error while setting Target Feature Item item:"
+                                         "Can't add anchor point to rubber band, before setting TargetFeatureItem item"
                                          "make sure rubber band item added to the scene");
             return;
         }
@@ -68,8 +68,8 @@ void vrsa::graphics::RubberBandItem::setTargetItem(FeatureGraphicsItem *target)
                 points->pop_back();
             if (!scene())
             {
-                VRSA_DEBUG("RubberBandItem", "Error while setting mTargetFeatureItem item:"
-                                             "Can't add anchor points to rubber band, before setting mTargetFeatureItem item"
+                VRSA_DEBUG("CORE", "Error while setting TargetFeatureItem item:"
+                                             "Can't add anchor points to rubber band, before setting TargetFeatureItem item"
                                              "make sure rubber band item added to the scene");
                 return;
             }
@@ -81,12 +81,12 @@ void vrsa::graphics::RubberBandItem::setTargetItem(FeatureGraphicsItem *target)
         else if (auto pointsWithHoles = std::get_if<std::vector<std::vector<QPointF>>>(&geometry.variant))
         {
             if (pointsWithHoles)
-                VRSA_DEBUG("RubberBandItem", "Currently creating rubber band for polygons with holes not supported");
+                VRSA_DEBUG("CORE", "Currently creating rubber band for polygons with holes not supported");
         }
         break;
     }
     default:
-        VRSA_DEBUG("RubberBandItem", "Currently creating rubber band for mTargetFeatureItem feature geometry type not supported");
+        VRSA_DEBUG("CORE", "Currently creating rubber band for TargetFeatureItem feature geometry type not supported");
         break;
     }
     connect(this, &RubberBandItem::rubberBandGeometryChanged, mTargetFeatureItem, &FeatureGraphicsItem::onGeometryChanged);
@@ -141,7 +141,7 @@ void vrsa::graphics::RubberBandItem::updateGeometry()
             geom.variant = mAnchorPoints.at(0)->getPoint();
         }
         catch (const std::out_of_range& e) {
-            VRSA_ERROR("RubberBandItem", std::string("Exception while updating geometry for Point "
+            VRSA_ERROR("CORE", std::string("Exception while updating geometry for Point "
                                                      "Feature rubber band. Exception:") + e.what());
         }
     }
@@ -236,7 +236,7 @@ void vrsa::graphics::RubberBandItem::onVertexReleased()
             geom.variant = mAnchorPoints.at(0)->getPoint();
         }
         catch (const std::out_of_range& e) {
-            VRSA_DEBUG("RubberBandItem", std::string("Exception while updating geometry for Point "
+            VRSA_DEBUG("CORE", std::string("Exception while updating geometry for Point "
                                                      "Feature rubber band. Exception:") + e.what());
         }
     }

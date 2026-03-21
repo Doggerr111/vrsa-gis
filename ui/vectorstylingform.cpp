@@ -138,7 +138,7 @@ void VectorStylingForm::setStackedWidgetPage()
         break;
     }
     default:
-        VRSA_ERROR("VectorStylingForm","Unsupported layer geometry type");
+        VRSA_ERROR("CORE","Unsupported layer geometry type");
         break;
     }
 }
@@ -565,14 +565,14 @@ void VectorStylingForm::on_SpinBoxValueChanged(double value)
     auto spinBoxSender = qobject_cast<VectorStylingSpinBox*>(sender());
     if (!spinBoxSender)
     {
-        VRSA_DEBUG("Vector Styling Form", "qobject_cast error");
+        VRSA_DEBUG("UI", "qobject_cast error");
         return;
     }
     StyleParam param = spinBoxSender->property("param").value<StyleParam>();
     Symbol* symbol = spinBoxSender->property("symbol").value<Symbol*>();
     if (!symbol)
     {
-        VRSA_DEBUG("Vector Styling Form", "nullptr symbol in a spinBox property");
+        VRSA_DEBUG("UI", "nullptr symbol in a spinBox property");
         return;
     }
 
@@ -664,14 +664,14 @@ void VectorStylingForm::on_ColorBtnClicked()
     auto colorBtnSender = qobject_cast<ColorPushButton*>(sender());
     if (!colorBtnSender)
     {
-        VRSA_DEBUG("Vector Styling Form", "qobject_cast error");
+        VRSA_DEBUG("UI", "qobject_cast error");
         return;
     }
     StyleParam param = colorBtnSender->property("param").value<StyleParam>();
     Symbol* symbol = colorBtnSender->property("symbol").value<Symbol*>();
     if (!symbol)
     {
-        VRSA_DEBUG("Vector Styling Form", "nullptr symbol in a spinBox property");
+        VRSA_DEBUG("UI", "nullptr symbol in a spinBox property");
         return;
     }
 
@@ -724,14 +724,14 @@ void VectorStylingForm::on_PenStyleCBoxIndexChanged(int indx)
     auto cboxSender = qobject_cast<PenTypeComboBox*>(sender());
     if (!cboxSender)
     {
-        VRSA_DEBUG("Vector Styling Form", "qobject_cast error");
+        VRSA_DEBUG("UI", "qobject_cast error");
         return;
     }
     StyleParam param = cboxSender->property("param").value<StyleParam>();
     Symbol* symbol = cboxSender->property("symbol").value<Symbol*>();
     if (!symbol)
     {
-        VRSA_DEBUG("Vector Styling Form", "nullptr symbol in a combobox property");
+        VRSA_DEBUG("UI", "nullptr symbol in a combobox property");
         return;
     }
     if (param != StyleParam::PenStyle)
@@ -777,14 +777,14 @@ void VectorStylingForm::on_BrushStyleCBoxIndexChanged(int indx)
     auto cboxSender = qobject_cast<BrushTypeComboBox*>(sender());
     if (!cboxSender)
     {
-        VRSA_DEBUG("Vector Styling Form", "qobject_cast error");
+        VRSA_DEBUG("UI", "qobject_cast error");
         return;
     }
     StyleParam param = cboxSender->property("param").value<StyleParam>();
     Symbol* symbol = cboxSender->property("symbol").value<Symbol*>();
     if (!symbol)
     {
-        VRSA_DEBUG("Vector Styling Form", "nullptr symbol in a combobox property");
+        VRSA_DEBUG("UI", "nullptr symbol in a combobox property");
         return;
     }
     if (param != StyleParam::BrushStyle)
@@ -817,14 +817,14 @@ void VectorStylingForm::on_PenJoinCBoxIndexChanged(int indx)
     auto cboxSender = qobject_cast<PenJoinComboBox*>(sender());
     if (!cboxSender)
     {
-        VRSA_DEBUG("Vector Styling Form", "qobject_cast error");
+        VRSA_DEBUG("UI", "qobject_cast error");
         return;
     }
     StyleParam param = cboxSender->property("param").value<StyleParam>();
     Symbol* symbol = cboxSender->property("symbol").value<Symbol*>();
     if (!symbol)
     {
-        VRSA_DEBUG("Vector Styling Form", "nullptr symbol in a combobox property");
+        VRSA_DEBUG("UI", "nullptr symbol in a combobox property");
         return;
     }
     if (param != StyleParam::JoinStyle)
@@ -870,14 +870,14 @@ void VectorStylingForm::on_PenCapCBoxIndexChanged(int indx)
     auto cboxSender = qobject_cast<PenCapComboBox*>(sender());
     if (!cboxSender)
     {
-        VRSA_DEBUG("Vector Styling Form", "qobject_cast error");
+        VRSA_DEBUG("UI", "qobject_cast error");
         return;
     }
     StyleParam param = cboxSender->property("param").value<StyleParam>();
     Symbol* symbol = cboxSender->property("symbol").value<Symbol*>();
     if (!symbol)
     {
-        VRSA_DEBUG("Vector Styling Form", "nullptr symbol in a combobox property");
+        VRSA_DEBUG("UI", "nullptr symbol in a combobox property");
         return;
     }
     if (param != StyleParam::CapStyle)
@@ -923,14 +923,14 @@ void VectorStylingForm::on_PointTypeCBoxIndexChanged(int indx)
     auto cboxSender = qobject_cast<PointTypeComboBox*>(sender());
     if (!cboxSender)
     {
-        VRSA_DEBUG("Vector Styling Form", "qobject_cast error");
+        VRSA_DEBUG("UI", "qobject_cast error");
         return;
     }
     StyleParam param = cboxSender->property("param").value<StyleParam>();
     Symbol* symbol = cboxSender->property("symbol").value<Symbol*>();
     if (!symbol)
     {
-        VRSA_DEBUG("Vector Styling Form", "nullptr symbol in a combobox property");
+        VRSA_DEBUG("UI", "nullptr symbol in a combobox property");
         return;
     }
     if (param != StyleParam::PointType || symbol->type() != SymbolType::SimplePointSymbol)

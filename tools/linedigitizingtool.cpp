@@ -37,7 +37,7 @@ void vrsa::tools::LineDigitizingTool::mousePressEvent(QGraphicsSceneMouseEvent *
     {
         if (mFixedCount<2)
         {
-            VRSA_DEBUG("LineDigitizingTool", "Can't add line with less than 2 points");
+            VRSA_DEBUG("CORE", "Can't add line with less than 2 points");
             return;
         }
         if (points().size() != mFixedCount)

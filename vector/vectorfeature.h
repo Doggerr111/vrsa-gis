@@ -555,11 +555,11 @@ inline bool VectorFeature::syncToOGRFeature(const std::string &name, const T &va
 
         if (err == OGRERR_NONE)
         {
-            VRSA_DEBUG("VectorFeature", "Successfully updated attribute value for feature");
+            VRSA_DEBUG("VECTOR", "Successfully updated attribute value for feature");
             return true;
         }
     }
-    VRSA_ERROR("feature", "Can't update attribute to vector feature with FID:" + std::to_string(mFeature->GetFID()));
+    VRSA_ERROR("VECTOR", "Can't update attribute to vector feature with FID:" + std::to_string(mFeature->GetFID()));
     return false;
 
 }

@@ -78,5 +78,26 @@
         <file>images/icons/geometry/icon_point_bold_black.png</file>
         <file>images/icons/geometry/icon_point_black.png</file>
         <file>images/icons/common/broom_icon_black_no_border.png</file>
+        <file>images/icons/dialogs/icon_cancel_black_filled.png</file>
+        <file>images/icons/dialogs/icon_ok_black_filled.png</file>
+        <file>images/icons/dialogs/icon_accept_black.png</file>
+        <file>images/icons/dialogs/icon_validate_black.png</file>
+        <file>images/icons/dialogs/add_icon_black_no_border.png</file>
+        <file>images/icons/dialogs/add_icon_black_with_border.png</file>
+        <file>images/icons/dialogs/add_icon_bold_no_border.png</file>
+        <file>images/icons/dialogs/broom_icon_black_no_border.png</file>
+        <file>images/icons/dialogs/load_icon_black.png</file>
+        <file>images/icons/dialogs/remove_icon_black_bin.png</file>
+        <file>images/icons/dialogs/remove_icon_black_filled_with_border.png</file>
+        <file>images/icons/dialogs/remove_icon_black_with_border.png</file>
+        <file>images/icons/dialogs/icon_hide_black.png</file>
+        <file>images/icons/dialogs/icon_show_black.png</file>
+        <file>images/icons/geometry/icon_polygon_black.png</file>
+        <file>images/icons/geometry/lineLayer.png</file>
+        <file>images/icons/geometry/pointLayer.png</file>
+        <file>images/icons/geometry/polygonLayer.png</file>
+        <file>images/icons/common/icon_earth_black.png</file>
+        <file>images/icons/common/icon_WMS_black.png</file>
+        <file>images/icons/common/icon_tiles_black.png</file>
     </qresource>
 </RCC>

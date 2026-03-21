@@ -56,13 +56,13 @@ void vrsa::tools::DigitizeHelper::DigitizeHelper::onGeometryCreated(vrsa::geomet
 {
     if (!mActiveLayer)
     {
-        VRSA_ERROR("DigitizingManager", "Select active layer to start digitizing");
+        VRSA_ERROR("CORE", "Select active layer to start digitizing");
         return;
     }
 
     if (!isToolCompatibleWithLayer(mActiveTool->type(), mActiveLayer->getGeomType()))
     {
-        VRSA_ERROR("DigitizingManager", "Active Tool has wrong type");
+        VRSA_ERROR("CORE", "Active Tool has wrong type");
         return;
     }
 

@@ -62,6 +62,7 @@ struct ViewComponents
     QLineEdit* coordEdit = nullptr;
     QLineEdit* scaleEdit = nullptr;
     QComboBox* crsCombo = nullptr;
+    QToolButton* lodBtn = nullptr;
     QStatusBar* statusBar = nullptr;
     QLabel* activeLayerLabel = nullptr;
 
@@ -70,12 +71,19 @@ struct ViewComponents
 
     QTabWidget* rightTab = nullptr; //и дочерние виджеты
     QTreeWidget* featureSelectionTree = nullptr;
+    TreeWidget* postGisTree = nullptr;
     //actions
     QAction* actionOpenLayer = nullptr;
     QAction* actionCreateLayer = nullptr;
     QAction* actionCreatePointLayer = nullptr;
     QAction* actionCreateLineLayer = nullptr;
     QAction* actionCreatePolygonLayer = nullptr;
+
+    //web-map services
+    QAction* actionWMSConnection = nullptr;
+    QAction* actionXYZConnection = nullptr;
+
+    QAction* actionPostGisConnection = nullptr;
 
     bool isValid(std::string& errorMsg) const noexcept
     {
@@ -88,6 +96,7 @@ struct ViewComponents
         if (!coordEdit) {  errorMsg = "coordEdit is null"; return false; }
         if (!scaleEdit) {  errorMsg = "scaleEdit is null"; return false; }
         if (!crsCombo) {  errorMsg = "crsCombo is null"; return false; }
+        if (!lodBtn) {errorMsg = "lodBtn is null"; return false; }
         if (!statusBar) {  errorMsg = "statusBar is null"; return false; }
         if (!leftTab) {  errorMsg = "leftTab is null"; return false; }
         if (!rightTab) {  errorMsg = "rightTab is null"; return false; }
@@ -99,6 +108,10 @@ struct ViewComponents
         if (!mainLegendTree) { errorMsg = "MainLegendTree is null"; return false; }
         if (!featureSelectionTree) { errorMsg = "FeatureSelectionTree is null"; return false; }
         if (!activeLayerLabel) { errorMsg = "ActiveLayerLaber is null"; return false; }
+        if (!actionPostGisConnection) { errorMsg = "actionPostGisConnection is null"; return false; }
+        if (!postGisTree) { errorMsg = "postGisTree is null"; return false; }
+        if (!actionWMSConnection) { errorMsg = "action wms connections is null"; return false; }
+        if (!actionXYZConnection) { errorMsg = "action xyz connection is null"; return false; }
 
         return true;
     }
@@ -127,22 +140,27 @@ private:
     std::unique_ptr<services::ProjectManager> mProjectManager;
 
 private:
-    QIcon getIconForGeometryType(common::GeometryType type); //например для изменения иконки оцифровки в ui
+    QIcon getIconForDigitizingToolBtn(common::GeometryType type); //например для изменения иконки оцифровки в ui
+    QIcon getIconForGeometryType(common::GeometryType type);
     void addMapTool(common::MapToolType type, vector::VectorLayer *layer = nullptr);
     void removeMapTool();
     void startDigitizing();
     void syncZOrderWithTree() const;
     void setup();
     void setupViewAndIntitizlizeScene();
-    void setupMainLegendTreeWidget();
+    void setupLegendTreeWidgets();
 
 private slots:
-    void showContextMenu(const QPoint& point);
     //слоты для работы с основной легендой
     void onLayerTreeDataChanged      (QTreeWidgetItem*, int);
     void onLayerTreeItemDoubleClicked(QTreeWidgetItem*, int);
     void onItemDragRequested         (QDragMoveEvent* event, bool* accepted);
     void onItemDropped               (QDropEvent* event, bool* accepted);
+    void showContextMenu(const QPoint& point);
+    //слоты для работы с легендой PostGIS
+    void showContextMenuPG(const QPoint& point);
+    //обработка правого клика на tool btn LOD
+    void showContextMenuLOD(const QPoint& point);
     //обработка кликов с кнопок инструменты карты
     void onSingleSelectionToolClicked(bool checked);
     void onRectSelectionToolClicked  (bool checked);
@@ -166,6 +184,8 @@ private slots:
 
     //слоты с project manager
     void onDatasetAdded(gdalwrapper::Dataset* dS);
+    void onPostGisDatasetAdded(gdalwrapper::Dataset* dS);
+    void onVectorLayerAdded(vector::VectorLayer* layer);
 
     //новые слоты для обработки действий с главного окна ui
     void onOpenLayerActionTriggered();
@@ -173,6 +193,11 @@ private slots:
     void onCreatePointLayerActionTriggered();
     void onCreateLineLayerActionTriggered();
     void onCreatePolygonLayerActionTriggered();
+    //services actions
+    void onWMSConnectionTriggered();
+    void onXYZConnectionTriggered();
+    //BD action
+    void onPostGisConnectionActionTriggered();
 
     //обработка сигналов с диалоговых окон
     void onVectorLayerCreationAccepted(const common::LayerDefinition &layerDef); //vectorlayercreationform

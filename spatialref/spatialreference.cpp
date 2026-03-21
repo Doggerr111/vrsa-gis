@@ -19,7 +19,7 @@ vrsa::spatialref::SpatialReference::SpatialReference(std::string str, common::CR
 {
     if (!mCrs)
     {
-        VRSA_ERROR("SpatialReference", "Failed to allocate OGRSpatialReference");
+        VRSA_ERROR("PROJ", "Failed to allocate OGRSpatialReference");
         return;
     }
 
@@ -27,11 +27,11 @@ vrsa::spatialref::SpatialReference::SpatialReference(std::string str, common::CR
     {
     case common::CRSDesctiptionFormat::WKT:
         if (mCrs->importFromWkt(str.c_str()) != OGRERR_NONE)
-            VRSA_LOG_GDAL_ERROR("SpatialReference", "Creation of Spatial Reference from WKT:" + str + " failed");
+            VRSA_LOG_GDAL_ERROR("PROJ", "Creation of Spatial Reference from WKT:" + str + " failed");
         break;
     case common::CRSDesctiptionFormat::Proj:
         if (mCrs->importFromProj4(str.c_str()) != OGRERR_NONE)
-            VRSA_LOG_GDAL_ERROR("SpatialReference", "Creation of Spatial Reference from Proj4:" + str + " failed");
+            VRSA_LOG_GDAL_ERROR("PROJ", "Creation of Spatial Reference from Proj4:" + str + " failed");
         break;
     case common::CRSDesctiptionFormat::EPSG:
     {
@@ -39,10 +39,10 @@ vrsa::spatialref::SpatialReference::SpatialReference(std::string str, common::CR
         {
             int value = std::stoi(str);
             if (mCrs->importFromEPSG(value) != OGRERR_NONE)
-                VRSA_ERROR("SpatialReference", "Creation of Spatial Reference from EPSG code:" + str + " failed");
+                VRSA_ERROR("PROJ", "Creation of Spatial Reference from EPSG code:" + str + " failed");
         } catch (const std::exception& e)
         {
-            VRSA_ERROR("SpatialReference", "Creation of Spatial Reference from EPSG code:" + str + " failed");
+            VRSA_ERROR("PROJ", "Creation of Spatial Reference from EPSG code:" + str + " failed");
         }
 
     }
@@ -57,7 +57,7 @@ vrsa::spatialref::SpatialReference::SpatialReference(const SpatialReference &oth
            : nullptr)
 {
     if (!mCrs && other.GetOGRSpatialRef())
-        VRSA_ERROR("SpatialReference", "Failed to clone spatial reference");
+        VRSA_ERROR("PROJ", "Failed to clone spatial reference");
 
 }
 
@@ -69,7 +69,7 @@ vrsa::spatialref::SpatialReference& vrsa::spatialref::SpatialReference::operator
         if (otherOGRref)
             mCrs = gdalwrapper::OgrSpatialRefPtr(otherOGRref->Clone());
         if (!mCrs && otherOGRref)
-            VRSA_ERROR("SpatialReference", "Failed to clone spatial reference");
+            VRSA_ERROR("PROJ", "Failed to clone spatial reference");
     }
     return *this;
 
@@ -80,7 +80,7 @@ vrsa::spatialref::SpatialReference vrsa::spatialref::SpatialReference::fromWKT(c
     auto spatialRef = gdalwrapper::OgrSpatialRefPtr(new OGRSpatialReference());
     if (spatialRef->importFromWkt(wkt.c_str()) != OGRERR_NONE)
     {
-        VRSA_LOG_GDAL_ERROR("SpatialReference", "Creation of Spatial Reference from WKT:" + wkt + " failed");
+        VRSA_LOG_GDAL_ERROR("PROJ", "Creation of Spatial Reference from WKT:" + wkt + " failed");
         return {};
     }
     return SpatialReference(std::move(spatialRef));
@@ -91,7 +91,7 @@ vrsa::spatialref::SpatialReference vrsa::spatialref::SpatialReference::fromEPSG(
     auto spatialRef = gdalwrapper::OgrSpatialRefPtr(new OGRSpatialReference());
     if (spatialRef->importFromEPSG(epsgCode) != OGRERR_NONE)
     {
-        VRSA_LOG_GDAL_ERROR("SpatialReference", "Creation of Spatial Reference from EPSG:" + std::to_string(epsgCode) + " failed");
+        VRSA_LOG_GDAL_ERROR("PROJ", "Creation of Spatial Reference from EPSG:" + std::to_string(epsgCode) + " failed");
         return {};
     }
     return SpatialReference(std::move(spatialRef));
@@ -102,7 +102,7 @@ vrsa::spatialref::SpatialReference vrsa::spatialref::SpatialReference::fromProj(
     auto spatialRef = gdalwrapper::OgrSpatialRefPtr(new OGRSpatialReference());
     if (spatialRef->importFromProj4(projString.c_str()) != OGRERR_NONE)
     {
-        VRSA_LOG_GDAL_ERROR("SpatialReference", "Creation of Spatial Reference from PROJ:" + projString + " failed");
+        VRSA_LOG_GDAL_ERROR("PROJ", "Creation of Spatial Reference from PROJ:" + projString + " failed");
         return {};
     }
     return SpatialReference(std::move(spatialRef));
@@ -130,7 +130,7 @@ vrsa::spatialref::SpatialReference vrsa::spatialref::SpatialReference::fromUTM(i
 
     //       if (spatialRef->SetFromUserInput(proj.c_str()) != OGRERR_NONE) ///!!
     //       {
-    //           VRSA_LOG_GDAL_ERROR("SpatialReference", "Failed to create UTM from PROJ");
+    //           VRSA_LOG_GDAL_ERROR("PROJ", "Failed to create UTM from PROJ");
     //           return {};
     //       }
 
@@ -141,14 +141,14 @@ bool vrsa::spatialref::SpatialReference::isValid() const
 {
     if (!mCrs)
     {
-        VRSA_WARNING("SpatialReference", "CRS is null");
+        VRSA_WARNING("PROJ", "CRS is null");
         return false;
     }
 
     OGRErr err = mCrs->Validate();
     if (err != OGRERR_NONE)
     {
-        VRSA_LOG_GDAL_ERROR("SpatialReference", "CRS validation failed with error: " +
+        VRSA_LOG_GDAL_ERROR("PROJ", "CRS validation failed with error: " +
                             std::to_string(err));
         return false;
     }
@@ -160,7 +160,7 @@ double vrsa::spatialref::SpatialReference::getLinearUnits(std::string &unitName)
 {
     if (!mCrs)
     {
-        VRSA_WARNING("SpatialReference", "CRS is null");
+        VRSA_WARNING("PROJ", "CRS is null");
         unitName = "Unknown";
         return 0.0;
     }
@@ -193,7 +193,7 @@ std::string vrsa::spatialref::SpatialReference::toWKT() const
     OGRErr err = mCrs->exportToWkt(&wkt);
     if (err != OGRERR_NONE || !wkt)
     {
-        VRSA_LOG_GDAL_ERROR("SpatialReference", "Export to wkt failed");
+        VRSA_LOG_GDAL_ERROR("PROJ", "Export to wkt failed");
         CPLFree(wkt);  // очищаем при ошибке
         return "";
     }
@@ -210,7 +210,7 @@ std::string vrsa::spatialref::SpatialReference::toProj() const
     OGRErr err = mCrs->exportToProj4(&proj);
     if (err != OGRERR_NONE || !proj)
     {
-        VRSA_LOG_GDAL_ERROR("SpatialReference", "Export to wkt failed");
+        VRSA_LOG_GDAL_ERROR("PROJ", "Export to wkt failed");
         CPLFree(proj);  // очищаем при ошибке
         return "";
     }
@@ -227,7 +227,7 @@ std::string vrsa::spatialref::SpatialReference::toPrettyWKT() const
     OGRErr err = mCrs->exportToWkt(&prettyWkt);
     if (err != OGRERR_NONE || !prettyWkt)
     {
-        VRSA_LOG_GDAL_ERROR("SpatialReference", "Export to wkt failed");
+        VRSA_LOG_GDAL_ERROR("PROJ", "Export to wkt failed");
         CPLFree(prettyWkt);  // очищаем при ошибке
         return "";
     }
@@ -241,7 +241,7 @@ int vrsa::spatialref::SpatialReference::toEPSG() const
 {
     if (!mCrs)
     {
-        VRSA_WARNING("SpatialReference", "CRS is null, cannot get EPSG code");
+        VRSA_WARNING("PROJ", "CRS is null, cannot get EPSG code");
         return -1;
     }
 
@@ -258,7 +258,7 @@ int vrsa::spatialref::SpatialReference::toEPSG() const
 
     if (!authCode)
     {
-        VRSA_LOG_GDAL_ERROR("SpatialReference", "No EPSG code found for this CRS");
+        VRSA_LOG_GDAL_ERROR("PROJ", "No EPSG code found for this CRS");
         return -1;
     }
 
@@ -269,7 +269,7 @@ int vrsa::spatialref::SpatialReference::toEPSG() const
     }
     catch (const std::exception& e)
     {
-        VRSA_ERROR("SpatialReference", "Failed to convert EPSG code to int: " + std::string(authCode));
+        VRSA_ERROR("PROJ", "Failed to convert EPSG code to int: " + std::string(authCode));
         return -1;
     }
 }
@@ -278,7 +278,7 @@ bool vrsa::spatialref::SpatialReference::isSame(const SpatialReference &other) c
 {
     if (!mCrs && !other.mCrs)
     {
-        VRSA_WARNING("SpatialReference", "Both CRS are null, considering them identical");
+        VRSA_WARNING("PROJ", "Both CRS are null, considering them identical");
     }
     if (!mCrs || !other.mCrs) return false;
 
@@ -291,13 +291,13 @@ std::unique_ptr<vrsa::spatialref::CoordinateTransformer> vrsa::spatialref::Spati
     auto targetSpatialRef = target.GetOGRSpatialRef();
     if (!targetSpatialRef || !mCrs)
     {
-        VRSA_ERROR("SpatialReference", "Failed to create coordinate transformation: nullptr source or target CRS");
+        VRSA_ERROR("PROJ", "Failed to create coordinate transformation: nullptr source or target CRS");
         return nullptr;
     }
 //    auto* rawTransform = OGRCreateCoordinateTransformation(mCrs.get(), targetSpatialRef);
 //    if (!rawTransform)
 //    {
-//        VRSA_ERROR("SpatialReference", "Failed to create coordinate transformation");
+//        VRSA_ERROR("PROJ", "Failed to create coordinate transformation");
 //        return nullptr;
 //    }
     return std::make_unique<CoordinateTransformer>(*this, target);

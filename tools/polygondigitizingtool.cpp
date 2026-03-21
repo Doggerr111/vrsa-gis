@@ -38,7 +38,7 @@ void vrsa::tools::PolygonDigitizingTool::mousePressEvent(QGraphicsSceneMouseEven
     {
         if (mFixedCount<3)
         {
-            VRSA_DEBUG("PolygonDigitizingTool", "Can't add polygon with less than 3 points");
+            VRSA_DEBUG("CORE", "Can't add polygon with less than 3 points");
             return;
         }
         if (points().size() != mFixedCount)

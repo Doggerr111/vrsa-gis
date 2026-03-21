@@ -36,7 +36,21 @@ public:
     int getMapScaleDenominator() const noexcept { return mCurrentScale; };
     /** Возвращает View->transform()->m11() */
     double getMapHolderScale() const;
-    /** Возвращает текущую видимую область виджета */
+    /**
+     * @brief Возвращает текущий экстент карты в координатах сцены
+     *
+     * @note Возвращаемый прямоугольник определяется как:
+     *       - left()   = левая координата (X минимум)
+     *       - top()    = верхняя координата (Y максимум)   ← ВНИМАНИЕ: верхний угол!
+     *       - right()  = правая координата (X максимум)
+     *       - bottom() = нижняя координата (Y минимум)
+     *
+     * @note height() возвращает ОТРИЦАТЕЛЬНОЕ значение, так как ось Y в координатах сцены
+     *       направлена вниз, а в картографических координатах — вверх.
+     *
+     * @return QRectF Экстент карты с координатами left, top (максимальный Y),
+     *         right, bottom (минимальный Y). height() будет отрицательным!
+     */
     QRectF getExtent();
 
     void SetSpatialRef(OGRSpatialReference* ref);
@@ -54,7 +68,9 @@ signals:
     /** Сигнал вызывается при изменением пользователем масштаба (при зумировании)*/
     void MapHolderZoomed(double);
     /** Сигнал вызывается при изменением видимого окна карты */
-    void extentChanged();
+    void extentChanged(const QRectF& extent, const QRect& widgetRect);
+
+
     void scaleChanged(int, double);
     //для перехвата его быстрее view в сцене, чтобы например заблокировать перемещение сцены
     void mousePressed(QMouseEvent *event);

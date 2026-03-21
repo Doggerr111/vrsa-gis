@@ -39,11 +39,11 @@ using OgrGeometrySharedPtr = std::shared_ptr<OGRGeometry>;
  * @brief Создать умный указатель на GDALDataset
  * @endrussian
  */
-inline GdalDatasetPtr createDataset(const std::string& filename,
+inline GdalDatasetPtr createDataset(const std::string& str,
                                    unsigned int openFlags = GDAL_OF_VERBOSE_ERROR | GDAL_OF_UPDATE)
 {
     return GdalDatasetPtr(
-        static_cast<GDALDataset*>(GDALOpenEx(filename.c_str(), openFlags, nullptr, nullptr, nullptr))
+        static_cast<GDALDataset*>(GDALOpenEx(str.c_str(), openFlags, nullptr, nullptr, nullptr))
     );
 }
 

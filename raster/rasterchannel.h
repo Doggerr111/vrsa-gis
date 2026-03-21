@@ -4,6 +4,7 @@
 #include <gdal.h>
 #include <gdal_priv.h>
 #include <QGraphicsPixmapItem>
+#include <QDebug>
 #include "common/gisexceptions.h"
 namespace vrsa
 {
@@ -11,6 +12,19 @@ namespace raster
 {
 
 
+/**
+ * @class RasterChannel
+ * @brief Представляет отдельный канал (band) растровых данных из файловых источников
+ *
+ * Этот класс предназначен ТОЛЬКО для работы с растрами из локальных файлов
+ * (например, GeoTIFF). Он загружает все данные канала в память
+ * и предоставляет типизированный доступ к значениям пикселей.
+ *
+ * @note НЕ ИСПОЛЬЗУЕТСЯ для веб-сервисов (WMS, TMS, XYZ). Для работы с тайловыми
+ *       сервисами используется отдельная реализация на основе прямых вызовов GDAL API.
+ *
+ * @see RasterDataset, WebRasterDataset
+ */
 class RasterChannel: public QObject
 {
     Q_OBJECT
@@ -106,6 +120,10 @@ private:
 
 public:
     RasterChannel(GDALRasterBand* band);
+    ~RasterChannel()
+    {
+        qDebug()<<"oi oi";
+    }
 private:
     void createStorage(GDALRasterBand* band);
     template<typename T>

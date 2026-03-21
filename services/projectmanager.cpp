@@ -2,6 +2,9 @@
 #include "vector/vectorlayer.h"
 #include "gdal/gdalreader.h"
 #include "featuregraphicsitemfactory.h"
+#include "rastergraphicsitemfactory.h"
+#include "raster/webrasterdataset.h"
+#include "raster/rasterdataset.h"
 vrsa::services::ProjectManager::ProjectManager(QObject *parent)
     : QObject{parent},
       mActiveVectorLayer{nullptr}
@@ -9,35 +12,42 @@ vrsa::services::ProjectManager::ProjectManager(QObject *parent)
 
 }
 
+vrsa::services::ProjectManager::~ProjectManager()
+{
+    for (auto& dataset: mDatasets)
+        emit datasetAboutToBeRemoved(dataset.get());
+}
+
+
 void vrsa::services::ProjectManager::AddDataset(DatasetPtr dS)
 {
     if (!dS)
     {
-        VRSA_DEBUG("ProjectManager", "Failed to add new dataset");
+        VRSA_DEBUG("CORE", "Failed to add new dataset");
         return;
     }
-    graphics::FeatureGraphicsItemFactory &itemFactoryRef = graphics::FeatureGraphicsItemFactory::instance();
     switch (dS->GetDatasetType())
     {
     case common::DatasetType::Vector:
     {
+        //graphics::FeatureGraphicsItemFactory &itemFactoryRef = graphics::FeatureGraphicsItemFactory::instance();
         auto vectorDataset = static_cast<vrsa::vector::VectorDataset*>(dS.get());
         for (int i = 0; i < vectorDataset->layersCount(); ++i )
         {
             auto vectorLayer = vectorDataset->getLayer(i);
             if (!vectorLayer)
             {
-                VRSA_DEBUG("ProjectManager", "Nullptr layer after VectorDataset::getLayer(size_t indx)");
+                VRSA_DEBUG("CORE", "Nullptr layer after VectorDataset::getLayer(size_t indx)");
                 continue;
             }
             for (auto vectorFeature: vectorLayer->getFeatures())
             {
                 if (!vectorFeature)
                 {
-                    VRSA_DEBUG("ProjectManager", "Nullptr feature in Vector Layer");
+                    VRSA_DEBUG("CORE", "Nullptr feature in Vector Layer");
                     continue;
                 }
-                itemFactoryRef.createForFeature(vectorFeature);
+                graphics::FeatureGraphicsItemFactory::instance().createForFeature(vectorFeature);
 //                auto featItem = std::make_unique<graphics::FeatureGraphicsItem>(vectorFeature);
 //                emit featureGraphicsItemCreated(featItem.release()); //передаем владение (сцене)
             }
@@ -45,12 +55,40 @@ void vrsa::services::ProjectManager::AddDataset(DatasetPtr dS)
         }
         break;
     }
-    default:break;
+    case common::DatasetType::Raster:
+    {
+        if (dS->getDatasetSourceType() != common::DatasetSource::File)
+        {
+            graphics::RasterGraphicsItemFactory::instance().createForWebDataset
+                    (static_cast<raster::WebRasterDataset*>(dS.get()));
+        }
+        else
+        {
+            graphics::RasterGraphicsItemFactory::instance().createForFileDataset
+                    (static_cast<raster::RasterDataset*>(dS.get()));
+        }
+    }
+    default:
+        break;
     }
 
     auto* dsPtr = dS.get();
     mDatasets.push_back(std::move(dS));
     emit datasetAdded(dsPtr);
+}
+
+void vrsa::services::ProjectManager::removeDataset(gdalwrapper::Dataset *dS)
+{
+    for (auto it = mDatasets.begin(); it != mDatasets.end();)
+    {
+        if (it->get() == dS)
+        {
+            emit datasetAboutToBeRemoved(it->get());
+            it = mDatasets.erase(it);
+        }
+        else
+            it++;
+    }
 }
 
 std::vector<vrsa::services::ProjectManager::DatasetPtr> &vrsa::services::ProjectManager::getDatasets() noexcept
@@ -108,12 +146,12 @@ vrsa::vector::VectorLayer* vrsa::services::ProjectManager::getLayer(const std::s
     auto dS = getDatasetBySource(src);
     if (dS == nullptr)
     {
-        VRSA_ERROR("ProjectManager", "Can't find dataset:" + src);
+        VRSA_ERROR("CORE", "Can't find dataset:" + src);
         return nullptr;
     }
     if (dS->GetDatasetType() != common::DatasetType::Vector)
     {
-        VRSA_ERROR("ProjectManager", "Can't find vector dataset:" + src);
+        VRSA_ERROR("CORE", "Can't find vector dataset:" + src);
         return nullptr;
     }
     auto vDs = static_cast<vector::VectorDataset*>(getDatasetBySource(src));
@@ -133,7 +171,26 @@ void vrsa::services::ProjectManager::setActiveVectorLayer(const std::string &src
         mActiveVectorLayer=layer;
         return;
     }
-    VRSA_ERROR("ProjectManager", "Cant set active layer with given path:" + src +" and index:" + std::to_string(idx));
+    VRSA_ERROR("CORE", "Cant set active layer with given path:" + src +" and index:" + std::to_string(idx));
+}
+
+vrsa::vector::VectorDataset *vrsa::services::ProjectManager::getDatasetAssociatedWithVectorLayer
+                                                        (const vector::VectorLayer *layer) const
+{
+    if (!layer) return nullptr;
+    for (const auto& dataset: mDatasets)
+    {
+        if (dataset->GetDatasetType() == common::DatasetType::Vector)
+        {
+            auto vectorDs = static_cast<vector::VectorDataset*>(dataset.get());
+            const auto& layers = vectorDs->getLayers();
+            auto it = std::find_if(layers.begin(), layers.end(), [layer](const auto& ptr) {
+                    return ptr.get() == layer;});
+            if (it != layers.end())
+                return vectorDs;
+        }
+    }
+    return nullptr;
 }
 
 vrsa::vector::VectorLayer *vrsa::services::ProjectManager::getLayerAssociatedWithFeature(const vector::VectorFeature *feature) const
@@ -159,26 +216,128 @@ vrsa::vector::VectorLayer *vrsa::services::ProjectManager::getLayerAssociatedWit
 
 }
 
-vrsa::gdalwrapper::Dataset *vrsa::services::ProjectManager::readDataset(const std::string &source)
+int vrsa::services::ProjectManager::getLayerID(const vector::VectorLayer *layer) const
+{
+    if (!layer) return -1;
+    auto ds = getDatasetAssociatedWithVectorLayer(layer);
+    const auto& dsLayers = ds->getLayers();
+    for (int i = 0; i < dsLayers.size(); ++i)
+    {
+        if (dsLayers.at(i).get() == layer)
+            return i;
+    }
+    return -1;
+}
+
+vrsa::gdalwrapper::Dataset *vrsa::services::ProjectManager::readDataset(const std::string &source,
+                                                                        unsigned int flags)
 {
     vrsa::gdalwrapper::GDALReader reader;
     std::unique_ptr<vrsa::gdalwrapper::Dataset> datasetUPtr;
     try
     {
-        datasetUPtr=reader.readDataset(source);
+        datasetUPtr=reader.readDataset(source, flags);
     }
     catch (const vrsa::common::DataSetOpenException& e)
     {
-        VRSA_DEBUG("ProjectManager", e.what());
+        VRSA_ERROR("CORE", e.what());
     }
     if (!datasetUPtr)
     {
-        VRSA_ERROR("ProjectManager", "Can't read dataset: " + source);
+        VRSA_ERROR("CORE", "Can't read dataset: " + source);
         return nullptr;
     }
     auto rawDs = datasetUPtr.get();
     AddDataset(std::move(datasetUPtr));
     return rawDs;
+}
+
+vrsa::gdalwrapper::Dataset *vrsa::services::ProjectManager::readTMSDataset(const std::string &xml,
+                                                                           bool xyz, unsigned int flags)
+{
+    vrsa::gdalwrapper::GDALReader reader;
+    std::unique_ptr<vrsa::gdalwrapper::Dataset> datasetUPtr;
+    try
+    {
+        datasetUPtr=reader.readTMSDataset(xml, flags);
+    }
+    catch (const vrsa::common::DataSetOpenException& e)
+    {
+        VRSA_ERROR("CORE", e.what());
+    }
+    if (!datasetUPtr)
+    {
+        VRSA_ERROR("CORE", "Can't read TMS dataset: " + xml);
+        return nullptr;
+    }
+    auto rawDs = datasetUPtr.get();
+    xyz ? rawDs->setDatasetSourceType(common::DatasetSource::XYZ)
+        : rawDs->setDatasetSourceType(common::DatasetSource::TMS);
+    AddDataset(std::move(datasetUPtr));
+    return rawDs;
+}
+
+void vrsa::services::ProjectManager::createPostGISConnection(const QString& connectionName,
+                                                             const std::string &connectionString)
+{
+    if (connectionString.empty()) return;
+    auto pgDsUptr = readPostGISDataset(connectionString);
+    pgDsUptr ? VRSA_INFO("DATABASE", "Successfuly connected to PostGIS database. Connection name:"
+                         + connectionName.toStdString())
+             : VRSA_ERROR("DATABASE", "Failed to connect to the PostGIS database. Connection name:"
+                         + connectionName.toStdString());
+    pgDsUptr->setName(connectionName.toStdString());
+    emit postGisDatasetReady(pgDsUptr.get());
+    mDatasets.push_back(std::move(pgDsUptr));
+}
+
+void vrsa::services::ProjectManager::createXYZConnection(const QString &connectionName, const std::string &xmlString)
+{
+    if (xmlString.empty()) return;
+    auto XYZds = readTMSDataset(xmlString, true, GDAL_OF_RASTER | GDAL_OF_READONLY);
+    XYZds ? VRSA_INFO("MAP SERVICES", "Successfuly connected to XYZ service. Connection name:" + connectionName.toStdString()
+                     + " Connection string:" + xmlString)
+         : VRSA_ERROR("MAP SERVICES", "Failed to connect to XYZ service. Connection name:" + connectionName.toStdString()
+                      + " Connection string:" + xmlString);
+    XYZds->setName(connectionName.toStdString());
+//    emit postGisDatasetReady(pgDsUptr.get());
+//    mDatasets.push_back(std::move(pgDsUptr));
+}
+
+void vrsa::services::ProjectManager::addPostGISLayer(vector::VectorLayer *pgLayer)
+{
+    if (!pgLayer)
+    {
+        VRSA_ERROR("CORE", "Can't add layer from PG database");
+        return;
+    }
+    for (auto vectorFeature: pgLayer->getFeatures())
+    {
+        if (!vectorFeature)
+        {
+            VRSA_DEBUG("CORE", "Nullptr feature in Vector Layer");
+            continue;
+        }
+        graphics::FeatureGraphicsItemFactory::instance().createForFeature(vectorFeature);
+    }
+    emit vectorLayerAdded(pgLayer);
+}
+
+std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::services::ProjectManager::readPostGISDataset
+                                                         (const std::string &connectionString)
+{
+    vrsa::gdalwrapper::GDALReader reader;
+    std::unique_ptr<vrsa::gdalwrapper::Dataset> datasetUPtr;
+    try
+    {
+        datasetUPtr=reader.readDataset(connectionString, GDAL_OF_VECTOR | GDAL_OF_UPDATE);
+    }
+    catch (const vrsa::common::DataSetOpenException& e)
+    {
+        return nullptr;
+    }
+    datasetUPtr->setDatasetSourceType(common::DatasetSource::PostGIS);
+    return datasetUPtr;
 }
 
 void vrsa::services::ProjectManager::onVectorLayerReadingRequested(const std::string &src)

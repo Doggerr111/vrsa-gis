@@ -6,73 +6,21 @@ vrsa::calculations::MapCalculator::MapCalculator()
 
 }
 
-double vrsa::calculations::MapCalculator::calculateScaleFactor(double scale, const QRectF &mapExtent, double canvasWidth)
-{
-    if (scale <= 0.0 || std::isnan(scale) || std::isinf(scale))
-            return 1.0;
-    if (!mapExtent.isValid() || mapExtent.width() <= 0 || mapExtent.height() <= 0)
-            return 1.0;
-    if (!std::isfinite(canvasWidth) || canvasWidth <= 0.0 || canvasWidth > 1e6)
-            return 1.0;
-    if (!mapExtent.isValid() || !std::isfinite(mapExtent.width()) ||  mapExtent.width() <= 0.0 ||
-                                          mapExtent.width() > 1e9 || mapExtent.height() <= 0)
-            return 1.0;
 
-    double conversionFactor = 1/0.0254; //1 дюйм = 0.0254 метра
-    QPointF rect_c= mapExtent.center();
-    double xMin = rect_c.x()-mapExtent.width()/2.0;
-    double xMax=xMin+mapExtent.width();
-    double currentDist = xMax - xMin;
-    if (isGeographicCRS) //если географическая ск вычисляем дистанцию по формуле Хаверсина
-    {
-        currentDist = calculateGeographicDistance(mapExtent);
-        conversionFactor = 39.3700787;
-        if (currentDist < 1.0 || currentDist > 1e9)
-        {
-            VRSA_DEBUG("MapHolder", "Расстояние слишком мало:" + std::to_string(currentDist));
-            currentDist = 1.0;
-        }
-    }
-
-    //получаем расстояние в метрах от левого края холста карты до правого при заданном масштабе
-    const double distance = scale * (canvasWidth / mDpi) / conversionFactor;
-    if (distance<=0.0)
-        return 1;
-
-    //double currentDist = calculateGeographicDistance(mapExtent); //вычисляем расстояние для текущего экстента
-    double scaleFactor = currentDist/distance; //коээфицент масштаба
-    //qDebug()<<QString::number(currentDist/distance,'f',2);
-    if (scaleFactor > 1e9)
-        return 1e9;
-
-    if (scaleFactor < 1e-9)
-        return 1e-9;
-
-    return scaleFactor;
-}
 
 double vrsa::calculations::MapCalculator::calculate(const QRectF &mapExtent, double canvasWidth) const
 {
-    double conversionFactor = 0;
     double delta = 0;
-    calculateMetrics( mapExtent, delta, conversionFactor );
+    calculateMetrics(mapExtent, delta);
     if (canvasWidth == 0 || mDpi == 0)
         return 1.0;
-    double canvasWidthInches = static_cast<double>(canvasWidth) / mDpi;
-        if (canvasWidthInches <= 0.0)
-            return 1.0;
-    double result = (delta * conversionFactor) / canvasWidthInches;
-    if (!std::isfinite(result) || result <= 0.0)
-        return 1.0;
-    //защита от физически бессмысленных масштабов
-    static const double MAX_SCALE = 1e9;  // 1:1,000,000,000,
-    static const double MIN_SCALE = 1.0;   // 1:1
-    if (result > MAX_SCALE)
-        return MAX_SCALE;
-    if (result < MIN_SCALE)
-        return MIN_SCALE;
-    return result;
-
+    double metersPerPixel = delta / canvasWidth; //сколько метров в пикселе
+    double pixelsPerCm = mDpi / 2.54; //сколько пикселей в 1 см (физически)
+    //метров в 1 см на экране
+    double metersPerCmOnScreen = metersPerPixel * pixelsPerCm;
+    double scaleDenominator = metersPerCmOnScreen * 100.0;
+    scaleDenominator = std::clamp(1.0, scaleDenominator, 1e9);
+    return scaleDenominator;
 }
 
 double vrsa::calculations::MapCalculator::calculateGeographicDistance(const QRectF &mapExtent) const
@@ -102,16 +50,61 @@ void vrsa::calculations::MapCalculator::setCRS(const spatialref::SpatialReferenc
 
 
 
-void vrsa::calculations::MapCalculator::calculateMetrics(const QRectF &mapExtent, double &delta, double &conversionFactor) const
+void vrsa::calculations::MapCalculator::calculateMetrics(const QRectF &mapExtent, double &delta) const
 {
+    if (isGeographicCRS) //если географическая ск вычисляем дистанцию по формуле Хаверсина
+    {
+        delta = calculateGeographicDistance(mapExtent);
+        return;
+    }
     QPointF rect_c= mapExtent.center();
     double xMin = rect_c.x()-mapExtent.width()/2.0;
     double xMax=xMin+mapExtent.width();
     delta = xMax - xMin;
-    conversionFactor=39.3700787; //(1/0.0254);
-    if (isGeographicCRS) //если географическая ск вычисляем дистанцию по формуле Хаверсина
-    {
-        conversionFactor = 39.3700787; //конвертация из дюймов в метры (для dpi)
-        delta = calculateGeographicDistance( mapExtent );
-    }
 }
+
+
+//double vrsa::calculations::MapCalculator::calculateScaleFactor(double scale, const QRectF &mapExtent, double canvasWidth)
+//{
+//    if (scale <= 0.0 || std::isnan(scale) || std::isinf(scale))
+//            return 1.0;
+//    if (!mapExtent.isValid() || mapExtent.width() <= 0 || mapExtent.height() <= 0)
+//            return 1.0;
+//    if (!std::isfinite(canvasWidth) || canvasWidth <= 0.0 || canvasWidth > 1e6)
+//            return 1.0;
+//    if (!mapExtent.isValid() || !std::isfinite(mapExtent.width()) ||  mapExtent.width() <= 0.0 ||
+//                                          mapExtent.width() > 1e9 || mapExtent.height() <= 0)
+//            return 1.0;
+
+//    double conversionFactor = 1/0.0254; //1 дюйм = 0.0254 метра
+//    QPointF rect_c= mapExtent.center();
+//    double xMin = rect_c.x()-mapExtent.width()/2.0;
+//    double xMax=xMin+mapExtent.width();
+//    double currentDist = xMax - xMin;
+//    if (isGeographicCRS) //если географическая ск вычисляем дистанцию по формуле Хаверсина
+//    {
+//        currentDist = calculateGeographicDistance(mapExtent);
+//        conversionFactor = 39.3700787;
+//        if (currentDist < 1.0 || currentDist > 1e9)
+//        {
+//            VRSA_DEBUG("CORE", "Расстояние слишком мало:" + std::to_string(currentDist));
+//            currentDist = 1.0;
+//        }
+//    }
+
+//    //получаем расстояние в метрах от левого края холста карты до правого при заданном масштабе
+//    const double distance = scale * (canvasWidth / mDpi) / conversionFactor;
+//    if (distance<=0.0)
+//        return 1;
+
+//    //double currentDist = calculateGeographicDistance(mapExtent); //вычисляем расстояние для текущего экстента
+//    double scaleFactor = currentDist/distance; //коээфицент масштаба
+//    //qDebug()<<QString::number(currentDist/distance,'f',2);
+//    if (scaleFactor > 1e9)
+//        return 1e9;
+
+//    if (scaleFactor < 1e-9)
+//        return 1e-9;
+
+//    return scaleFactor;
+//}

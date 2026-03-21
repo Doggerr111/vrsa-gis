@@ -8,10 +8,11 @@
 #include "common/logger.h"
 #include <QDir>
 #include <QRandomGenerator>
+#include "common/applicationsettings.h"
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    QFile file(":/app_styles/dark.qss");
+    QFile file(":/app_styles/dark_2.qss");
     if (file.open(QFile::ReadOnly))
     {
         QString styleSheet = QString::fromUtf8(file.readAll());
@@ -21,7 +22,7 @@ int main(int argc, char *argv[])
     }
     else
         VRSA_ERROR("UI", "Таблица стилей не загружена. Путь:" + QFileInfo(file).absoluteFilePath().toStdString());
-
+    vrsa::common::ApplicationSettings::instance();
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
     for (const QString &locale : uiLanguages)
@@ -43,6 +44,7 @@ int main(int argc, char *argv[])
     qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::DatasetType");
     qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::TreeItemType");
     qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::StyleParametr");
+
     MainWindow w;
     w.show();
     return a.exec();
