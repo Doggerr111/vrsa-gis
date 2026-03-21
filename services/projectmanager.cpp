@@ -77,6 +77,20 @@ void vrsa::services::ProjectManager::AddDataset(DatasetPtr dS)
     emit datasetAdded(dsPtr);
 }
 
+void vrsa::services::ProjectManager::removeDataset(gdalwrapper::Dataset *dS)
+{
+    for (auto it = mDatasets.begin(); it != mDatasets.end();)
+    {
+        if (it->get() == dS)
+        {
+            emit datasetAboutToBeRemoved(it->get());
+            it = mDatasets.erase(it);
+        }
+        else
+            it++;
+    }
+}
+
 std::vector<vrsa::services::ProjectManager::DatasetPtr> &vrsa::services::ProjectManager::getDatasets() noexcept
 {
     return mDatasets;

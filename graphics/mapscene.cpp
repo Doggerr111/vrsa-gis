@@ -141,7 +141,6 @@ void vrsa::graphics::MapScene::onMapHolderScaleChanged(int mapScale, double widg
     mMapHolderScale = widgetScale;
     for (const auto& feat: mMapItems) //для векторных объектов
     {
-
         feat->setScale(mMapScale, mMapHolderScale);
     }
     for (const auto& tempItem: mTempItems) //для временных объектов
@@ -221,18 +220,18 @@ void vrsa::graphics::MapScene::onDatasetRemoved(gdalwrapper::Dataset *dataset)
             std::unordered_set<vector::VectorFeature*> featuresToRemove;
             for (auto& feature : layer->getFeatures())
                 featuresToRemove.insert(feature);
-            std::vector<std::unique_ptr<FeatureGraphicsItem>> toRemove;
+            std::vector<FeatureGraphicsItem*> toRemove;
             for (auto& item : mMapItems)
             {
                 if (featuresToRemove.count(item->getFeature()))
-                    toRemove.push_back(std::move(item));
+                    toRemove.push_back(item.get());
             }
             for (auto& item : toRemove)
             {
-                removeItem(item.get());
+                removeItem(item);
                 auto it = std::find_if(mMapItems.begin(), mMapItems.end(),
                                        [&](const std::unique_ptr<FeatureGraphicsItem>& ptr) {
-                    return ptr.get() == item.get();
+                    return ptr.get() == item;
                 });
                 if (it != mMapItems.end())
                     mMapItems.erase(it);

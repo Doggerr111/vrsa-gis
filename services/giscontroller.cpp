@@ -588,6 +588,13 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
             form.setTreeItem(clickedItem);
             form.exec();
         });
+        menu.addAction(tr("Закрыть датасет"), this, [this, clickedItem]() {
+            QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
+            auto vectorDataset = static_cast<vector::VectorDataset*>(mProjectManager->getDatasetBySource(path.toStdString()));
+            mProjectManager->removeDataset(vectorDataset);
+            delete clickedItem;
+
+        });
         break;
     case common::ItemType_RasterDataset:
         qDebug() << "Raster Dataset Item Clicked!";
@@ -595,16 +602,21 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
             qDebug() << "properties";
         });
         menu.addAction(tr("Увеличить до слоя"), this, [this, clickedItem]() {
-
             QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
             auto rasterDataset = static_cast<raster::RasterDataset*>(mProjectManager->getDatasetBySource(path.toStdString()));
-
             QRectF targetRect = rasterDataset->getBoundingBox();
             mComps.mapView->fitInView(targetRect, Qt::KeepAspectRatio);
             mComps.mapView->centerOn(targetRect.center());
             mComps.mapView->recalculateScale();
             qDebug() << targetRect;
+        });
+        menu.addAction(tr("Закрыть датасет"), this, [this, clickedItem]() {
+            QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
+            auto rasterDataset = static_cast<raster::RasterDataset*>(mProjectManager->getDatasetBySource(path.toStdString()));
+            mProjectManager->removeDataset(rasterDataset);
+            delete clickedItem;
+
         });
         break;
     case common::ItemType_VectorLayer:

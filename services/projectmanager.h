@@ -30,7 +30,7 @@ public:
 //        return s_instance;
 //    }
     void AddDataset(DatasetPtr dS);
-
+    void removeDataset(gdalwrapper::Dataset* dS);
     std::vector<DatasetPtr>& getDatasets() noexcept;
     explicit ProjectManager(QObject *parent = nullptr);
     ~ProjectManager();
