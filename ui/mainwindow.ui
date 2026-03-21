@@ -1555,6 +1555,7 @@ background-color: rgb(68,68,68)
     <property name="title">
      <string>Геообработка</string>
     </property>
+    <addaction name="actionBuffer"/>
     <addaction name="actionGeosTriangulation"/>
     <addaction name="actionVoronoiDiagram"/>
     <addaction name="actionIntersection"/>
@@ -1836,6 +1837,15 @@ background-color: rgb(68,68,68)
    </property>
    <property name="text">
     <string>Подключиться к XYZ</string>
+   </property>
+  </action>
+  <action name="actionBuffer">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/spatialOperations/icon_buffer_black_no_background.png</normaloff>:/images/icons/spatialOperations/icon_buffer_black_no_background.png</iconset>
+   </property>
+   <property name="text">
+    <string>Буферная зона</string>
    </property>
   </action>
  </widget>

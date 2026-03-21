@@ -80,6 +80,11 @@ public:
 
     vrsa::vector::VectorLayer*  getLayer(const std::string& src, int idx); //care!!
 
+    //возращает слои, координаты которых заданы в метрах
+    std::vector<vector::VectorLayer*> getProjectedVectorLayers();
+
+    vrsa::vector::VectorLayer*  getVectorLayerByName(const std::string& name); //care!!
+
     void setActiveVectorLayer(const std::string& src, int idx);
 
     inline void setActiveVectorLayer(vector::VectorLayer* vL) noexcept

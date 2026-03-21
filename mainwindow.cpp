@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     if (!mGisController)
         return;
+    setWindowTitle("VRSA");
     initialize();
     mGisController->setupViewComponents(createViewComponents());
     setupLogger();
@@ -113,6 +114,10 @@ vrsa::services::ViewComponents MainWindow::createViewComponents()
     comps.actionCreatePointLayer = ui->actionNew_point_layer;
     comps.actionCreateLineLayer = ui->actionNew_line_layer;
     comps.actionCreatePolygonLayer = ui->actionNew_polygon_layer;
+
+    comps.actionCreateBuffer = ui->actionBuffer;
+    comps.actionCreateTriangulation = ui->actionGeosTriangulation;
+    comps.actionCreateVoronoiDiag = ui->actionVoronoiDiagram;
 
     comps.actionWMSConnection = ui->actionConnectToWMS;
     comps.actionXYZConnection = ui->actionConnectToXYZ;

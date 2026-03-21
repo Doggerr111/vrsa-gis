@@ -7,6 +7,10 @@
 #include "vectorlayercreationform.h"
 #include "postgisconnectionform.h"
 #include "mapserviceconnectionform.h"
+#include "geosoperationform.h"
+#include "vectorlayertools/spatial_operations/bufferoperation.h"
+#include "vectorlayertools/spatial_operations/triangulationoperation.h"
+#include "vectorlayertools/spatial_operations/voronoioperation.h"
 #include "graphics/featuregraphicsitemfactory.h"
 #include "graphics/mapscene.h"
 #include "common/logger.h"
@@ -117,7 +121,7 @@ void vrsa::services::GISController::setup()
             this, &GISController::showContextMenuLOD);
 
     //==========ПОДЛЮЧЕНИЕ СИГНАЛОВ QAction==========
-    //вектор
+    //вектор (создание-открытие)
     connect(mComps.actionOpenLayer, &QAction::triggered,
             this, &GISController::onOpenLayerActionTriggered);
     connect(mComps.actionCreateLayer, &QAction::triggered,
@@ -128,6 +132,13 @@ void vrsa::services::GISController::setup()
             this, &GISController::onCreateLineLayerActionTriggered);
     connect(mComps.actionCreatePolygonLayer, &QAction::triggered,
             this, &GISController::onCreatePolygonLayerActionTriggered);
+    //геопроцессинг
+    connect(mComps.actionCreateBuffer, &QAction::triggered,
+            this, &GISController::onCreateBufferActionTriggered);
+    connect(mComps.actionCreateTriangulation, &QAction::triggered,
+            this, &GISController::onCreateTriangulationActionTriggered);
+    connect(mComps.actionCreateVoronoiDiag, &QAction::triggered,
+            this, &GISController::onCreateVoronoiActionTriggered);
 
     //сервисы
     connect(mComps.actionWMSConnection, &QAction::triggered,
@@ -1114,7 +1125,11 @@ void vrsa::services::GISController::handleMultipleFeaturesSelected(const std::ve
         handleFeatureSelected(item, false);
 }
 
+//===============================================================================================
+//===============================================================================================
 //=============================СЛОТЫ ОБРАБОТЧИКИ СИГНАЛОВ СО СЦЕНЫ===============================
+//===============================================================================================
+//===============================================================================================
 void vrsa::services::GISController::onMapHolderScaleChanged(int mapScale, double widgetScale)
 {
     mComps.scaleEdit->setText(QString::number(mapScale));
@@ -1153,7 +1168,13 @@ void vrsa::services::GISController::onActiveLayerChanged(const QString &name)
     mComps.activeLayerLabel->setText(tr("Активный слой:") + name);
 }
 
-//==================СЛОТЫ ОБРАБОТЧИКИ ACTION=========================
+
+//===============================================================================================
+//===============================================================================================
+//=================================СЛОТЫ ОБРАБОТЧИКИ ACTION======================================
+//===============================================================================================
+//===============================================================================================
+
 void vrsa::services::GISController::onOpenLayerActionTriggered()
 {
     std::string fileName=QFileDialog::getOpenFileName(nullptr,"Chose Vector Layer","Vector Files").toStdString();
@@ -1163,28 +1184,81 @@ void vrsa::services::GISController::onOpenLayerActionTriggered()
 void vrsa::services::GISController::onCreateLayerActionTriggered()
 {
     VectorLayerCreationForm form;
-    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this,
+            &GISController::onVectorLayerCreationAccepted);
     form.exec();
 }
 
 void vrsa::services::GISController::onCreatePointLayerActionTriggered()
 {
     VectorLayerCreationForm form(common::GeometryType::Point);
-    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this,
+            &GISController::onVectorLayerCreationAccepted);
     form.exec();
 }
 
 void vrsa::services::GISController::onCreateLineLayerActionTriggered()
 {
     VectorLayerCreationForm form(common::GeometryType::LineString);
-    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this,
+            &GISController::onVectorLayerCreationAccepted);
     form.exec();
 }
 
 void vrsa::services::GISController::onCreatePolygonLayerActionTriggered()
 {
     VectorLayerCreationForm form(common::GeometryType::Polygon);
-    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this,
+            &GISController::onVectorLayerCreationAccepted);
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateBufferActionTriggered()
+{
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+    GeosOperationForm form(vector::SpatialOperationType::Buffer, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto operation = std::make_unique<vector::BufferOperation>(layer, dto, mVectorCreator.get());
+        operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateTriangulationActionTriggered()
+{
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+
+    GeosOperationForm form(vector::SpatialOperationType::Triangulation, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto operation = std::make_unique<vector::TriangulationOperation>(layer, dto, mVectorCreator.get());
+        operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateVoronoiActionTriggered()
+{
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+    GeosOperationForm form(vector::SpatialOperationType::VoronoiDiagramm, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto operation = std::make_unique<vector::VoronoiOperation>(layer, dto, mVectorCreator.get());
+        operation->calculate();
+    });
     form.exec();
 }
 

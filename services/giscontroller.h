@@ -72,12 +72,16 @@ struct ViewComponents
     QTabWidget* rightTab = nullptr; //и дочерние виджеты
     QTreeWidget* featureSelectionTree = nullptr;
     TreeWidget* postGisTree = nullptr;
-    //actions
+    //actions vector
     QAction* actionOpenLayer = nullptr;
     QAction* actionCreateLayer = nullptr;
     QAction* actionCreatePointLayer = nullptr;
     QAction* actionCreateLineLayer = nullptr;
     QAction* actionCreatePolygonLayer = nullptr;
+    //actions geoproccessing
+    QAction* actionCreateBuffer = nullptr;
+    QAction* actionCreateTriangulation = nullptr;
+    QAction* actionCreateVoronoiDiag = nullptr;
 
     //web-map services
     QAction* actionWMSConnection = nullptr;
@@ -112,7 +116,9 @@ struct ViewComponents
         if (!postGisTree) { errorMsg = "postGisTree is null"; return false; }
         if (!actionWMSConnection) { errorMsg = "action wms connections is null"; return false; }
         if (!actionXYZConnection) { errorMsg = "action xyz connection is null"; return false; }
-
+        if (!actionCreateBuffer) { errorMsg = "action create buffer is null"; return false; }
+        if (!actionCreateTriangulation) { errorMsg = "action create triangulations is null"; return false; }
+        if (!actionCreateVoronoiDiag) { errorMsg = "action create voronoi is null"; return false; }
         return true;
     }
 };
@@ -193,6 +199,11 @@ private slots:
     void onCreatePointLayerActionTriggered();
     void onCreateLineLayerActionTriggered();
     void onCreatePolygonLayerActionTriggered();
+
+    void onCreateBufferActionTriggered();
+    void onCreateTriangulationActionTriggered();
+    void onCreateVoronoiActionTriggered();
+
     //services actions
     void onWMSConnectionTriggered();
     void onXYZConnectionTriggered();
