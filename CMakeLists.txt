@@ -110,6 +110,7 @@ file(GLOB CORE_SOURCES
     "test_utils/*.cpp"
     "geometry/*.cpp"
     "vectorlayertools/*.cpp"
+    "vectorlayertools/spatial_operations/*.cpp"
     "spatialref/*.cpp"
     )
 file(GLOB_RECURSE GRAPHICS_SOURCES "graphics/*.cpp")
@@ -130,6 +131,7 @@ file(GLOB CORE_HEADERS
     "test_utils/*.h"
     "geometry/*.h"
     "vectorlayertools/*.h"
+    "vectorlayertools/spatial_operations/*.h"
     "spatialref/*.h"
     )
 add_library(vrsa_core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
@@ -151,6 +153,7 @@ target_include_directories(vrsa_core PUBLIC
     test_utils
     geometry
     vectorlayertools
+    vectorlayertools/spatial_operations
     spatialref
 
     )

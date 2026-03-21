@@ -22,7 +22,7 @@ public:
 protected:
     void mousePressEvent(QMouseEvent *event) override;
 signals:
-    void clicked(QString);
+    void clicked( QString);
 private:
     ButtonRole mRole;
 };

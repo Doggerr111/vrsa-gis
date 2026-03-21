@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>540</width>
-    <height>441</height>
+    <height>430</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
@@ -20,8 +26,14 @@
    <string>Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
+   <item alignment="Qt::AlignTop">
     <widget class="QFrame" name="frame">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
@@ -50,17 +62,29 @@
         </layout>
        </widget>
       </item>
-      <item>
+      <item alignment="Qt::AlignTop">
        <widget class="QFrame" name="frame_3">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
         <property name="frameShadow">
          <enum>QFrame::Raised</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0">
          <item>
           <widget class="QFrame" name="frame_4">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -69,13 +93,35 @@
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
-             <widget class="QGraphicsView" name="graphicsView"/>
+             <widget class="QGraphicsView" name="graphicsView">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>100</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>100</height>
+               </size>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
          </item>
          <item>
           <widget class="QFrame" name="frame_5">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -85,6 +131,18 @@
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
              <widget class="QTreeWidget" name="treeWidget">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Ignored">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
               <column>
                <property name="text">
                 <string notr="true">1</string>
@@ -117,7 +175,7 @@
               </property>
               <property name="icon">
                <iconset resource="../icons.qrc">
-                <normaloff>:/images/icons/SymbolStyling/plus.png</normaloff>:/images/icons/SymbolStyling/plus.png</iconset>
+                <normaloff>:/images/icons/common/add_icon_black_with_border.png</normaloff>:/images/icons/common/add_icon_black_with_border.png</iconset>
               </property>
              </widget>
             </item>
@@ -128,7 +186,7 @@
               </property>
               <property name="icon">
                <iconset resource="../icons.qrc">
-                <normaloff>:/images/icons/SymbolStyling/document.png</normaloff>:/images/icons/SymbolStyling/document.png</iconset>
+                <normaloff>:/images/icons/dialogs/icon_copy_flat_black.png</normaloff>:/images/icons/dialogs/icon_copy_flat_black.png</iconset>
               </property>
              </widget>
             </item>
@@ -139,7 +197,7 @@
               </property>
               <property name="icon">
                <iconset resource="../icons.qrc">
-                <normaloff>:/images/icons/SymbolStyling/up_green_arrow.png</normaloff>:/images/icons/SymbolStyling/up_green_arrow.png</iconset>
+                <normaloff>:/images/icons/dialogs/icon_arrow_up_flat_black.png</normaloff>:/images/icons/dialogs/icon_arrow_up_flat_black.png</iconset>
               </property>
              </widget>
             </item>
@@ -150,7 +208,7 @@
               </property>
               <property name="icon">
                <iconset resource="../icons.qrc">
-                <normaloff>:/images/icons/SymbolStyling/delete.png</normaloff>:/images/icons/SymbolStyling/delete.png</iconset>
+                <normaloff>:/images/icons/common/remove_icon_black_with_border.png</normaloff>:/images/icons/common/remove_icon_black_with_border.png</iconset>
               </property>
              </widget>
             </item>
@@ -161,7 +219,7 @@
               </property>
               <property name="icon">
                <iconset resource="../icons.qrc">
-                <normaloff>:/images/icons/SymbolStyling/down_green_arrow.png</normaloff>:/images/icons/SymbolStyling/down_green_arrow.png</iconset>
+                <normaloff>:/images/icons/dialogs/icon_arrow_down_flat_black.png</normaloff>:/images/icons/dialogs/icon_arrow_down_flat_black.png</iconset>
               </property>
              </widget>
             </item>
@@ -172,7 +230,7 @@
               </property>
               <property name="icon">
                <iconset resource="../icons.qrc">
-                <normaloff>:/images/icons/SymbolStyling/diskette_green.png</normaloff>:/images/icons/SymbolStyling/diskette_green.png</iconset>
+                <normaloff>:/images/icons/diskette.png</normaloff>:/images/icons/diskette.png</iconset>
               </property>
              </widget>
             </item>
@@ -182,8 +240,12 @@
         </layout>
        </widget>
       </item>
-      <item>
+      <item alignment="Qt::AlignBottom">
        <widget class="QFrame" name="frame_7">
+        <property name="styleSheet">
+         <string notr="true">QFrame { border: none}
+</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -191,10 +253,40 @@
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item alignment="Qt::AlignBottom">
           <widget class="QStackedWidget" name="stackedWidget">
            <widget class="QWidget" name="pagePointStyle">
             <layout class="QVBoxLayout" name="verticalLayout_4">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QFrame" name="frame_15">
                <property name="frameShape">
@@ -203,7 +295,23 @@
                <property name="frameShadow">
                 <enum>QFrame::Raised</enum>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_6"/>
+               <layout class="QVBoxLayout" name="verticalLayout_6">
+                <property name="spacing">
+                 <number>1</number>
+                </property>
+                <property name="leftMargin">
+                 <number>1</number>
+                </property>
+                <property name="topMargin">
+                 <number>1</number>
+                </property>
+                <property name="rightMargin">
+                 <number>1</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>1</number>
+                </property>
+               </layout>
               </widget>
              </item>
             </layout>

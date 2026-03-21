@@ -27,6 +27,20 @@ QFileDialog QPushButton:hover {
 background-color: #757575;
 }
 
+QDialog QPushButton {
+min-width: 20px;
+min-height: 20px;
+}
+
+QDialog QToolButton {
+min-width: 15px;
+min-height: 15px;
+}
+
+/* QDialog QFrame {
+border: none;
+} */
+
 /* ЗАГОЛОВКИ ОКОН */
 QDialog QLabel#qt_dialog_titlelabel, QMessageBox QLabel, QInputDialog QLabel {
 color: #ffffff;
