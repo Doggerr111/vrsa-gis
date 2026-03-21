@@ -227,17 +227,17 @@ void vrsa::graphics::FeatureGraphicsItemRenderer::createPolicies(Symbol *symbol,
         failedpol++;
         break;
     }
-    qDebug()<<"success:" << succespol;
-    qDebug()<<"failed:" << failedpol;
-    VRSA_DEBUG("RENDERING", "=== DRAWING POLICY STATS ===");
-    VRSA_DEBUG("RENDERING", "Points:        " + std::to_string(pointCount));
-    VRSA_DEBUG("RENDERING", "MultiPoints:   " + std::to_string(multiPointCount));
-    VRSA_DEBUG("RENDERING", "Lines:         " + std::to_string(lineCount));
-    VRSA_DEBUG("RENDERING", "MultiLines:    " + std::to_string(multiLineCount));
-    VRSA_DEBUG("RENDERING", "Polygons:      " + std::to_string(polygonCount));
-    VRSA_DEBUG("RENDERING", "MultiPolygons: " + std::to_string(multiPolygonCount));
-    VRSA_DEBUG("RENDERING", "Unknown:       " + std::to_string(unknownCount));
-    VRSA_DEBUG("STATS", "============================");
+//    qDebug()<<"success:" << succespol;
+//    qDebug()<<"failed:" << failedpol;
+//    VRSA_DEBUG("RENDERING", "=== DRAWING POLICY STATS ===");
+//    VRSA_DEBUG("RENDERING", "Points:        " + std::to_string(pointCount));
+//    VRSA_DEBUG("RENDERING", "MultiPoints:   " + std::to_string(multiPointCount));
+//    VRSA_DEBUG("RENDERING", "Lines:         " + std::to_string(lineCount));
+//    VRSA_DEBUG("RENDERING", "MultiLines:    " + std::to_string(multiLineCount));
+//    VRSA_DEBUG("RENDERING", "Polygons:      " + std::to_string(polygonCount));
+//    VRSA_DEBUG("RENDERING", "MultiPolygons: " + std::to_string(multiPolygonCount));
+//    VRSA_DEBUG("RENDERING", "Unknown:       " + std::to_string(unknownCount));
+//    VRSA_DEBUG("STATS", "============================");
 }
 
 
