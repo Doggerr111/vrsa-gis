@@ -68,8 +68,18 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDa
 vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDatasetFromGeometries
 (const std::string& path, std::vector<gdalwrapper::OgrGeometryPtr> geometries, vector::VectorLayer* origLayer)
 {
-
-    auto dsUPtr = createGDALDataset(path, geometries[0]->getGeometryType(), origLayer->getOGRLayer()->GetSpatialRef());
+    OGRSpatialReference* ref = nullptr;
+    if (origLayer)
+    {
+        if (origLayer->getOGRLayer())
+            ref = origLayer->getOGRLayer()->GetSpatialRef();
+    }
+    for (const auto& geom: geometries)
+    {
+        qDebug()<<geom->getGeometryType();
+        qDebug()<<geom->getGeometryName();
+    }
+    auto dsUPtr = createGDALDataset(path, geometries[0]->getGeometryType(), ref);
     if (!dsUPtr) return nullptr;
     auto layer = dsUPtr->GetLayer(0);
     if (!layer) return dsUPtr;
