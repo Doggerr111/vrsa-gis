@@ -17,6 +17,7 @@ namespace common
 struct SpatialOperationDTO
 {
     std::string firstInputLayerName;
+    std::string secondInputLayerName;
     std::string outputPath;
     //параметры для буфера
     double distance = 10.0;         // радиус (м)

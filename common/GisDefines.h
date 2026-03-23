@@ -255,6 +255,7 @@ enum class MapToolType
     RectSelectionTool,
     MoveTool,
     EditGeometryTool,
+    RulerTool,
     InfoTool //delete maybe
 };
 
