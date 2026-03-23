@@ -1,5 +1,5 @@
 #include "mapcalculations.h"
-
+#include "spatialref/spatialrefdatabase.h"
 vrsa::calculations::MapCalculator::MapCalculator()
     : isGeographicCRS{true}
 {
@@ -46,6 +46,69 @@ double vrsa::calculations::MapCalculator::calculateGeographicDistance(const QRec
 void vrsa::calculations::MapCalculator::setCRS(const spatialref::SpatialReference &ref)
 {
     isGeographicCRS = ref.isGeographic();
+}
+
+double vrsa::calculations::MapCalculator::calculateDistance(const QPointF &first, const QPointF &second, MeasurementType type,
+                                                            const std::string &ellipsoidName)
+{
+    switch (type)
+    {
+    case MeasurementType::Cartesian:
+    {
+        return std::sqrt((std::pow(second.x()-first.x(), 2)) + (std::pow(second.y()-first.y(), 2)));
+    }
+    case MeasurementType::Geodesic:
+    {
+        auto ellipsoids = spatialref::SpatialReferenceDatabase::instance().getPredefinedEllipsoids();
+        auto it = std::find_if(ellipsoids.begin(), ellipsoids.end(), [ellipsoidName]
+                     (const auto& ellips){
+            return ellips.name == ellipsoidName;
+        });
+        if (it != ellipsoids.end())
+            return calculateGeographicDistance(first, second, it->a);
+        else
+        {
+            VRSA_ERROR("CORE", "Can't find ellipsoid:" + ellipsoidName + " . Using cartesian calculation");
+            return std::sqrt((std::pow(second.x()-first.x(), 2)) + (std::pow(second.y()-first.y(), 2)));
+        }
+    }
+
+
+    }
+
+}
+
+double vrsa::calculations::MapCalculator::calculateGeographicDistance(const QPointF &first,
+                                                                      const QPointF &second, double r)
+{
+    //градусы в радианы
+    double lat1 = first.y() * M_PI / 180.0;
+    double lon1 = first.x() * M_PI / 180.0;
+    double lat2 = second.y() * M_PI / 180.0;
+    double lon2 = second.x() * M_PI / 180.0;
+
+    double dlat = lat2 - lat1;
+    double dlon = lon2 - lon1;
+
+    //формула гаверсинусов
+    double a = sin(dlat / 2) * sin(dlat / 2) +
+            cos(lat1) * cos(lat2) *
+            sin(dlon / 2) * sin(dlon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+
+    return r * c;
+}
+
+void vrsa::calculations::MapCalculator::calculateMetrics(const QPointF &first,
+                                          const QPointF &second, double &delta, bool isGeographicCRS)
+{
+//    if (isGeographicCRS) //если географическая ск вычисляем дистанцию по формуле Хаверсина
+//    {
+//        delta = calculateGeographicDistance(first, second);
+//        return;
+//    }
+//    delta = std::sqrt((std::pow(second.x()-first.x(), 2)) + (std::pow(second.y()-first.y(), 2)));
 }
 
 
