@@ -133,65 +133,78 @@ public:
     static gdalwrapper::OgrGeometryPtr createOGRfromGeos(const geos::geom::Geometry* geosGeom)
     {
         if (!geosGeom) return nullptr;
-        switch (geosGeom->getGeometryTypeId())
-        {
-        case geos::geom::GEOS_POINT:
-        {
-            auto* point = dynamic_cast<const geos::geom::Point*>(geosGeom);
-            if (!point) return nullptr;
-            return gdalwrapper::OgrGeometryPtr(new OGRPoint(point->getX(), point->getY()));
-        }
-        case geos::geom::GEOS_LINESTRING:
-        {
-            auto* line = dynamic_cast<const geos::geom::LineString*>(geosGeom);
-            if (!line) return nullptr;
-            OGRLineString* ogrLine = new OGRLineString();
-            for (size_t i = 0; i < line->getNumPoints(); ++i)
+        try {
+            switch (geosGeom->getGeometryTypeId())
             {
-                const auto& coord = line->getCoordinateN(i);
-                ogrLine->addPoint(coord.x, coord.y);
+            case geos::geom::GEOS_POINT:
+            {
+                auto* point = dynamic_cast<const geos::geom::Point*>(geosGeom);
+                if (!point) return nullptr;
+                //if (point->isEmpty()) return nullptr;
+                return gdalwrapper::OgrGeometryPtr(new OGRPoint(point->getX(), point->getY()));
             }
-            return gdalwrapper::OgrGeometryPtr(ogrLine);
-        }
-
-        case geos::geom::GEOS_POLYGON:
-        {
-            auto* poly = dynamic_cast<const geos::geom::Polygon*>(geosGeom);
-            if (!poly) return nullptr;
-
-            OGRPolygon* ogrPoly = new OGRPolygon();
-            const geos::geom::LineString* exterior = poly->getExteriorRing(); //внешнее кольцо
-            if (exterior)
+            case geos::geom::GEOS_LINESTRING:
             {
-                OGRLinearRing* ogrShell = new OGRLinearRing();
-                for (size_t i = 0; i < exterior->getNumPoints(); ++i)
+                auto* line = dynamic_cast<const geos::geom::LineString*>(geosGeom);
+                if (!line) return nullptr;
+                OGRLineString* ogrLine = new OGRLineString();
+                for (size_t i = 0; i < line->getNumPoints(); ++i)
                 {
-                    const auto& coord = exterior->getCoordinateN(i);
-                    ogrShell->addPoint(coord.x, coord.y);
+                    const auto& coord = line->getCoordinateN(i);
+                    ogrLine->addPoint(coord.x, coord.y);
                 }
-                ogrPoly->addRing(ogrShell);
+                return gdalwrapper::OgrGeometryPtr(ogrLine);
             }
 
-            //внутренние кольца
-            for (size_t i = 0; i < poly->getNumInteriorRing(); ++i)
+            case geos::geom::GEOS_POLYGON:
             {
-                const geos::geom::LineString* hole = poly->getInteriorRingN(i);
-                if (!hole) continue;
+                auto* poly = dynamic_cast<const geos::geom::Polygon*>(geosGeom);
+                if (!poly) return nullptr;
 
-                OGRLinearRing* interior = new OGRLinearRing();
-                for (size_t j = 0; j < hole->getNumPoints(); ++j)
+                OGRPolygon* ogrPoly = new OGRPolygon();
+                const geos::geom::LineString* exterior = poly->getExteriorRing(); //внешнее кольцо
+                if (exterior)
                 {
-                    const auto& coord = hole->getCoordinateN(j);
-                    interior->addPoint(coord.x, coord.y);
+                    OGRLinearRing* ogrShell = new OGRLinearRing();
+                    for (size_t i = 0; i < exterior->getNumPoints(); ++i)
+                    {
+                        const auto& coord = exterior->getCoordinateN(i);
+                        ogrShell->addPoint(coord.x, coord.y);
+                    }
+                    ogrPoly->addRing(ogrShell);
                 }
-                ogrPoly->addRing(interior);
 
+                //внутренние кольца
+                for (size_t i = 0; i < poly->getNumInteriorRing(); ++i)
+                {
+                    const geos::geom::LineString* hole = poly->getInteriorRingN(i);
+                    if (!hole) continue;
+
+                    OGRLinearRing* interior = new OGRLinearRing();
+                    for (size_t j = 0; j < hole->getNumPoints(); ++j)
+                    {
+                        const auto& coord = hole->getCoordinateN(j);
+                        interior->addPoint(coord.x, coord.y);
+                    }
+                    ogrPoly->addRing(interior);
+
+                }
+                return gdalwrapper::OgrGeometryPtr(ogrPoly);
             }
-            return gdalwrapper::OgrGeometryPtr(ogrPoly);
+            default:
+                return gdalwrapper::OgrGeometryPtr(toOGRViaWKT(geosGeom));
+            } // switch
         }
-        default:
-            return gdalwrapper::OgrGeometryPtr(toOGRViaWKT(geosGeom));
-        } // switch
+        catch (const geos::util::GEOSException& e) {
+            VRSA_ERROR("GEOS", "GEOS exception in conversion: " + std::string(e.what()));
+            return nullptr;
+        } catch (const std::exception& e) {
+            VRSA_ERROR("GEOS", "Standard exception in conversion: " + std::string(e.what()));
+            return nullptr;
+        } catch (...) {
+            VRSA_ERROR("GEOS", "Unknown exception in GEOS to OGR conversion");
+            return nullptr;
+        }
     }
 
     /**
