@@ -58,7 +58,8 @@ public:
         FeatureDoubleClicked,
         SelectionCleared,
         DigitizingFinished,
-        CursorPositionChanged
+        CursorPositionChanged,
+        SimpleLineRulerGeometryChanged
     };
 
 
