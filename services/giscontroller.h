@@ -31,6 +31,7 @@ namespace vrsa
 namespace common{
 enum class GeometryType: int;
 enum class MapToolType: int;
+struct RasterProcessingParams;
 }
 namespace vector{
 class VectorLayerCreator;
@@ -89,6 +90,14 @@ struct ViewComponents
     QAction* actionCreateUnion = nullptr;
     QAction* actionCreateDifference = nullptr;
     QAction* actionCreateSymDifference = nullptr;
+    //vector reprojection
+    QAction* actionReprojectVector = nullptr;
+    //actions raster
+    QAction* actionOpenRasterLayer = nullptr;
+    //raster analys
+    QAction* actionReprojectRaster = nullptr;
+    QAction* actionCutRasterByVectorMask = nullptr;
+    QAction* actionCreateIsolines = nullptr;
 
     //web-map services
     QAction* actionWMSConnection = nullptr;
@@ -97,7 +106,7 @@ struct ViewComponents
     QAction* actionPostGisConnection = nullptr;
 
 
-    //===============INTERNAL===================
+    //===============INTERNAL (can be nullptr)===================
     MeasurementForm* measurementForm = nullptr;
 
     bool isValid(std::string& errorMsg) const noexcept
@@ -135,6 +144,10 @@ struct ViewComponents
         if (!actionCreateUnion) { errorMsg = "action create union is null"; return false; }
         if (!actionCreateDifference) { errorMsg = "action create difference is null"; return false; }
         if (!actionCreateSymDifference) { errorMsg = "action create sym difference is null"; return false; }
+        if (!actionReprojectVector) { errorMsg = "action reproject vector is null"; return false; }
+        if (!actionOpenRasterLayer) { errorMsg = "action reproject raster is null"; return false; }
+        if (!actionCutRasterByVectorMask) { errorMsg = "action cut raster is null"; return false; }
+        if (!actionCreateIsolines) { errorMsg = "action create isolines is null"  ; return false; }
 
         return true;
     }
@@ -166,6 +179,7 @@ private:
     QIcon getIconForDigitizingToolBtn(common::GeometryType type); //например для изменения иконки оцифровки в ui
     QIcon getIconForGeometryType(common::GeometryType type);
     void addMapTool(common::MapToolType type, vector::VectorLayer *layer = nullptr);
+    void prepareRasterProcessingParams(vrsa::common::RasterProcessingParams &params);
     void removeMapTool();
     void startDigitizing();
     void syncZOrderWithTree() const;
@@ -227,7 +241,12 @@ private slots:
     void onCreateUnionActionTriggered();
     void onCreateDifferenceActionTriggered();
     void onCreateSymDifferenceActionTriggered();
+    void onReprojectVectorActionTriggered();
 
+    void onOpenRasterLayerActionTriggered();
+    void onReprojectRasterLayerActionTriggered();
+    void onCutRasterByVectorMaskActionTriggered();
+    void onCreateIsolinesActionTriggered();
 
     //services actions
     void onWMSConnectionTriggered();

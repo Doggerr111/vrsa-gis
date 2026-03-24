@@ -7,8 +7,10 @@
 #include "vectorlayercreationform.h"
 #include "postgisconnectionform.h"
 #include "mapserviceconnectionform.h"
+#include "rasterproccessingform.h"
 #include "geosoperationform.h"
 #include "measurementform.h"
+#include "vectorreprojectionform.h"
 #include "vectorlayertools/spatial_operations/bufferoperation.h"
 #include "vectorlayertools/spatial_operations/triangulationoperation.h"
 #include "vectorlayertools/spatial_operations/voronoioperation.h"
@@ -16,6 +18,10 @@
 #include "vectorlayertools/spatial_operations/unionoperation.h"
 #include "vectorlayertools/spatial_operations/differenceoperation.h"
 #include "vectorlayertools/spatial_operations/symdifferenceoperation.h"
+#include "rastertools/clipprocessor.h"
+#include "rastertools/reprojectprocessor.h"
+#include "rastertools/isolinesprocessor.h"
+
 #include "graphics/featuregraphicsitemfactory.h"
 #include "graphics/mapscene.h"
 #include "common/logger.h"
@@ -154,6 +160,19 @@ void vrsa::services::GISController::setup()
             this, &GISController::onCreateDifferenceActionTriggered);
     connect(mComps.actionCreateSymDifference, &QAction::triggered,
             this, &GISController::onCreateSymDifferenceActionTriggered);
+    //reproject vector
+    connect(mComps.actionReprojectVector, &QAction::triggered,
+            this, &GISController::onReprojectVectorActionTriggered);
+    //rasters
+    connect(mComps.actionOpenRasterLayer, &QAction::triggered,
+            this, &GISController::onOpenRasterLayerActionTriggered);
+    connect(mComps.actionReprojectRaster, &QAction::triggered,
+            this, &GISController::onReprojectRasterLayerActionTriggered);
+    connect(mComps.actionCutRasterByVectorMask, &QAction::triggered,
+            this, &GISController::onCutRasterByVectorMaskActionTriggered);
+    connect(mComps.actionCreateIsolines, &QAction::triggered,
+            this, &GISController::onCreateIsolinesActionTriggered);
+
 
     //сервисы
     connect(mComps.actionWMSConnection, &QAction::triggered,
@@ -1030,6 +1049,7 @@ void vrsa::services::GISController::addMapTool(common::MapToolType type, vector:
 
 }
 
+
 void vrsa::services::GISController::removeMapTool()
 {
     mMapScene->deselectCurrentMapTool();
@@ -1410,6 +1430,91 @@ void vrsa::services::GISController::onCreateSymDifferenceActionTriggered()
         auto operation = std::make_unique<vector::SymDifferenceOperation>(layer, overlayLayer,
                                                                          dto, mVectorCreator.get());
         operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onReprojectVectorActionTriggered()
+{
+    auto layerNames = mProjectManager->getVectorLayersNames();
+    if (layerNames.empty())
+    {
+        VRSA_WARNING("CORE", "No vector layers available. Please add a vector layer first.");
+        return;
+    }
+    VectorReprojectionForm form(layerNames);
+    connect(&form, &VectorReprojectionForm::reprojectingAccepted, this, [this](const std::string& layer,
+                                                                               const std::string& crs,
+                                                                               const std::string& path){
+        qDebug()<<QString::fromStdString(layer);
+        qDebug()<<QString::fromStdString(crs);
+        qDebug()<<QString::fromStdString(path);
+        auto vectorLayer = mProjectManager->getVectorLayerByName(layer);
+        auto dstCrs = spatialref::SpatialReferenceDatabase::instance().createFromName(crs);
+        mVectorCreator->reprojectVectorLayer(vectorLayer, dstCrs, path);
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onOpenRasterLayerActionTriggered()
+{
+    std::string fileName=QFileDialog::getOpenFileName(nullptr,"Chose Raster Layer","Raster Files").toStdString();
+    emit datasetReadingRequested(fileName);
+}
+
+void vrsa::services::GISController::prepareRasterProcessingParams(common::RasterProcessingParams &params)
+{
+    auto dstSpRef = spatialref::SpatialReferenceDatabase::instance().createFromName(params.targetCRS.value());
+    std::string name = dstSpRef.getAuthorityName();
+    std::string code = dstSpRef.getAuthorityCode();
+    if (!name.empty() && !code.empty())
+        params.epsg = name +":"+ code;
+    std::string wkt = dstSpRef.toWKT();
+    if (!wkt.empty())
+        params.wkt = wkt;
+    std::string proj = dstSpRef.toProj();
+    if (!proj.empty())
+        params.proj = proj;
+}
+
+
+void vrsa::services::GISController::onReprojectRasterLayerActionTriggered()
+{
+    RasterProccessingForm form(common::RasterOperationType::Reproject, mProjectManager->getRasterDatasetSources());
+    connect(&form, &RasterProccessingForm::operationAccepted, this, [this](common::RasterProcessingParams params)
+    {
+        prepareRasterProcessingParams(params);
+        auto proccessor = raster::ReprojectProcessor(params);
+        if (proccessor.execute())
+            emit datasetReadingRequested(params.outputPath);
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCutRasterByVectorMaskActionTriggered()
+{
+    RasterProccessingForm form(common::RasterOperationType::CutByVectorMask, mProjectManager->getRasterDatasetSources(),
+                               mProjectManager->getVectorDatasetSources());
+    connect(&form, &RasterProccessingForm::operationAccepted, this, [this](common::RasterProcessingParams params)
+    {
+        prepareRasterProcessingParams(params);
+        auto proccessor = raster::ClipProcessor(params);
+        if (proccessor.execute())
+            emit datasetReadingRequested(params.outputPath);
+    });
+    form.exec();
+
+}
+
+void vrsa::services::GISController::onCreateIsolinesActionTriggered()
+{
+    RasterProccessingForm form(common::RasterOperationType::Isolines, mProjectManager->getRasterDatasetSources());
+    connect(&form, &RasterProccessingForm::operationAccepted, this, [this](common::RasterProcessingParams params)
+    {
+        prepareRasterProcessingParams(params);
+        auto proccessor = raster::IsolinesProcessor(params);
+        if (proccessor.execute())
+            emit datasetReadingRequested(params.outputPath);
     });
     form.exec();
 }

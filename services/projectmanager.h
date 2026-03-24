@@ -77,29 +77,21 @@ public:
      * @endrussian
      */
     std::vector<std::string> getLayerNames(const std::string& src);
-
     vrsa::vector::VectorLayer*  getLayer(const std::string& src, int idx); //care!!
-
     //возращает слои, координаты которых заданы в метрах
     std::vector<vector::VectorLayer*> getProjectedVectorLayers();
-
+    std::vector<std::string> getVectorLayersNames() const;
     vrsa::vector::VectorLayer*  getVectorLayerByName(const std::string& name); //care!!
-
-    void setActiveVectorLayer(const std::string& src, int idx);
-
-    inline void setActiveVectorLayer(vector::VectorLayer* vL) noexcept
-    {
-        mActiveVectorLayer = vL;
-    }
-
-    inline vector::VectorLayer* getActiveVectorLayer() const noexcept
-    {
-        return mActiveVectorLayer;
-    }
-
-    vrsa::vector::VectorDataset* getDatasetAssociatedWithVectorLayer(const vector::VectorLayer*) const;
+    inline vector::VectorLayer* getActiveVectorLayer() const noexcept { return mActiveVectorLayer; }
+    vrsa::vector::VectorDataset* getDatasetAssociatedWithVectorLayer(const vector::VectorLayer*)         const;
     vrsa::vector::VectorLayer* getLayerAssociatedWithFeature(const vrsa::vector::VectorFeature* feature) const;
     int getLayerID(const vector::VectorLayer*layer) const;
+
+    std::vector<std::string> getRasterDatasetSources() const;
+    std::vector<std::string> getVectorDatasetSources() const;
+
+    void setActiveVectorLayer(const std::string& src, int idx);
+    inline void setActiveVectorLayer(vector::VectorLayer* vL) noexcept { mActiveVectorLayer = vL; }
 
     void createPostGISConnection(const QString &connectionName, const std::string& connectionString);
     void createXYZConnection(const QString& connectionName, const std::string& xmlString);
