@@ -106,5 +106,8 @@
         <file>images/icons/dialogs/icon_copy_rect_bold_black.png</file>
         <file>images/icons/dialogs/icon_arrow_down_flat_black.png</file>
         <file>images/icons/dialogs/icon_arrow_up_flat_black.png</file>
+        <file>images/icons/spatialOperations/icon_diff_flat_black.png</file>
+        <file>images/icons/spatialOperations/icon_sym_diff_flat_black.png</file>
+        <file>images/icons/Tools/icon_ruler_black.png</file>
     </qresource>
 </RCC>
