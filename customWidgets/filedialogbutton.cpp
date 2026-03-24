@@ -49,6 +49,13 @@ void FileDialogButton::mousePressEvent(QMouseEvent *event)
                     tr("Vector formats (*.shp *.geojson *.gpkg)")
                 );
         break;
+    case ButtonRole::SaveRasterDataset:
+        fileName = dialog.getSaveFileName(
+                    this,
+                    "Save Raster Layer",
+                    QDir::homePath() + "/untitled.tiff",
+                    tr("Raster formats (*.tif *.tiff *.geotiff)")
+                );
 
     }
     emit clicked(fileName);
