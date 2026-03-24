@@ -84,7 +84,7 @@ public slots:
 private:
     double mMapScale;
     double mMapHolderScale;
-    QRect mMapHolderRect;
+    QRect  mMapHolderRect;
     QRectF mExtent;
     bool mPanningForViewEnabled = true ;
     //TODO: Сделать базовый класс для всех объектов карты.... и хранить в едином векторе...

@@ -139,6 +139,8 @@ enum class FieldType {
     Unknown       ///< неизвестный тип
 };
 
+
+
 inline const char* fieldTypeToString(FieldType type)
 {
     switch(type) {
@@ -375,6 +377,7 @@ Q_DECLARE_METATYPE(vrsa::common::DatasetType);
 Q_DECLARE_METATYPE(vrsa::common::TreeItemType);
 Q_DECLARE_METATYPE(vrsa::common::StyleParametr);
 Q_DECLARE_METATYPE(vrsa::common::LodAlgorithmType);
+
 
 
 #endif // LIPTYPES_H
