@@ -5,6 +5,9 @@
 #include "gdalresourcehandles.h"
 namespace vrsa
 {
+namespace spatialref{
+class SpatialReference;
+}
 namespace vector
 {
 
@@ -46,11 +49,10 @@ public:
                                                                         gdalwrapper::OgrGeometryPtr collection,
                                                                         vector::VectorLayer* origLayer = nullptr);
     std::string getVectorDatasetPath(GDALDataset* dataset);
+    void emitLayerReadingRequest(const std::string& src) { emit vectorLayerReadingRequested(src); }
 
-    void emitLayerReadingRequest(const std::string& src)
-    {
-        emit vectorLayerReadingRequested(src);
-    }
+    void reprojectVectorLayer(vector::VectorLayer* layer, spatialref::SpatialReference dstRef, const std::string& dstPath);
+
 
 public slots:
     void onLayerCreationRequested(const common::LayerDefinition& layerDef);

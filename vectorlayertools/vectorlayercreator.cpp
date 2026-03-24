@@ -7,6 +7,8 @@
 #include "spatialref/spatialreference.h"
 #include "logger.h"
 #include "vector/vectorlayer.h"
+#include "spatialref/spatialreference.h"
+#include "spatialref/coordinatetransformer.h"
 
 vrsa::vector::VectorLayerCreator::VectorLayerCreator(QObject *parent)
     : QObject(parent)
@@ -55,12 +57,8 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDa
     gdalwrapper::GDALWriter writer;
     auto gdalDsPtr = writer.createLayer(path, type, ref,
                                         {}, "ESRI Shapefile", {});
-    if (gdalDsPtr)
-        VRSA_DEBUG("VECTOR", "Мы смогли!");
-    else
-    {
-        VRSA_DEBUG("VECTOR", "Увы! мы не смогли!(");
-    }
+    if (!gdalDsPtr)
+        VRSA_ERROR("VECTOR", "Can't create new layer");
 
     return gdalDsPtr;
 }
@@ -144,60 +142,111 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDa
                          " for layer:" + layer->GetName());
     }
     return dsUPtr;
-    }
+}
 
-    //vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDatasetFromGeometry(const std::string &path, gdalwrapper::OgrGeometryPtr, VectorLayer *origLayer)
-    //{
+//vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDatasetFromGeometry(const std::string &path, gdalwrapper::OgrGeometryPtr, VectorLayer *origLayer)
+//{
 
-    //}
+//}
 
-    std::string vrsa::vector::VectorLayerCreator::getVectorDatasetPath(GDALDataset *dataset)
+std::string vrsa::vector::VectorLayerCreator::getVectorDatasetPath(GDALDataset *dataset)
+{
+    if (!dataset) return std::string();
+
+    const char* driverName = dataset->GetDriver()->GetDescription();
+    QString path;
+
+    if (EQUAL(driverName, "ESRI Shapefile"))
     {
-        if (!dataset) return std::string();
-
-        const char* driverName = dataset->GetDriver()->GetDescription();
-        QString path;
-
-        if (EQUAL(driverName, "ESRI Shapefile"))
+        const char* description = dataset->GetDescription();
+        if (description)
         {
-            const char* description = dataset->GetDescription();
-            if (description)
-            {
-                path = QString::fromUtf8(description);
-                //убеждаемся, что есть расширение .shp
-                if (!path.endsWith(".shp", Qt::CaseInsensitive))
-                    path += ".shp";
-            }
+            path = QString::fromUtf8(description);
+            //убеждаемся, что есть расширение .shp
+            if (!path.endsWith(".shp", Qt::CaseInsensitive))
+                path += ".shp";
         }
-        // Для GeoJSON
-        else if (EQUAL(driverName, "GeoJSON"))
-        {
-            const char* description = dataset->GetDescription();
-            if (description)
-                path = QString::fromUtf8(description);
-        }
-        else
-        {
-            char** fileList = dataset->GetFileList();
-            if (fileList)
-            {
-                path = QString::fromUtf8(fileList[0]);
-                CSLDestroy(fileList);
-            }
-        }
-
-        return path.toStdString();
     }
-
-    vrsa::vector::VectorLayerCreator::~VectorLayerCreator() = default;
-
-    void vrsa::vector::VectorLayerCreator::onLayerCreationRequested(const common::LayerDefinition &layerDef)
+    // Для GeoJSON
+    else if (EQUAL(driverName, "GeoJSON"))
     {
-        VRSA_DEBUG("VECTOR", "WE CAUGHT SIGNAL AND GET LAYER DEF. DRIVER NAME:" + layerDef.format);
-        auto dS = createGDALDataset(layerDef);
-        if (!dS)
-            return;
-        auto source = getVectorDatasetPath(dS.get());
-        if (!source.empty())
-            emit vectorLayerReadingRequested(source);
+        const char* description = dataset->GetDescription();
+        if (description)
+            path = QString::fromUtf8(description);
     }
+    else
+    {
+        char** fileList = dataset->GetFileList();
+        if (fileList)
+        {
+            path = QString::fromUtf8(fileList[0]);
+            CSLDestroy(fileList);
+        }
+    }
+
+    return path.toStdString();
+}
+
+void vrsa::vector::VectorLayerCreator::reprojectVectorLayer(VectorLayer *layer, spatialref::SpatialReference dstRef,
+                                                            const std::string &dstPath)
+{
+    if (!layer || !dstRef.isValid()) return;
+    auto dstOgrSRef = dstRef.GetOGRSpatialRef();
+    auto origOGRLayer = layer->getOGRLayer();
+    if (!origOGRLayer) return;
+    auto origOgrSRef = origOGRLayer->GetSpatialRef();
+    if (!dstOgrSRef) return;
+    origOgrSRef->SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+    dstOgrSRef->SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+    auto transform = gdalwrapper::OgrCoordinateTransformationRefPtr(
+                                  OGRCreateCoordinateTransformation(origOgrSRef, dstOgrSRef));
+    if (!transform) { return; }
+
+    GDALDriver* driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
+    auto dstDS = gdalwrapper::GdalDatasetPtr(driver->Create(dstPath.c_str(), 0, 0, 0, GDT_Unknown, nullptr));
+
+    OGRLayer* dstLayer = dstDS->CreateLayer(layer->getName(), dstOgrSRef,
+                                            layer->getOGRGeomType(), nullptr);
+    if (!dstLayer) return;
+
+    OGRFeatureDefn* srcDefn = origOGRLayer->GetLayerDefn();
+    for (int i = 0; i < srcDefn->GetFieldCount(); i++) {
+        dstLayer->CreateField(srcDefn->GetFieldDefn(i));
+    }
+
+    origOGRLayer->ResetReading();
+    gdalwrapper::OgrFeaturePtr srcFeature = nullptr;
+    while ((srcFeature = gdalwrapper::OgrFeaturePtr(origOGRLayer->GetNextFeature())) != nullptr)
+    {
+        auto dstFeature = gdalwrapper::OgrFeaturePtr(OGRFeature::CreateFeature(dstLayer->GetLayerDefn()));
+        dstFeature->SetFrom(srcFeature.get(), TRUE);
+        OGRGeometry* geom = srcFeature->GetGeometryRef();
+        if (geom)
+        {
+            auto clonedGeom = gdalwrapper::OgrGeometryPtr(geom->clone());
+            if (clonedGeom->transform(transform.get()) == OGRERR_NONE) {
+                dstFeature->SetGeometry(clonedGeom.get());
+            }
+            else
+                VRSA_LOG_GDAL_ERROR("GDAL", "Error while setting reprojected geometry");
+        }
+        if (dstLayer->CreateFeature(dstFeature.get()) != OGRERR_NONE) {
+            VRSA_LOG_GDAL_ERROR("GDAL", "Failed to create feature");
+        }
+    }
+    dstDS.reset();
+    emit vectorLayerReadingRequested(dstPath);
+}
+
+vrsa::vector::VectorLayerCreator::~VectorLayerCreator() = default;
+
+void vrsa::vector::VectorLayerCreator::onLayerCreationRequested(const common::LayerDefinition &layerDef)
+{
+    VRSA_DEBUG("VECTOR", "WE CAUGHT SIGNAL AND GET LAYER DEF. DRIVER NAME:" + layerDef.format);
+    auto dS = createGDALDataset(layerDef);
+    if (!dS)
+        return;
+    auto source = getVectorDatasetPath(dS.get());
+    if (!source.empty())
+        emit vectorLayerReadingRequested(source);
+}
