@@ -8,6 +8,7 @@
 #include "services/projectmanager.h"
 #include "graphics/symbols/symbolrenderer.h"
 #include "spatialref/spatialreference.h"
+#include "calculations/mapcalculations.h"
 
 class QLabel;
 class QPushButton;
@@ -167,6 +168,7 @@ private:
     ViewComponents mComps;
     graphics::MapScene* mMapScene;
     spatialref::SpatialReference mProjCrs;
+    int mCurrentScale = 1;
     //vrsa::gdalwrapper::SpatialReference mProjCrs;
     const int DATA_COLUMN = 0; //для treewidget
 
@@ -174,6 +176,7 @@ private:
     std::unique_ptr<graphics::SymbolRenderer> mRenderer;
     std::unique_ptr<vector::VectorLayerCreator> mVectorCreator;
     std::unique_ptr<services::ProjectManager> mProjectManager;
+    std::unique_ptr<calculations::MapCalculator> mMapCalculator;
 
 private:
     QIcon getIconForDigitizingToolBtn(common::GeometryType type); //например для изменения иконки оцифровки в ui
@@ -186,8 +189,14 @@ private:
     void setup();
     void setupViewAndIntitizlizeScene();
     void setupLegendTreeWidgets();
+    void recalculateScale();
 
 private slots:
+    //слоты для обработки сигналов с mapholder
+    void onMapHolderZoomed();
+    void onMapHolderResized();
+    void onMapHolderExtentChanged(const QRectF& extent, const QRect& widgetRect);
+
     //слоты для работы с основной легендой
     void onLayerTreeDataChanged      (QTreeWidgetItem*, int);
     void onLayerTreeItemDoubleClicked(QTreeWidgetItem*, int);
@@ -213,7 +222,7 @@ private slots:
     void handleFeatureSelected         (graphics::FeatureGraphicsItem* item, bool shouldClearTree);
     void handleMultipleFeaturesSelected(const std::vector<graphics::FeatureGraphicsItem *> &items);
 
-    void onMapHolderScaleChanged  (int mapScale, double widgetScale);
+    //void onMapHolderScaleChanged  (int mapScale, double widgetScale);
     void onMouseCoordinatesChanged(const QPointF &p);
 
     //для обновления ui
@@ -268,6 +277,8 @@ signals:
 
     void vectorLayerCreationRequested(const common::LayerDefinition &layerDef);
     void datasetReadingRequested     (const std::string& src);
+    //map scale | map holder scale factor
+    void scaleChanged(double, double);
 
 };
 }

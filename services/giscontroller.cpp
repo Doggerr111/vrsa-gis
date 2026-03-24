@@ -44,15 +44,17 @@
 #include <QLabel>
 #include <QGraphicsView>
 #include <QStatusBar>
+#include <QApplication>
 #include <crscombobox.h>
 #include "applicationsettings.h"
 vrsa::services::GISController::GISController(QObject *parent)
     : QObject{parent},
       mRenderer{std::make_unique<graphics::SymbolRenderer>()},
       mVectorCreator{std::make_unique<vector::VectorLayerCreator>()},
-      mProjectManager{std::make_unique<services::ProjectManager>()}
+      mProjectManager{std::make_unique<services::ProjectManager>()},
+      mMapCalculator{std::make_unique<calculations::MapCalculator>()}
 {
-    if (!mRenderer || !mVectorCreator || !mProjectManager)
+    if (!mRenderer || !mVectorCreator || !mProjectManager || !mMapCalculator)
     {
         VRSA_ERROR("CORE", "Error while constructing GIScontroller");
         throw std::runtime_error("Error while constructing GIScontroller");
@@ -72,37 +74,39 @@ vrsa::services::GISController::GISController(QObject *parent)
     connect(mVectorCreator.get(),  &vector::VectorLayerCreator::vectorLayerReadingRequested, mProjectManager.get(),
             &ProjectManager::onVectorLayerReadingRequested);
 
+    mMapCalculator->SetDpi(QGuiApplication::primaryScreen()->logicalDotsPerInch());
+
+
 }
 
 void vrsa::services::GISController::setupViewAndIntitizlizeScene()
 {
 
-    auto view = mComps.mapView;
+    //auto view = mComps.mapView;
     mMapScene = new vrsa::graphics::MapScene();
-    if (!mMapScene)
-        return;
-    mMapScene->setMapHolderScale(view->getMapHolderScale());
-    view->setScene(mMapScene);
+    if (!mMapScene) return;
+    mMapScene->setMapHolderScale(mComps.mapView->getMapHolderScale());
+    mComps.mapView->setScene(mMapScene);
 
-    connect(view, &MapHolder::scaleChanged, mMapScene, &graphics::MapScene::onMapHolderScaleChanged);
-    connect(view, &MapHolder::mousePressed, mMapScene, &graphics::MapScene::onMapHolderMousePressed);
-    connect(view, &MapHolder::scaleChanged, this, &GISController::onMapHolderScaleChanged);
-    connect(view, &MapHolder::extentChanged, mMapScene, &graphics::MapScene::onMapHolderExtentChanged);
-    connect(mMapScene, &graphics::MapScene::panningRequested, view, &MapHolder::onPanningRequested);
+    connect(mComps.mapView, &MapHolder::zoomed, this, &GISController::onMapHolderZoomed);
+    connect(mComps.mapView, &MapHolder::resized, this, &GISController::onMapHolderResized);
+    connect(mComps.mapView, &MapHolder::extentChanged, this, &GISController::onMapHolderExtentChanged);
+    connect(mComps.mapView, &MapHolder::mousePressed, mMapScene, &graphics::MapScene::onMapHolderMousePressed);
+    connect(mComps.mapView, &MapHolder::extentChanged, mMapScene, &graphics::MapScene::onMapHolderExtentChanged);
+    connect(mMapScene, &graphics::MapScene::panningRequested, mComps.mapView, &MapHolder::onPanningRequested);
+    connect(mMapScene, &vrsa::graphics::MapScene::mouseMoved, this, &GISController::onMouseCoordinatesChanged);
+    connect(this, &GISController::scaleChanged, mMapScene, &graphics::MapScene::onMapScaleChanged);
+    connect(this, &GISController::scaleChanged, mComps.mapView, &MapHolder::onMapScaleChanged);
 
-    connect(this, &vrsa::services::GISController::projectCRSChanged, view, &MapHolder::onCrsChanged);
     //связываем сигналы с фабрик (синглтон), для создания графических объектов и их автоматического добавления на сцену
     connect(&graphics::FeatureGraphicsItemFactory::instance(), &graphics::FeatureGraphicsItemFactory::featureGraphicsItemCreated,
             mMapScene, &graphics::MapScene::onFeatureGraphicsItemCreated);
     connect(&graphics::RasterGraphicsItemFactory::instance(), &graphics::RasterGraphicsItemFactory::rasterGraphicsItemCreated,
             mMapScene, &graphics::MapScene::onRasterGraphicsItemCreated);
-    connect(mMapScene, &vrsa::graphics::MapScene::mouseMoved, this, &GISController::onMouseCoordinatesChanged);
-
     //сигнал для очищения графических объектов при удалении датасета
     connect(mProjectManager.get(), &ProjectManager::datasetAboutToBeRemoved,
             mMapScene, &graphics::MapScene::onDatasetRemoved);
-    view->scale(1,-1);
-    view->recalculateScale();
+    recalculateScale();
 }
 
 void vrsa::services::GISController::setup()
@@ -217,6 +221,35 @@ void vrsa::services::GISController::setupLegendTreeWidgets()
     //            this, &services::GISController::onItemDragRequested);
     //    connect(treeWidgetPG, &TreeWidget::itemDropped,
     //            this, &services::GISController::onItemDropped);
+}
+
+void vrsa::services::GISController::recalculateScale()
+{
+    auto sceneRect = mComps.mapView->getSceneRect();
+    double rawScale = mMapCalculator->calculate(sceneRect, mComps.mapView->width());
+    if (!std::isfinite(rawScale) || rawScale <= 0) rawScale = 1.0;
+    rawScale = std::clamp(rawScale, 1.0, 1e9);
+    if (!qFuzzyCompare(rawScale, static_cast<double>(mCurrentScale)))
+    {
+        mCurrentScale = static_cast<int>(rawScale);
+        emit scaleChanged(mCurrentScale, mComps.mapView->transform().m11());
+        mComps.scaleEdit->setText(QString::number(mCurrentScale));
+    }
+}
+
+void vrsa::services::GISController::onMapHolderZoomed()
+{
+    recalculateScale();
+}
+
+void vrsa::services::GISController::onMapHolderResized()
+{
+    recalculateScale();
+}
+
+void vrsa::services::GISController::onMapHolderExtentChanged(const QRectF &extent, const QRect &widgetRect)
+{
+
 }
 
 
@@ -652,8 +685,7 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
             auto rasterDataset = static_cast<raster::RasterDataset*>(mProjectManager->getDatasetBySource(path.toStdString()));
             QRectF targetRect = rasterDataset->getBoundingBox();
             mComps.mapView->fitInView(targetRect, Qt::KeepAspectRatio);
-            mComps.mapView->centerOn(targetRect.center());
-            mComps.mapView->recalculateScale();
+            mComps.mapView->zoomToPoint(targetRect.center());
             qDebug() << targetRect;
         });
         menu.addAction(tr("Закрыть датасет"), this, [this, clickedItem]() {
@@ -677,8 +709,8 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
             auto selectedLayer = mProjectManager->getLayer(path.toStdString(), layerID);
             QRectF targetRect = selectedLayer->getBoundingBox();
             mComps.mapView->fitInView(targetRect, Qt::KeepAspectRatio);
-            mComps.mapView->centerOn(targetRect.center());
-            mComps.mapView->recalculateScale();
+            mComps.mapView->zoomToPoint(targetRect.center());
+            //mComps.mapView->recalculateScale();
             qDebug() << targetRect;
         });
 
@@ -1098,7 +1130,9 @@ void vrsa::services::GISController::onCRSComboBoxIndexChanged(int index)
         //auto crsInfo = spatialref::SpatialReferenceDatabase::instance().getCRSInfoByEPSG(std::stoi(crs.getAuthorityCode()));
         VRSA_DEBUG("CORE", "Project CRS changed to:" + mComps.crsCombo->currentText().toStdString());
         mProjCrs = crs;
-        emit projectCRSChanged(crs);
+        mMapCalculator->setCRS(mProjCrs);
+        emit projectCRSChanged(mProjCrs);
+        recalculateScale();
         return;
     }
     VRSA_DEBUG("CORE", "Invalid CRS set");
@@ -1220,10 +1254,10 @@ void vrsa::services::GISController::handleMultipleFeaturesSelected(const std::ve
 //=============================СЛОТЫ ОБРАБОТЧИКИ СИГНАЛОВ СО СЦЕНЫ===============================
 //===============================================================================================
 //===============================================================================================
-void vrsa::services::GISController::onMapHolderScaleChanged(int mapScale, double widgetScale)
-{
-    mComps.scaleEdit->setText(QString::number(mapScale));
-}
+//void vrsa::services::GISController::onMapHolderScaleChanged(int mapScale, double widgetScale)
+//{
+//    mComps.scaleEdit->setText(QString::number(mapScale));
+//}
 
 void vrsa::services::GISController::onMouseCoordinatesChanged(const QPointF& p)
 {

@@ -66,7 +66,7 @@ signals:
     void panningRequested(bool enable);
     void visibleExtentChanged(const QRectF& extent, const QRect& widgetRect);
 public slots:
-    void onMapHolderScaleChanged(int mapScale, double widgetScale);
+    void onMapScaleChanged(int mapScale, double widgetScale);
     void onMapHolderExtentChanged(const QRectF& extent, const QRect& widgetRect);
 
     void onVectorLayerFeatureAdded(vector::VectorFeature*);

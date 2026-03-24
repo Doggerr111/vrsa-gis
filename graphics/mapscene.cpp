@@ -7,6 +7,7 @@
 #include "vector/vectordataset.h"
 #include <unordered_set>
 
+
 vrsa::graphics::MapScene::MapScene(QObject *parent)
     : QGraphicsScene{parent},
       mMapScale{0.0},
@@ -134,7 +135,7 @@ void vrsa::graphics::MapScene::keyPressEvent(QKeyEvent *event)
 
 }
 
-void vrsa::graphics::MapScene::onMapHolderScaleChanged(int mapScale, double widgetScale)
+void vrsa::graphics::MapScene::onMapScaleChanged(int mapScale, double widgetScale)
 {
     //qDebug()<<"new scale:" << mapScale;
     mMapScale = mapScale;
@@ -175,7 +176,7 @@ void vrsa::graphics::MapScene::onNewFeatureGraphicsItemCreated(std::unique_ptr<F
     mMapItems.push_back(std::move(item));
     //item->update();
     update(item->boundingRect());
-    qDebug()<<mMapItems.size();
+    //qDebug()<<mMapItems.size();
 }
 
 //from factory::featureGraphicsItemCreated
