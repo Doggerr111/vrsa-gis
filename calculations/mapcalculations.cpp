@@ -10,16 +10,20 @@ vrsa::calculations::MapCalculator::MapCalculator()
 
 double vrsa::calculations::MapCalculator::calculate(const QRectF &mapExtent, double canvasWidth) const
 {
+    if (canvasWidth == 0 || mDpi <= 0) return 1.0;
+    if (mapExtent.width() <= 0 || mapExtent.height() <= 0) return 1.0;
     double delta = 0;
     calculateMetrics(mapExtent, delta);
-    if (canvasWidth == 0 || mDpi == 0)
-        return 1.0;
+    if (delta <= 0) return 1.0;
     double metersPerPixel = delta / canvasWidth; //сколько метров в пикселе
+    if (metersPerPixel <= 0) return 1.0;
+    if (metersPerPixel > 1e9) return 1e9;  // слишком большой масштаб
     double pixelsPerCm = mDpi / 2.54; //сколько пикселей в 1 см (физически)
     //метров в 1 см на экране
     double metersPerCmOnScreen = metersPerPixel * pixelsPerCm;
     double scaleDenominator = metersPerCmOnScreen * 100.0;
     scaleDenominator = std::clamp(1.0, scaleDenominator, 1e9);
+    if (!std::isfinite(scaleDenominator)) return 1.0;
     return scaleDenominator;
 }
 
