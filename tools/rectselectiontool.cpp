@@ -39,7 +39,6 @@ void vrsa::tools::RectSelectionTool::mousePressEvent(QGraphicsSceneMouseEvent *e
     else if (event->button() == Qt::RightButton)
     {
         mIsLeftClicked = false;
-
     }
 
 }

@@ -25,11 +25,13 @@ class TreeWidget;
 class QDragEvent;
 class QDragMoveEvent;
 class QDropEvent;
+class MeasurementForm;
 namespace vrsa
 {
 namespace common{
 enum class GeometryType: int;
 enum class MapToolType: int;
+struct RasterProcessingParams;
 }
 namespace vector{
 class VectorLayerCreator;
@@ -57,6 +59,7 @@ struct ViewComponents
     QPushButton* singleSelectionBtn = nullptr;
     QPushButton* rectSeletionBtn = nullptr;
     QPushButton* geometryEditBtn = nullptr;
+    QPushButton* rulerBtn = nullptr;
     QButtonGroup* mapToolsGrp = nullptr;
     // common
     QLineEdit* coordEdit = nullptr;
@@ -72,18 +75,39 @@ struct ViewComponents
     QTabWidget* rightTab = nullptr; //и дочерние виджеты
     QTreeWidget* featureSelectionTree = nullptr;
     TreeWidget* postGisTree = nullptr;
-    //actions
+    //actions vector
     QAction* actionOpenLayer = nullptr;
     QAction* actionCreateLayer = nullptr;
     QAction* actionCreatePointLayer = nullptr;
     QAction* actionCreateLineLayer = nullptr;
     QAction* actionCreatePolygonLayer = nullptr;
+    //actions geoproccessing
+    QAction* actionCreateBuffer = nullptr;
+    QAction* actionCreateTriangulation = nullptr;
+    QAction* actionCreateVoronoiDiag = nullptr;
+    //geoproccesing (overlay)
+    QAction* actionCreateIntersection = nullptr;
+    QAction* actionCreateUnion = nullptr;
+    QAction* actionCreateDifference = nullptr;
+    QAction* actionCreateSymDifference = nullptr;
+    //vector reprojection
+    QAction* actionReprojectVector = nullptr;
+    //actions raster
+    QAction* actionOpenRasterLayer = nullptr;
+    //raster analys
+    QAction* actionReprojectRaster = nullptr;
+    QAction* actionCutRasterByVectorMask = nullptr;
+    QAction* actionCreateIsolines = nullptr;
 
     //web-map services
     QAction* actionWMSConnection = nullptr;
     QAction* actionXYZConnection = nullptr;
 
     QAction* actionPostGisConnection = nullptr;
+
+
+    //===============INTERNAL (can be nullptr)===================
+    MeasurementForm* measurementForm = nullptr;
 
     bool isValid(std::string& errorMsg) const noexcept
     {
@@ -92,6 +116,7 @@ struct ViewComponents
         if (!singleSelectionBtn) {  errorMsg = "singleSelectionBtn is null"; return false; }
         if (!rectSeletionBtn) {  errorMsg = "rectSeletionBtn is null"; return false; }
         if (!geometryEditBtn) {  errorMsg = "geometryEditBtn is null"; return false; }
+        if (!rulerBtn) { errorMsg = "rulerBtn is null"; return false; }
         if (!mapToolsGrp) {  errorMsg = "mapToolsGrp is null"; return false; }
         if (!coordEdit) {  errorMsg = "coordEdit is null"; return false; }
         if (!scaleEdit) {  errorMsg = "scaleEdit is null"; return false; }
@@ -112,6 +137,17 @@ struct ViewComponents
         if (!postGisTree) { errorMsg = "postGisTree is null"; return false; }
         if (!actionWMSConnection) { errorMsg = "action wms connections is null"; return false; }
         if (!actionXYZConnection) { errorMsg = "action xyz connection is null"; return false; }
+        if (!actionCreateBuffer) { errorMsg = "action create buffer is null"; return false; }
+        if (!actionCreateTriangulation) { errorMsg = "action create triangulations is null"; return false; }
+        if (!actionCreateVoronoiDiag) { errorMsg = "action create voronoi is null"; return false; }
+        if (!actionCreateIntersection) { errorMsg = "action intersection is null"; return false; }
+        if (!actionCreateUnion) { errorMsg = "action create union is null"; return false; }
+        if (!actionCreateDifference) { errorMsg = "action create difference is null"; return false; }
+        if (!actionCreateSymDifference) { errorMsg = "action create sym difference is null"; return false; }
+        if (!actionReprojectVector) { errorMsg = "action reproject vector is null"; return false; }
+        if (!actionOpenRasterLayer) { errorMsg = "action reproject raster is null"; return false; }
+        if (!actionCutRasterByVectorMask) { errorMsg = "action cut raster is null"; return false; }
+        if (!actionCreateIsolines) { errorMsg = "action create isolines is null"  ; return false; }
 
         return true;
     }
@@ -143,6 +179,7 @@ private:
     QIcon getIconForDigitizingToolBtn(common::GeometryType type); //например для изменения иконки оцифровки в ui
     QIcon getIconForGeometryType(common::GeometryType type);
     void addMapTool(common::MapToolType type, vector::VectorLayer *layer = nullptr);
+    void prepareRasterProcessingParams(vrsa::common::RasterProcessingParams &params);
     void removeMapTool();
     void startDigitizing();
     void syncZOrderWithTree() const;
@@ -156,9 +193,9 @@ private slots:
     void onLayerTreeItemDoubleClicked(QTreeWidgetItem*, int);
     void onItemDragRequested         (QDragMoveEvent* event, bool* accepted);
     void onItemDropped               (QDropEvent* event, bool* accepted);
-    void showContextMenu(const QPoint& point);
+    void showContextMenu   (const QPoint& point);
     //слоты для работы с легендой PostGIS
-    void showContextMenuPG(const QPoint& point);
+    void showContextMenuPG (const QPoint& point);
     //обработка правого клика на tool btn LOD
     void showContextMenuLOD(const QPoint& point);
     //обработка кликов с кнопок инструменты карты
@@ -166,6 +203,7 @@ private slots:
     void onRectSelectionToolClicked  (bool checked);
     void onGeometryEditToolClicked   (bool checked);
     void onDigitizingToolClicked     (bool checked);
+    void onRulerToolClicked          (bool checked);
     //crs cbox
     void onCRSComboBoxIndexChanged   (int index);
 
@@ -193,6 +231,23 @@ private slots:
     void onCreatePointLayerActionTriggered();
     void onCreateLineLayerActionTriggered();
     void onCreatePolygonLayerActionTriggered();
+
+
+    void onCreateBufferActionTriggered();
+    void onCreateTriangulationActionTriggered();
+    void onCreateVoronoiActionTriggered();
+
+    void onCreateIntersectionActionTriggered();
+    void onCreateUnionActionTriggered();
+    void onCreateDifferenceActionTriggered();
+    void onCreateSymDifferenceActionTriggered();
+    void onReprojectVectorActionTriggered();
+
+    void onOpenRasterLayerActionTriggered();
+    void onReprojectRasterLayerActionTriggered();
+    void onCutRasterByVectorMaskActionTriggered();
+    void onCreateIsolinesActionTriggered();
+
     //services actions
     void onWMSConnectionTriggered();
     void onXYZConnectionTriggered();

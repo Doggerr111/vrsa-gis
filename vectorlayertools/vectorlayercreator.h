@@ -5,9 +5,13 @@
 #include "gdalresourcehandles.h"
 namespace vrsa
 {
+namespace spatialref{
+class SpatialReference;
+}
 namespace vector
 {
 
+class VectorLayer;
 /**
  * @english
  * @brief Mediator class that organizes vector layer creation from UI to final data structures
@@ -32,7 +36,24 @@ public:
     ~VectorLayerCreator();
 public:
     gdalwrapper::GdalDatasetPtr createGDALDataset(const common::LayerDefinition& layerDef);
+    //создаем датасет с такой же системой координат как у origLayer
+    gdalwrapper::GdalDatasetPtr createGDALDataset(const std::string& path, OGRwkbGeometryType type
+                                                  = wkbUnknown, OGRSpatialReference* ref = nullptr);
+    gdalwrapper::GdalDatasetPtr createGDALDatasetFromGeometries(const std::string& path, std::vector<gdalwrapper::OgrGeometryPtr> vec,
+                                                                vector::VectorLayer* origLayer = nullptr);
+//    gdalwrapper::GdalDatasetPtr createGDALDatasetFromGeometry(const std::string& path,
+//                                                              gdalwrapper::OgrGeometryPtr,
+//                                                              vector::VectorLayer* origLayer = nullptr);
+    //ПОКА ЧТО ИСПОЛЬЗУЕТСЯ ТОЛЬКО ДЛЯ ТРИАНГУЛЯЦИЙ
+    gdalwrapper::GdalDatasetPtr createGDALDatasetFromGeometryCollection(const std::string& path,
+                                                                        gdalwrapper::OgrGeometryPtr collection,
+                                                                        vector::VectorLayer* origLayer = nullptr);
     std::string getVectorDatasetPath(GDALDataset* dataset);
+    void emitLayerReadingRequest(const std::string& src) { emit vectorLayerReadingRequested(src); }
+
+    void reprojectVectorLayer(vector::VectorLayer* layer, spatialref::SpatialReference dstRef, const std::string& dstPath);
+
+
 public slots:
     void onLayerCreationRequested(const common::LayerDefinition& layerDef);
 signals:

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <string>
 #include <QDebug>
+#include <cmath>
 namespace vrsa
 {
 namespace spatialref
@@ -12,7 +13,7 @@ class SpatialReference;
 
 /**
  * @english
- * @brief Singleton database of predefined coordinate reference systems
+ * @brief Singleton database of predefined coordinate reference systems and ellipsoids
  *
  * Provides access to collection of CRS including:
  * - Global standards (WGS84, Pseudo-Mercator)
@@ -21,7 +22,7 @@ class SpatialReference;
  * Use instance() to get the singleton object.
  *
  * @russian
- * @brief База данных предопределенных систем координат (singleton)
+ * @brief База данных предопределенных систем координат (singleton) и эллипсоидов
  *
  * Предоставляет доступ к коллекции CRS, включая:
  * - Глобальные стандарты (WGS84, Pseudo-Mercator)
@@ -58,6 +59,26 @@ public:
                   projString(proj), wktString(wkt), isUserDefined(userDef) {}
     };
 
+    struct Ellipsoid {
+        std::string name;
+        double a;               // большая полуось (м)
+        double inv_f;           // обратное сжатие (1/f)
+
+        Ellipsoid(const std::string& name, double semi_major_axis, double inv_flattening)
+            : name{name}, a{semi_major_axis}, inv_f{inv_flattening}{}
+        QString getName() const { return QString::fromStdString(name); };
+        double getFlattening() const { return 1.0 / inv_f; }
+        double getEccentricitySq() const {
+            double f = getFlattening();
+            return 2 * f - f * f;
+        }
+        double getEccentricity() const { return sqrt(getEccentricitySq()); }
+
+        QString toString() const {
+            return QString("%1 (a=%2, 1/f=%3)").arg(QString::fromStdString(name)).arg(a).arg(inv_f);
+        }
+    };
+
     static SpatialReferenceDatabase& instance()
     {
         static SpatialReferenceDatabase db;
@@ -66,6 +87,7 @@ public:
 
 
     std::vector<CRSInfo> getPredefinedCRSs() const noexcept { return mCrsDB; };
+    std::vector<Ellipsoid> getPredefinedEllipsoids() const noexcept { return mEllipsoids; };
     CRSInfo getCRSInfoByEPSG(int code);
     //cоздание SpatialReference из CRSInfo по индексу
     SpatialReference createFromIndex(size_t index) const;
@@ -109,10 +131,11 @@ private:
     SpatialReference createFromCRSInfo(const CRSInfo& info) const;
 
 private:
-    SpatialReferenceDatabase(): mCrsDB {loadCRSList()}, mDBCapacity{10} {};
+    SpatialReferenceDatabase(): mCrsDB {loadCRSList()}, mEllipsoids {loadEllipsoids()}, mDBCapacity{10} {};
     SpatialReferenceDatabase(const SpatialReferenceDatabase&) = delete;
     SpatialReferenceDatabase& operator=(const SpatialReferenceDatabase&) = delete;
     std::vector<CRSInfo> loadCRSList();
+    std::vector<Ellipsoid> loadEllipsoids();
 //        auto list = loadCRSList();
 //            mCrsDB.reserve(list.size());
 //            mCrsDB = list;
@@ -120,6 +143,7 @@ private:
 
 private:
     std::vector<CRSInfo> mCrsDB;
+    std::vector<Ellipsoid> mEllipsoids;
     size_t mDBCapacity;
 
 };

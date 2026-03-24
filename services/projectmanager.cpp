@@ -163,6 +163,71 @@ vrsa::vector::VectorLayer* vrsa::services::ProjectManager::getLayer(const std::s
 
 }
 
+std::vector<vrsa::vector::VectorLayer *> vrsa::services::ProjectManager::getProjectedVectorLayers()
+{
+    std::vector<vector::VectorLayer*> vec;
+    for (const auto& dataset: mDatasets)
+    {
+        if (dataset->GetDatasetType() == common::DatasetType::Vector)
+        {
+
+            auto vDs = static_cast<vector::VectorDataset*>(dataset.get());
+            for (const auto& layer: vDs->getLayers())
+            {
+                auto ogr = layer->getOGRLayer();
+                if (!ogr) continue;
+                auto spatiaRef = ogr->GetSpatialRef();
+                if (!spatiaRef) continue;
+                if (!spatiaRef->IsGeographic())
+                    vec.emplace_back(layer.get());
+            }
+        }
+    }
+    return vec;
+}
+
+std::vector<std::string> vrsa::services::ProjectManager::getVectorLayersNames() const
+{
+    std::vector<std::string> vec;
+    for (const auto& dataset: mDatasets)
+    {
+        if (dataset->GetDatasetType() == common::DatasetType::Vector)
+        {
+            auto vDs = static_cast<vector::VectorDataset*>(dataset.get());
+            for (const auto& layer: vDs->getLayers())
+            {
+                if (!layer) continue;
+                vec.emplace_back(layer->getNameAsString());
+            }
+        }
+    }
+    return vec;
+}
+
+vrsa::vector::VectorLayer *vrsa::services::ProjectManager::getVectorLayerByName(const std::string &name)
+{
+    for (const auto& dataset: mDatasets)
+    {
+        switch (dataset->GetDatasetType())
+        {
+        case common::DatasetType::Vector:
+        {
+            auto vDs = static_cast<vector::VectorDataset*>(dataset.get());
+            auto& layers = vDs->getLayers();
+            for (const auto& layer: layers)
+            {
+                if (layer->getName() == name)
+                    return layer.get();
+            }
+            continue;
+        }
+        default:
+            continue;
+        }
+    }
+    return nullptr;
+}
+
 void vrsa::services::ProjectManager::setActiveVectorLayer(const std::string &src, int idx)
 {
     auto layer = getLayer(src, idx);
@@ -228,6 +293,36 @@ int vrsa::services::ProjectManager::getLayerID(const vector::VectorLayer *layer)
     }
     return -1;
 }
+
+std::vector<std::string> vrsa::services::ProjectManager::getRasterDatasetSources() const
+{
+    std::vector<std::string> rasterSources;
+    for (const auto& dS: mDatasets)
+    {
+        auto dataset = dS.get();
+        if (dataset->GetDatasetType() == common::DatasetType::Raster)
+        {
+            rasterSources.emplace_back(dataset->getSource());
+        }
+    }
+    return rasterSources;
+}
+
+std::vector<std::string> vrsa::services::ProjectManager::getVectorDatasetSources() const
+{
+    std::vector<std::string> vectorSources;
+    for (const auto& dS: mDatasets)
+    {
+        auto dataset = dS.get();
+        if (dataset->GetDatasetType() == common::DatasetType::Vector)
+        {
+            vectorSources.emplace_back(dataset->getSource());
+        }
+    }
+    return vectorSources;
+}
+
+
 
 vrsa::gdalwrapper::Dataset *vrsa::services::ProjectManager::readDataset(const std::string &source,
                                                                         unsigned int flags)

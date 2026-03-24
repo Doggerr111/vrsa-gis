@@ -7,6 +7,21 @@
 #include "vectorlayercreationform.h"
 #include "postgisconnectionform.h"
 #include "mapserviceconnectionform.h"
+#include "rasterproccessingform.h"
+#include "geosoperationform.h"
+#include "measurementform.h"
+#include "vectorreprojectionform.h"
+#include "vectorlayertools/spatial_operations/bufferoperation.h"
+#include "vectorlayertools/spatial_operations/triangulationoperation.h"
+#include "vectorlayertools/spatial_operations/voronoioperation.h"
+#include "vectorlayertools/spatial_operations/intersectionoperation.h"
+#include "vectorlayertools/spatial_operations/unionoperation.h"
+#include "vectorlayertools/spatial_operations/differenceoperation.h"
+#include "vectorlayertools/spatial_operations/symdifferenceoperation.h"
+#include "rastertools/clipprocessor.h"
+#include "rastertools/reprojectprocessor.h"
+#include "rastertools/isolinesprocessor.h"
+
 #include "graphics/featuregraphicsitemfactory.h"
 #include "graphics/mapscene.h"
 #include "common/logger.h"
@@ -108,6 +123,7 @@ void vrsa::services::GISController::setup()
     connect(mComps.geometryEditBtn, &QPushButton::clicked, this,
             &GISController::onGeometryEditToolClicked);
     connect(mComps.addFeatureBtn, &QPushButton::clicked, this, &GISController::onDigitizingToolClicked);
+    connect(mComps.rulerBtn, &QPushButton::clicked, this, &GISController::onRulerToolClicked);
 
 
     mComps.lodBtn->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -117,7 +133,7 @@ void vrsa::services::GISController::setup()
             this, &GISController::showContextMenuLOD);
 
     //==========ПОДЛЮЧЕНИЕ СИГНАЛОВ QAction==========
-    //вектор
+    //вектор (создание-открытие)
     connect(mComps.actionOpenLayer, &QAction::triggered,
             this, &GISController::onOpenLayerActionTriggered);
     connect(mComps.actionCreateLayer, &QAction::triggered,
@@ -128,6 +144,35 @@ void vrsa::services::GISController::setup()
             this, &GISController::onCreateLineLayerActionTriggered);
     connect(mComps.actionCreatePolygonLayer, &QAction::triggered,
             this, &GISController::onCreatePolygonLayerActionTriggered);
+    //геопроцессинг
+    connect(mComps.actionCreateBuffer, &QAction::triggered,
+            this, &GISController::onCreateBufferActionTriggered);
+    connect(mComps.actionCreateTriangulation, &QAction::triggered,
+            this, &GISController::onCreateTriangulationActionTriggered);
+    connect(mComps.actionCreateVoronoiDiag, &QAction::triggered,
+            this, &GISController::onCreateVoronoiActionTriggered);
+    //overlay
+    connect(mComps.actionCreateIntersection, &QAction::triggered,
+            this, &GISController::onCreateIntersectionActionTriggered);
+    connect(mComps.actionCreateUnion, &QAction::triggered,
+            this, &GISController::onCreateUnionActionTriggered);
+    connect(mComps.actionCreateDifference, &QAction::triggered,
+            this, &GISController::onCreateDifferenceActionTriggered);
+    connect(mComps.actionCreateSymDifference, &QAction::triggered,
+            this, &GISController::onCreateSymDifferenceActionTriggered);
+    //reproject vector
+    connect(mComps.actionReprojectVector, &QAction::triggered,
+            this, &GISController::onReprojectVectorActionTriggered);
+    //rasters
+    connect(mComps.actionOpenRasterLayer, &QAction::triggered,
+            this, &GISController::onOpenRasterLayerActionTriggered);
+    connect(mComps.actionReprojectRaster, &QAction::triggered,
+            this, &GISController::onReprojectRasterLayerActionTriggered);
+    connect(mComps.actionCutRasterByVectorMask, &QAction::triggered,
+            this, &GISController::onCutRasterByVectorMaskActionTriggered);
+    connect(mComps.actionCreateIsolines, &QAction::triggered,
+            this, &GISController::onCreateIsolinesActionTriggered);
+
 
     //сервисы
     connect(mComps.actionWMSConnection, &QAction::triggered,
@@ -994,8 +1039,6 @@ void vrsa::services::GISController::startDigitizing() //onpbAddFeature
 void vrsa::services::GISController::addMapTool(common::MapToolType type, vector::VectorLayer* layer)
 {
     mMapScene->deselectCurrentMapTool();
-    //mDigitizingManager->onDigitizingFinished();
-    QMessageBox::warning(nullptr, "we save yet!", "we save yey!!!");
     auto tool = tools::MapToolFactory::createForScene(mMapScene, type, layer);
     if (tool)
     {
@@ -1005,6 +1048,7 @@ void vrsa::services::GISController::addMapTool(common::MapToolType type, vector:
     }
 
 }
+
 
 void vrsa::services::GISController::removeMapTool()
 {
@@ -1040,6 +1084,12 @@ void vrsa::services::GISController::onDigitizingToolClicked(bool checked)
         removeMapTool();
 }
 
+void vrsa::services::GISController::onRulerToolClicked(bool checked)
+{
+    qDebug()<<"ruler tool";
+    addMapTool(common::MapToolType::RulerTool);
+}
+
 void vrsa::services::GISController::onCRSComboBoxIndexChanged(int index)
 {
     auto crs = spatialref::SpatialReferenceDatabase::instance().createFromIndex(index);
@@ -1068,6 +1118,57 @@ void vrsa::services::GISController::onToolEvent(tools::MapTool::ToolEventType ty
     case MapTool::ToolEventType::MultipleFeaturesSelected:
         if (data.canConvert<std::vector<graphics::FeatureGraphicsItem*>>())
             handleMultipleFeaturesSelected(data.value<std::vector<graphics::FeatureGraphicsItem*>>());
+    case MapTool::ToolEventType::SimpleLineRulerGeometryChanged:
+    {
+        if (data.canConvert<std::vector<QPointF>>())
+        {
+            auto points = data.value<std::vector<QPointF>>();
+            auto startPoint = points[0];
+            auto endPoint   = points[1];
+            if (!mComps.measurementForm)
+                mComps.measurementForm = new MeasurementForm();
+
+            mComps.measurementForm->show();
+            connect(mComps.measurementForm, &MeasurementForm::ellipsoidChanged, this, [this](const std::string& name){
+                auto [startPoint, endPoint] = mComps.measurementForm->getPoints();
+                double distance = calculations::MapCalculator::calculateDistance(
+                    startPoint, endPoint, calculations::MeasurementType::Geodesic, name);
+                mComps.measurementForm->setDistance(distance);
+            });
+            connect(mComps.measurementForm, &MeasurementForm::modeChanged, this, [this](){
+                auto [startPoint, endPoint] = mComps.measurementForm->getPoints();
+                double distance;
+                if (mComps.measurementForm->isGeodesicalMode())
+                {
+                    distance = calculations::MapCalculator::calculateDistance(
+                        startPoint, endPoint, calculations::MeasurementType::Geodesic,
+                        mComps.measurementForm->getEllipsoid());
+                }
+                else
+                    distance = calculations::MapCalculator::calculateDistance(startPoint, endPoint);
+                mComps.measurementForm->setDistance(distance);
+            });
+            //удаляется при закрытии
+            connect(mComps.measurementForm,  &QObject::destroyed, this, [this]() {
+                mComps.measurementForm = nullptr;
+                removeMapTool();
+            });
+            mComps.measurementForm->setStartPoint(startPoint);
+            mComps.measurementForm->setEndPoint(endPoint);
+            double distance = -1.0;
+            if (mComps.measurementForm->isGeodesicalMode())
+            {
+                distance = calculations::MapCalculator::calculateDistance(
+                    startPoint, endPoint, calculations::MeasurementType::Geodesic,
+                    mComps.measurementForm->getEllipsoid());
+            }
+            else
+                distance = calculations::MapCalculator::calculateDistance(startPoint, endPoint);
+            mComps.measurementForm->setDistance(distance);
+        }
+        break;
+    }
+
     default:
         break;
     }
@@ -1114,7 +1215,11 @@ void vrsa::services::GISController::handleMultipleFeaturesSelected(const std::ve
         handleFeatureSelected(item, false);
 }
 
+//===============================================================================================
+//===============================================================================================
 //=============================СЛОТЫ ОБРАБОТЧИКИ СИГНАЛОВ СО СЦЕНЫ===============================
+//===============================================================================================
+//===============================================================================================
 void vrsa::services::GISController::onMapHolderScaleChanged(int mapScale, double widgetScale)
 {
     mComps.scaleEdit->setText(QString::number(mapScale));
@@ -1153,7 +1258,13 @@ void vrsa::services::GISController::onActiveLayerChanged(const QString &name)
     mComps.activeLayerLabel->setText(tr("Активный слой:") + name);
 }
 
-//==================СЛОТЫ ОБРАБОТЧИКИ ACTION=========================
+
+//===============================================================================================
+//===============================================================================================
+//=================================СЛОТЫ ОБРАБОТЧИКИ ACTION======================================
+//===============================================================================================
+//===============================================================================================
+
 void vrsa::services::GISController::onOpenLayerActionTriggered()
 {
     std::string fileName=QFileDialog::getOpenFileName(nullptr,"Chose Vector Layer","Vector Files").toStdString();
@@ -1163,30 +1274,253 @@ void vrsa::services::GISController::onOpenLayerActionTriggered()
 void vrsa::services::GISController::onCreateLayerActionTriggered()
 {
     VectorLayerCreationForm form;
-    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this,
+            &GISController::onVectorLayerCreationAccepted);
     form.exec();
 }
 
 void vrsa::services::GISController::onCreatePointLayerActionTriggered()
 {
     VectorLayerCreationForm form(common::GeometryType::Point);
-    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this,
+            &GISController::onVectorLayerCreationAccepted);
     form.exec();
 }
 
 void vrsa::services::GISController::onCreateLineLayerActionTriggered()
 {
     VectorLayerCreationForm form(common::GeometryType::LineString);
-    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this,
+            &GISController::onVectorLayerCreationAccepted);
     form.exec();
 }
 
 void vrsa::services::GISController::onCreatePolygonLayerActionTriggered()
 {
     VectorLayerCreationForm form(common::GeometryType::Polygon);
-    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this, &GISController::onVectorLayerCreationAccepted);
+    connect(&form, &VectorLayerCreationForm::layerCreationAccepted, this,
+            &GISController::onVectorLayerCreationAccepted);
     form.exec();
 }
+
+void vrsa::services::GISController::onCreateBufferActionTriggered()
+{
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+    GeosOperationForm form(vector::SpatialOperationType::Buffer, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto operation = std::make_unique<vector::BufferOperation>(layer, dto, mVectorCreator.get());
+        operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateTriangulationActionTriggered()
+{
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+
+    GeosOperationForm form(vector::SpatialOperationType::Triangulation, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto operation = std::make_unique<vector::TriangulationOperation>(layer, dto, mVectorCreator.get());
+        operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateVoronoiActionTriggered()
+{
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+    GeosOperationForm form(vector::SpatialOperationType::VoronoiDiagramm, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto operation = std::make_unique<vector::VoronoiOperation>(layer, dto, mVectorCreator.get());
+        operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateIntersectionActionTriggered()
+{
+//    emit datasetReadingRequested("/home/doger/Documents/GepPortal/geosSpatiaTest/overlayData/intersectionKostrm.shp");
+//    emit datasetReadingRequested("/home/doger/Documents/GepPortal/geosSpatiaTest/overlayData/kostrm.shp");
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+    GeosOperationForm form(vector::SpatialOperationType::Intersection, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto overlayLayerName = dto.secondInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto overlayLayer = mProjectManager->getVectorLayerByName(overlayLayerName);
+        auto operation = std::make_unique<vector::IntersectionOperation>(layer, overlayLayer,
+                                                                         dto, mVectorCreator.get());
+        operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateUnionActionTriggered()
+{
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+    GeosOperationForm form(vector::SpatialOperationType::Union, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto overlayLayerName = dto.secondInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto overlayLayer = mProjectManager->getVectorLayerByName(overlayLayerName);
+        auto operation = std::make_unique<vector::UnionOperation>(layer, overlayLayer,
+                                                                         dto, mVectorCreator.get());
+        operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateDifferenceActionTriggered()
+{
+    emit datasetReadingRequested("/home/doger/Documents/GepPortal/geosSpatiaTest/overlayData/intersectionKostrm.shp");
+    emit datasetReadingRequested("/home/doger/Documents/GepPortal/geosSpatiaTest/overlayData/kostrm.shp");
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+    GeosOperationForm form(vector::SpatialOperationType::Difference, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto overlayLayerName = dto.secondInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto overlayLayer = mProjectManager->getVectorLayerByName(overlayLayerName);
+        auto operation = std::make_unique<vector::DifferenceOperation>(layer, overlayLayer,
+                                                                         dto, mVectorCreator.get());
+        operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCreateSymDifferenceActionTriggered()
+{
+    emit datasetReadingRequested("/home/doger/Documents/GepPortal/geosSpatiaTest/overlayData/intersectionKostrm.shp");
+    emit datasetReadingRequested("/home/doger/Documents/GepPortal/geosSpatiaTest/overlayData/kostrm.shp");
+    auto projectedLayers = mProjectManager->getProjectedVectorLayers();
+    std::vector<std::string> layerNames;
+    for (const auto& layer: projectedLayers)
+        layerNames.emplace_back(layer->getNameAsString());
+    GeosOperationForm form(vector::SpatialOperationType::SymDifference, layerNames);
+    connect(&form, &GeosOperationForm::operationAccepted, this, [this](const common::SpatialOperationDTO& dto){
+        auto layerName = dto.firstInputLayerName;
+        auto overlayLayerName = dto.secondInputLayerName;
+        auto layer = mProjectManager->getVectorLayerByName(layerName);
+        auto overlayLayer = mProjectManager->getVectorLayerByName(overlayLayerName);
+        auto operation = std::make_unique<vector::SymDifferenceOperation>(layer, overlayLayer,
+                                                                         dto, mVectorCreator.get());
+        operation->calculate();
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onReprojectVectorActionTriggered()
+{
+    auto layerNames = mProjectManager->getVectorLayersNames();
+    if (layerNames.empty())
+    {
+        VRSA_WARNING("CORE", "No vector layers available. Please add a vector layer first.");
+        return;
+    }
+    VectorReprojectionForm form(layerNames);
+    connect(&form, &VectorReprojectionForm::reprojectingAccepted, this, [this](const std::string& layer,
+                                                                               const std::string& crs,
+                                                                               const std::string& path){
+        qDebug()<<QString::fromStdString(layer);
+        qDebug()<<QString::fromStdString(crs);
+        qDebug()<<QString::fromStdString(path);
+        auto vectorLayer = mProjectManager->getVectorLayerByName(layer);
+        auto dstCrs = spatialref::SpatialReferenceDatabase::instance().createFromName(crs);
+        mVectorCreator->reprojectVectorLayer(vectorLayer, dstCrs, path);
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onOpenRasterLayerActionTriggered()
+{
+    std::string fileName=QFileDialog::getOpenFileName(nullptr,"Chose Raster Layer","Raster Files").toStdString();
+    emit datasetReadingRequested(fileName);
+}
+
+void vrsa::services::GISController::prepareRasterProcessingParams(common::RasterProcessingParams &params)
+{
+    auto dstSpRef = spatialref::SpatialReferenceDatabase::instance().createFromName(params.targetCRS.value());
+    std::string name = dstSpRef.getAuthorityName();
+    std::string code = dstSpRef.getAuthorityCode();
+    if (!name.empty() && !code.empty())
+        params.epsg = name +":"+ code;
+    std::string wkt = dstSpRef.toWKT();
+    if (!wkt.empty())
+        params.wkt = wkt;
+    std::string proj = dstSpRef.toProj();
+    if (!proj.empty())
+        params.proj = proj;
+}
+
+
+void vrsa::services::GISController::onReprojectRasterLayerActionTriggered()
+{
+    RasterProccessingForm form(common::RasterOperationType::Reproject, mProjectManager->getRasterDatasetSources());
+    connect(&form, &RasterProccessingForm::operationAccepted, this, [this](common::RasterProcessingParams params)
+    {
+        prepareRasterProcessingParams(params);
+        auto proccessor = raster::ReprojectProcessor(params);
+        if (proccessor.execute())
+            emit datasetReadingRequested(params.outputPath);
+    });
+    form.exec();
+}
+
+void vrsa::services::GISController::onCutRasterByVectorMaskActionTriggered()
+{
+    RasterProccessingForm form(common::RasterOperationType::CutByVectorMask, mProjectManager->getRasterDatasetSources(),
+                               mProjectManager->getVectorDatasetSources());
+    connect(&form, &RasterProccessingForm::operationAccepted, this, [this](common::RasterProcessingParams params)
+    {
+        prepareRasterProcessingParams(params);
+        auto proccessor = raster::ClipProcessor(params);
+        if (proccessor.execute())
+            emit datasetReadingRequested(params.outputPath);
+    });
+    form.exec();
+
+}
+
+void vrsa::services::GISController::onCreateIsolinesActionTriggered()
+{
+    RasterProccessingForm form(common::RasterOperationType::Isolines, mProjectManager->getRasterDatasetSources());
+    connect(&form, &RasterProccessingForm::operationAccepted, this, [this](common::RasterProcessingParams params)
+    {
+        prepareRasterProcessingParams(params);
+        auto proccessor = raster::IsolinesProcessor(params);
+        if (proccessor.execute())
+            emit datasetReadingRequested(params.outputPath);
+    });
+    form.exec();
+}
+
+
+
 
 void vrsa::services::GISController::onWMSConnectionTriggered()
 {

@@ -207,7 +207,25 @@ std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatur
 
 std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForMeasurement(const common::GeometryType type)
 {
-    return nullptr;
+    using namespace common;
+    switch (type)
+    {
+    case GeometryType::LineString:
+    case GeometryType::MultiLineString:
+    {
+        auto layerSymbol = std::make_unique<LayerLineSymbol>();
+        auto lineSymbol = SimpleLineSymbol::createDefaultSymbol();
+        lineSymbol->borderColor = Qt::black;
+        lineSymbol->borderWidth = 1;
+        lineSymbol->opacity = 0.5;
+        lineSymbol->borderStyle = Qt::PenStyle::DashLine;
+        layerSymbol->addChild(std::move(lineSymbol));
+        return std::make_unique<VectorFeatureStyle>(std::move(layerSymbol));
+    }
+    default:
+        return{};
+    }
+    return {};
 }
 
 std::unique_ptr<vrsa::graphics::VectorFeatureStyle> vrsa::graphics::VectorFeatureStyle::createForPreview(const common::GeometryType type)

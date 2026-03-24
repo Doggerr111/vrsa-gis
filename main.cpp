@@ -44,7 +44,6 @@ int main(int argc, char *argv[])
     qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::DatasetType");
     qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::TreeItemType");
     qRegisterMetaTypeStreamOperators<vrsa::common::TreeItemType>("vrsa::common::StyleParametr");
-
     MainWindow w;
     w.show();
     return a.exec();

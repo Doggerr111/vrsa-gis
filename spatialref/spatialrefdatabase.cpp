@@ -298,3 +298,11 @@ std::vector<vrsa::spatialref::SpatialReferenceDatabase::CRSInfo> vrsa::spatialre
     return list;
 
 }
+
+std::vector<vrsa::spatialref::SpatialReferenceDatabase::Ellipsoid> vrsa::spatialref::SpatialReferenceDatabase::loadEllipsoids()
+{
+    std::vector<Ellipsoid> ellipsoids;
+    ellipsoids.emplace_back("WGS 84", 6378137.0, 298.257223563); //WGS 84
+    ellipsoids.emplace_back("GSK-2011", 6378136.5, 298.2564151);  // ГСК-2011
+    return ellipsoids;
+}

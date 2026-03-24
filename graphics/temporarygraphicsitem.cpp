@@ -1,11 +1,6 @@
 #include "temporarygraphicsitem.h"
 #include "graphics/drawingcontext.h"
 #include "gdal/ogrconverter.h"
-//TemporaryGraphicsItem::TemporaryGraphicsItem(QObject *parent)
-//    : QObject{parent}
-//{
-
-//}
 
 vrsa::graphics::TemporaryGraphicsItem::TemporaryGraphicsItem(common::GeometryType geomType, TemporaryItemRole role)
     : mGeomType{geomType},
@@ -45,7 +40,6 @@ void vrsa::graphics::TemporaryGraphicsItem::setupRenderer()
 
 vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::generateStyle()
 {
-
     qDebug()<<"TemporaryGraphicsItem generateStyle()";
     switch (mRole)
     {
@@ -66,6 +60,7 @@ vrsa::graphics::VectorFeatureStyle* vrsa::graphics::TemporaryGraphicsItem::gener
     }
     case TemporaryItemRole::Measurement:
     {
+        mStyle = VectorFeatureStyle::createForMeasurement(mGeomType);
         break;
     }
     case TemporaryItemRole::Preview:

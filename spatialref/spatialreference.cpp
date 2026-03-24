@@ -67,7 +67,7 @@ vrsa::spatialref::SpatialReference& vrsa::spatialref::SpatialReference::operator
     {
         auto otherOGRref = other.GetOGRSpatialRef();
         if (otherOGRref)
-            mCrs = gdalwrapper::OgrSpatialRefPtr(otherOGRref->Clone());
+            mCrs.reset(otherOGRref->Clone());
         if (!mCrs && otherOGRref)
             VRSA_ERROR("PROJ", "Failed to clone spatial reference");
     }

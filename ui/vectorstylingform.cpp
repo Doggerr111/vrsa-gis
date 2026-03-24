@@ -46,6 +46,7 @@ VectorStylingForm::VectorStylingForm(VectorLayer *layer, QWidget *parent)
 
 
     initialize();
+    adjustSize();
 }
 
 #ifdef VRSA_ENABLE_TEST_UTILS
@@ -113,6 +114,8 @@ void VectorStylingForm::initialize()
     ui->treeWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     connect(ui->treeWidget, &QTreeWidget::currentItemChanged,
             this, &VectorStylingForm::om_TreeWidgetCurretItemChanged);
+    ui->frame_7->hide();
+    ui->frame_2->hide();
 }
 
 void VectorStylingForm::setStackedWidgetPage()
@@ -141,6 +144,7 @@ void VectorStylingForm::setStackedWidgetPage()
         VRSA_ERROR("CORE","Unsupported layer geometry type");
         break;
     }
+
 }
 
 QTreeWidgetItem *VectorStylingForm::createItem(Symbol* symbol)
@@ -347,10 +351,12 @@ QWidget *VectorStylingForm::createSimplePolygonPage(Symbol *symbol)
     frameLayout->addWidget(addSpinBoxFrame(tr("Смещение по Y"), symbol, StyleParam::YOffset));
     frameLayout->addWidget(addSliderFrame(tr("Прозрачность"), symbol, StyleParam::Opacity));
 
+
     // обавляем фрейм на страницу
     pageLayout->addWidget(frame);
     pageLayout->addStretch();  // чтобы не растягивалось
     ui->stackedWidget->setCurrentWidget(page);
+    ui->stackedWidget->setStyleSheet("* { font-size: 12px; }");
     return page;
 
 }
@@ -1037,6 +1043,7 @@ void VectorStylingForm::on_toolButtonCopySymbol_clicked()
 
 void VectorStylingForm::om_TreeWidgetCurretItemChanged(QTreeWidgetItem *currentItem, QTreeWidgetItem *previousItem)
 {
+    ui->frame_7->show();
 
     qDebug() << "Current item changed from" << (previousItem ? previousItem->text(0) : "none")
              << "to" << (currentItem ? currentItem->text(0) : "none");

@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     if (!mGisController)
         return;
+    setWindowTitle("VRSA");
     initialize();
     mGisController->setupViewComponents(createViewComponents());
     setupLogger();
@@ -41,6 +42,7 @@ void MainWindow::initialize()
     mMapToolExclusiveGroup->addButton(ui->pushButtonSingleSelection);
     mMapToolExclusiveGroup->addButton(ui->pushButtonRectSelection);
     mMapToolExclusiveGroup->addButton(ui->pushButtonGeometryEdit);
+    mMapToolExclusiveGroup->addButton(ui->pushButtonRuler);
     ui->rightTabWidget->tabBar()->setExpanding(false);
 
     QHBoxLayout* layoutOld = qobject_cast<QHBoxLayout*>(ui->central_frame->layout());
@@ -93,6 +95,7 @@ vrsa::services::ViewComponents MainWindow::createViewComponents()
     comps.singleSelectionBtn = ui->pushButtonSingleSelection;
     comps.rectSeletionBtn = ui->pushButtonRectSelection;
     comps.geometryEditBtn = ui->pushButtonGeometryEdit;
+    comps.rulerBtn = ui->pushButtonRuler;
     comps.mapToolsGrp = mMapToolExclusiveGroup;
 
     comps.coordEdit = ui->lineEditCoordinates;
@@ -113,6 +116,22 @@ vrsa::services::ViewComponents MainWindow::createViewComponents()
     comps.actionCreatePointLayer = ui->actionNew_point_layer;
     comps.actionCreateLineLayer = ui->actionNew_line_layer;
     comps.actionCreatePolygonLayer = ui->actionNew_polygon_layer;
+
+    comps.actionCreateBuffer = ui->actionBuffer;
+    comps.actionCreateTriangulation = ui->actionGeosTriangulation;
+    comps.actionCreateVoronoiDiag = ui->actionVoronoiDiagram;
+
+    comps.actionCreateIntersection = ui->actionIntersection;
+    comps.actionCreateUnion = ui->actionUnion;
+    comps.actionCreateDifference = ui->actionDifference;
+    comps.actionCreateSymDifference = ui->actionSymDifference;
+    comps.actionReprojectVector = ui->actionVectorReproject;
+
+    comps.actionOpenRasterLayer = ui->actionOpenRasterLayer;
+
+    comps.actionReprojectRaster = ui->actionRasterReproject;
+    comps.actionCutRasterByVectorMask = ui->actionCutRasterByVectorMask;
+    comps.actionCreateIsolines = ui->actionRasterContours;
 
     comps.actionWMSConnection = ui->actionConnectToWMS;
     comps.actionXYZConnection = ui->actionConnectToXYZ;

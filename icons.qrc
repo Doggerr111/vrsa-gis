@@ -99,5 +99,15 @@
         <file>images/icons/common/icon_earth_black.png</file>
         <file>images/icons/common/icon_WMS_black.png</file>
         <file>images/icons/common/icon_tiles_black.png</file>
+        <file>images/icons/spatialOperations/icon_buffer_black.png</file>
+        <file>images/icons/spatialOperations/icon_buffer_black_no_background.png</file>
+        <file>images/icons/dialogs/icon_copy_bold_black.png</file>
+        <file>images/icons/dialogs/icon_copy_flat_black.png</file>
+        <file>images/icons/dialogs/icon_copy_rect_bold_black.png</file>
+        <file>images/icons/dialogs/icon_arrow_down_flat_black.png</file>
+        <file>images/icons/dialogs/icon_arrow_up_flat_black.png</file>
+        <file>images/icons/spatialOperations/icon_diff_flat_black.png</file>
+        <file>images/icons/spatialOperations/icon_sym_diff_flat_black.png</file>
+        <file>images/icons/Tools/icon_ruler_black.png</file>
     </qresource>
 </RCC>

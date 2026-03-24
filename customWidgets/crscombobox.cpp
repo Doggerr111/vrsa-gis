@@ -7,6 +7,5 @@ CRSComboBox::CRSComboBox(QWidget* parent)
     int index = 0;
     for (const auto& crsInfo: vrsa::spatialref::SpatialReferenceDatabase::instance().getPredefinedCRSs())
         addItem(QString::fromStdString(crsInfo.name), index++);
-
 }
 

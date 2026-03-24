@@ -5,6 +5,10 @@
 #include "gdal/typeconversions.h"
 #include "spatialref/spatialrefdatabase.h"
 #include "spatialref/spatialreference.h"
+#include "logger.h"
+#include "vector/vectorlayer.h"
+#include "spatialref/spatialreference.h"
+#include "spatialref/coordinatetransformer.h"
 
 vrsa::vector::VectorLayerCreator::VectorLayerCreator(QObject *parent)
     : QObject(parent)
@@ -27,8 +31,8 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDa
         std::string fieldName = fieldRef.name;
         OGRFieldType fieldType = gdalwrapper::convertToOGRFieldType(static_cast<common::FieldType>(fieldRef.typeIndex));
         fieldsRefMap[fieldName] = fieldType;
-//        qDebug()<<"creating fieldRef for gdal writer: name:" <<QString::fromStdString(fieldName)
-//               << "fieldType: " << static_cast<common::FieldType>(fieldRef.typeIndex);
+        //        qDebug()<<"creating fieldRef for gdal writer: name:" <<QString::fromStdString(fieldName)
+        //               << "fieldType: " << static_cast<common::FieldType>(fieldRef.typeIndex);
     }
 
     gdalwrapper::LayerCreationParams params;
@@ -46,6 +50,104 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDa
 
     return gdalDsPtr;
 }
+
+vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDataset
+(const std::string& path, OGRwkbGeometryType type, OGRSpatialReference* ref)
+{
+    gdalwrapper::GDALWriter writer;
+    auto gdalDsPtr = writer.createLayer(path, type, ref,
+                                        {}, "ESRI Shapefile", {});
+    if (!gdalDsPtr)
+        VRSA_ERROR("VECTOR", "Can't create new layer");
+
+    return gdalDsPtr;
+}
+
+vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDatasetFromGeometries
+(const std::string& path, std::vector<gdalwrapper::OgrGeometryPtr> geometries, vector::VectorLayer* origLayer)
+{
+    OGRSpatialReference* ref = nullptr;
+    if (origLayer)
+    {
+        if (origLayer->getOGRLayer())
+            ref = origLayer->getOGRLayer()->GetSpatialRef();
+    }
+    for (const auto& geom: geometries)
+    {
+        qDebug()<<geom->getGeometryType();
+        qDebug()<<geom->getGeometryName();
+    }
+    auto dsUPtr = createGDALDataset(path, geometries[0]->getGeometryType(), ref);
+    if (!dsUPtr) return nullptr;
+    auto layer = dsUPtr->GetLayer(0);
+    if (!layer) return dsUPtr;
+    if (geometries.empty()) return dsUPtr;
+    for (size_t i = 0; i < geometries.size(); ++i)
+    {
+
+        auto feature = gdalwrapper::OgrFeaturePtr(OGRFeature::CreateFeature(layer->GetLayerDefn()));
+        if (geometries[i])
+        {
+            if (feature->SetGeometry(geometries[i].get()->clone()) != OGRERR_NONE)
+                VRSA_WARNING("VECTOR", "Error while setting geometry for feature #" + std::to_string(i));
+        }
+
+        if (layer->CreateFeature(feature.get()) != OGRERR_NONE)
+            VRSA_WARNING("VECTOR", "Error while setting feature #" + std::to_string(i) +
+                         " for layer:" + layer->GetName());
+    }
+    return dsUPtr;
+}
+
+vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDatasetFromGeometryCollection(const std::string &path, gdalwrapper::OgrGeometryPtr collection, VectorLayer *origLayer)
+{
+    if (collection->getGeometryType() != wkbGeometryCollection) return nullptr;
+    auto dsUPtr = createGDALDataset(path, wkbPolygon, origLayer->getOGRLayer()->GetSpatialRef());
+    if (!dsUPtr) return nullptr;
+    auto layer = dsUPtr->GetLayer(0);
+    if (!layer) return dsUPtr;
+
+    auto col = dynamic_cast<OGRGeometryCollection*>(collection.get());
+    std::vector<OGRPolygon*> polygons;
+    for (int i=0; i<col->getNumGeometries(); ++i)
+    {
+        OGRGeometry* geom = col->getGeometryRef(i);
+        if (!geom) continue;
+        switch (geom->getGeometryType())
+        {
+        case wkbPolygon:
+        {
+            OGRPolygon* polygon = dynamic_cast<OGRPolygon*>(geom);
+            if (!polygon) continue;
+            polygons.push_back(polygon);
+            break;
+        }
+        default:
+            break; //пока так...
+        }
+    }
+    if (polygons.empty()) return dsUPtr;
+    for (size_t i = 0; i < polygons.size(); ++i)
+    {
+
+        auto feature = gdalwrapper::OgrFeaturePtr(OGRFeature::CreateFeature(layer->GetLayerDefn()));
+        if (polygons[i])
+        {
+            if (feature->SetGeometry(polygons[i]->clone()) != OGRERR_NONE)
+                VRSA_WARNING("VECTOR", "Error while setting geometry for feature #" + std::to_string(i));
+        }
+
+        if (layer->CreateFeature(feature.get()) != OGRERR_NONE)
+            VRSA_WARNING("VECTOR", "Error while setting feature #" + std::to_string(i) +
+                         " for layer:" + layer->GetName());
+    }
+    return dsUPtr;
+}
+
+//vrsa::gdalwrapper::GdalDatasetPtr vrsa::vector::VectorLayerCreator::createGDALDatasetFromGeometry(const std::string &path, gdalwrapper::OgrGeometryPtr, VectorLayer *origLayer)
+//{
+
+//}
 
 std::string vrsa::vector::VectorLayerCreator::getVectorDatasetPath(GDALDataset *dataset)
 {
@@ -83,6 +185,57 @@ std::string vrsa::vector::VectorLayerCreator::getVectorDatasetPath(GDALDataset *
     }
 
     return path.toStdString();
+}
+
+void vrsa::vector::VectorLayerCreator::reprojectVectorLayer(VectorLayer *layer, spatialref::SpatialReference dstRef,
+                                                            const std::string &dstPath)
+{
+    if (!layer || !dstRef.isValid()) return;
+    auto dstOgrSRef = dstRef.GetOGRSpatialRef();
+    auto origOGRLayer = layer->getOGRLayer();
+    if (!origOGRLayer) return;
+    auto origOgrSRef = origOGRLayer->GetSpatialRef();
+    if (!dstOgrSRef) return;
+    origOgrSRef->SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+    dstOgrSRef->SetAxisMappingStrategy(OAMS_TRADITIONAL_GIS_ORDER);
+    auto transform = gdalwrapper::OgrCoordinateTransformationRefPtr(
+                                  OGRCreateCoordinateTransformation(origOgrSRef, dstOgrSRef));
+    if (!transform) { return; }
+
+    GDALDriver* driver = GetGDALDriverManager()->GetDriverByName("ESRI Shapefile");
+    auto dstDS = gdalwrapper::GdalDatasetPtr(driver->Create(dstPath.c_str(), 0, 0, 0, GDT_Unknown, nullptr));
+
+    OGRLayer* dstLayer = dstDS->CreateLayer(layer->getName(), dstOgrSRef,
+                                            layer->getOGRGeomType(), nullptr);
+    if (!dstLayer) return;
+
+    OGRFeatureDefn* srcDefn = origOGRLayer->GetLayerDefn();
+    for (int i = 0; i < srcDefn->GetFieldCount(); i++) {
+        dstLayer->CreateField(srcDefn->GetFieldDefn(i));
+    }
+
+    origOGRLayer->ResetReading();
+    gdalwrapper::OgrFeaturePtr srcFeature = nullptr;
+    while ((srcFeature = gdalwrapper::OgrFeaturePtr(origOGRLayer->GetNextFeature())) != nullptr)
+    {
+        auto dstFeature = gdalwrapper::OgrFeaturePtr(OGRFeature::CreateFeature(dstLayer->GetLayerDefn()));
+        dstFeature->SetFrom(srcFeature.get(), TRUE);
+        OGRGeometry* geom = srcFeature->GetGeometryRef();
+        if (geom)
+        {
+            auto clonedGeom = gdalwrapper::OgrGeometryPtr(geom->clone());
+            if (clonedGeom->transform(transform.get()) == OGRERR_NONE) {
+                dstFeature->SetGeometry(clonedGeom.get());
+            }
+            else
+                VRSA_LOG_GDAL_ERROR("GDAL", "Error while setting reprojected geometry");
+        }
+        if (dstLayer->CreateFeature(dstFeature.get()) != OGRERR_NONE) {
+            VRSA_LOG_GDAL_ERROR("GDAL", "Failed to create feature");
+        }
+    }
+    dstDS.reset();
+    emit vectorLayerReadingRequested(dstPath);
 }
 
 vrsa::vector::VectorLayerCreator::~VectorLayerCreator() = default;
