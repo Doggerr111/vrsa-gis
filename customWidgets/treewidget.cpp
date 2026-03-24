@@ -7,7 +7,6 @@ TreeWidget::TreeWidget(QWidget* parent)
 
 }
 
-
 void TreeWidget::mousePressEvent(QMouseEvent *event)
 {
     QTreeWidget::mousePressEvent(event);
@@ -15,21 +14,14 @@ void TreeWidget::mousePressEvent(QMouseEvent *event)
 
 void TreeWidget::mouseMoveEvent(QMouseEvent *event)
 {
-
     QTreeWidget::mouseMoveEvent(event);
 }
 
 void TreeWidget::dropEvent(QDropEvent *event)
 {
-    //QTreeWidget::dropEvent(event);
     bool accepted = true;
     emit itemDropped(event, &accepted);
-    //if (accepted)
-        //QTreeWidget::dropEvent(event);
     expandAll();
-
-
-
 }
 
 
