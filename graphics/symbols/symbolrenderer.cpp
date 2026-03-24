@@ -332,6 +332,26 @@ QPainterPath vrsa::graphics::SymbolRenderer::createTestGeometryForIcon(const Sym
             path.closeSubpath();
             break;
         }
+        case common::PointSymbolType::Cross:
+        {
+            double size = pointS->getPointSize()/2;
+            double halfSize = size / 2;
+            path.moveTo(-halfSize, -halfSize);
+            path.lineTo(halfSize, halfSize);
+            path.moveTo(halfSize, -halfSize);
+            path.lineTo(-halfSize, halfSize);
+            break;
+        }
+        case common::PointSymbolType::Plus:
+        {
+            double size = pointS->getPointSize()/2;
+            double halfSize = size / 2;
+            path.moveTo(0, -halfSize);
+            path.lineTo(0, halfSize);
+            path.moveTo(-halfSize, 0);
+            path.lineTo(halfSize, 0);
+            break;
+        }
         }
         break;
     }
@@ -407,7 +427,26 @@ void vrsa::graphics::SymbolRenderer::fillTestGeometryForItem(const Symbol *symbo
             path->closeSubpath();
             break;
         }
-
+        case common::PointSymbolType::Cross:
+        {
+            double size = pointS->getPointSize();
+            double halfSize = size / 2;
+            path->moveTo(-halfSize, -halfSize);
+            path->lineTo(halfSize, halfSize);
+            path->moveTo(halfSize, -halfSize);
+            path->lineTo(-halfSize, halfSize);
+            break;
+        }
+        case common::PointSymbolType::Plus:
+        {
+            double size = pointS->getPointSize();
+            double halfSize = size / 2;
+            path->moveTo(0, -halfSize);
+            path->lineTo(0, halfSize);
+            path->moveTo(-halfSize, 0);
+            path->lineTo(halfSize, 0);
+            break;
+        }
         }
         break;
     }
