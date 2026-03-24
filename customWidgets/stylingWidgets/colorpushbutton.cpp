@@ -3,10 +3,12 @@
 #include <simplepointsymbol.h>
 #include <simplelinesymbol.h>
 #include <simplepolygonsymbol.h>
+#include <QColorDialog>
 
 ColorPushButton::ColorPushButton(const Symbol *symbol, StyleParam param, QWidget *parent)
+    : QPushButton(parent),
+      mColor{Qt::black}
 {
-    mColor = Qt::black;
     if (symbol)
     {
         switch (symbol->type())
@@ -38,36 +40,52 @@ ColorPushButton::ColorPushButton(const Symbol *symbol, StyleParam param, QWidget
         }
         default:
             mColor = Qt::black;
-
         }
     }
-}
-
-QColor ColorPushButton::getColor()
-{
-    return mColor;
 }
 
 
 void ColorPushButton::mousePressEvent(QMouseEvent *event)
 {
-    mColor = QColorDialog::getColor();
-    if (!mColor.isValid())
-        mColor = Qt::black;
+    QColor oldColor = mColor;
+    QColor newColor = QColorDialog::getColor(mColor, this, tr("Выберите цвет"));
+    if (newColor.isValid())
+    {
+        mColor = newColor;
+        update();
+        emit clicked();
+    }
     QPushButton::mousePressEvent(event);
-    emit clicked();
 }
 
 void ColorPushButton::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    // Рисуем цветной квадрат
-    painter.setPen(Qt::black);
-    painter.setBrush(mColor);
-    painter.drawRect(5, 5, 20, height() - 10);
-    // Рисуем текст (название цвета или HEX)
-    painter.setPen(Qt::black);
-    painter.drawText(30, 0, width() - 30, height(),
+    painter.setRenderHint(QPainter::Antialiasing);
+    //тень
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(0, 0, 0, 60));
+    painter.drawRoundedRect(5, 6, 20, height() - 10, 3, 3);
+
+    QLinearGradient gradient(5, 5, 5, height() - 5);
+    gradient.setColorAt(0, mColor.lighter(120));
+    gradient.setColorAt(1, mColor.darker(110));
+    painter.setBrush(gradient);
+    painter.setPen(QPen(QColor(80, 80, 80), 1));
+    painter.drawRoundedRect(5, 5, 40, height() - 10, 4, 4);
+
+    QFont font = painter.font();
+    font.setPointSize(10);
+    painter.setFont(font);
+    //цвет текста в зависимости от состояния кнопки
+    if (isDown() || isChecked())
+        painter.setPen(QColor(255, 255, 255));
+    else if (underMouse())
+        painter.setPen(QColor(184, 92, 26));
+    else
+        painter.setPen(QColor(220, 220, 220));
+
+    painter.drawText(52, 0, width() - 40, height(),
                      Qt::AlignLeft | Qt::AlignVCenter,
-                     mColor.name());
+                     mColor.name().toUpper());
 }

@@ -1,9 +1,15 @@
-#ifndef LIPCOLORPUSHBUTTON_H
-#define LIPCOLORPUSHBUTTON_H
-
+#ifndef COLORPUSHBUTTON_H
+#define COLORPUSHBUTTON_H
 #include <QPushButton>
-#include <QColorDialog>
-#include <symbol.h>
+
+namespace vrsa {
+namespace graphics {
+class Symbol;
+}
+namespace common {
+enum class StyleParametr: int;
+}
+}
 class ColorPushButton : public QPushButton
 {
     using Symbol = vrsa::graphics::Symbol;
@@ -11,17 +17,16 @@ class ColorPushButton : public QPushButton
     Q_OBJECT
 public:
     ColorPushButton(const Symbol *symbol, StyleParam param, QWidget* parent = nullptr);
-    QColor getColor();
-private:
-    QColor mColor;
-
+    inline QColor getColor() const { return mColor; };
 
     // QWidget interface
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent*) override;
 
-private slots:
+private:
+    QColor mColor;
+
 };
 
-#endif // LIPCOLORPUSHBUTTON_H
+#endif // COLORPUSHBUTTON_H
