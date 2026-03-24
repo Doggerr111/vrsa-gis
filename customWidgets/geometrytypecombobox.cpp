@@ -6,6 +6,11 @@ GeometryTypeComboBox::GeometryTypeComboBox(QWidget *parent, FilterFlags flags)
     populateItems(flags);
 }
 
+void GeometryTypeComboBox::setGeometryTypes(FilterFlags flags)
+{
+    populateItems(flags);
+}
+
 
 
 void GeometryTypeComboBox::populateItems(FilterFlags flags)
@@ -26,36 +31,25 @@ void GeometryTypeComboBox::populateItems(FilterFlags flags)
     for (const auto& item : allTypes)
     {
         bool add = false;
-
-        // Проверяем флаги
         if (flags & FilterFlag::Simple)
         {
             if (item.type == common::GeometryType::Point ||
-                    item.type == common::GeometryType::LineString ||
-                    item.type == common::GeometryType::Polygon)
-            {
-                add = true;
-            }
+                item.type == common::GeometryType::LineString ||
+                item.type == common::GeometryType::Polygon)
+                    add = true;
         }
-
         if (flags & FilterFlag::Multi)
         {
             if (item.type == common::GeometryType::MultiPoint ||
-                    item.type == common::GeometryType::MultiLineString ||
-                    item.type == common::GeometryType::MultiPolygon)
-            {
-                add = true;
-            }
+                item.type == common::GeometryType::MultiLineString ||
+                item.type == common::GeometryType::MultiPolygon)
+                    add = true;
         }
-
         if (flags & FilterFlag::Collection)
         {
             if (item.type == common::GeometryType::GeometryCollection)
-            {
                 add = true;
-            }
         }
-
         if (add)
             addItem(QIcon(item.icon), item.name, static_cast<int>(item.type));
     }
