@@ -112,6 +112,7 @@ file(GLOB CORE_SOURCES
     "vectorlayertools/*.cpp"
     "vectorlayertools/spatial_operations/*.cpp"
     "spatialref/*.cpp"
+    "rastertools/*.cpp"
     )
 file(GLOB_RECURSE GRAPHICS_SOURCES "graphics/*.cpp")
 file(GLOB_RECURSE GRAPHICS_HEADERS "graphics/*.h")
@@ -133,6 +134,7 @@ file(GLOB CORE_HEADERS
     "vectorlayertools/*.h"
     "vectorlayertools/spatial_operations/*.h"
     "spatialref/*.h"
+    "rastertools/*.h"
     )
 add_library(vrsa_core STATIC ${CORE_SOURCES} ${CORE_HEADERS})
 #добавляем тестовые функции в ядре
@@ -155,6 +157,7 @@ target_include_directories(vrsa_core PUBLIC
     vectorlayertools
     vectorlayertools/spatial_operations
     spatialref
+    rastertools
 
     )
 
@@ -178,6 +181,7 @@ file(GLOB MAIN_SOURCES
 file(GLOB CUSTOM_WIDGETS_CPP
     "customWidgets/*.cpp"
     "customWidgets/stylingWidgets/*.cpp"
+    "customWidgets/rasterProccessingWidgets/*.cpp"
     "services/*.cpp"
     )
 file(GLOB UI_CPP "ui/*.cpp")
@@ -191,6 +195,7 @@ file(GLOB MAIN_HEADERS
 file(GLOB CUSTOM_WIDGETS_HEADERS
     "customWidgets/*.h"
     "customWidgets/stylingWidgets/*.h"
+    "customWidgets/rasterProccessingWidgets/*.h"
     "services/*.h"
     )
 file(GLOB UI_HEADERS "ui/*.h")
@@ -227,6 +232,7 @@ if(QT_VERSION_MAJOR EQUAL 6)
         ${CMAKE_CURRENT_SOURCE_DIR}
         customWidgets
         customWidgets/stylingWidgets
+        customWidgets/rasterProccessingWidgets
         ui
         ${CMAKE_CURRENT_BINARY_DIR}  # ← для сгенерированных ui_*.h файлов
         )
