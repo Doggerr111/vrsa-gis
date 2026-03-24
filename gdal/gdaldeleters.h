@@ -117,6 +117,7 @@ struct OgrFeatureDefnDeleter {
 struct OgrSpatialRefDeleter {
     void operator()(OGRSpatialReference* spatialRef) const {
         if (spatialRef) {
+            VRSA_DEBUG("GDAL", "DestroySpatialRef() called");
             OGRSpatialReference::DestroySpatialReference(spatialRef);
         }
     }
