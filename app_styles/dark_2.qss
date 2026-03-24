@@ -56,6 +56,7 @@ font-weight: bold;
 padding: 10px;
 }
 
+
 /* Для QGroupBox */
 QGroupBox {
 color: #ffffff;
@@ -75,6 +76,58 @@ padding: 0 5px 0 5px;
 /* Текст */
 QLabel {
 color: #ffffff;
+}
+
+QDialog QFrame {
+    border: none;
+}
+
+/* Базовый стиль для всех радио-кнопок */
+QDialog QRadioButton {
+    color: #e0e0e0;
+    font-size: 12px;
+    spacing: 8px;           /* расстояние между индикатором и текстом */
+    padding: 4px 0px;
+}
+
+/* Индикатор (кружок) в обычном состоянии */
+QDialog QRadioButton::indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;     /* половина ширины = круг */
+    border: 1px solid #666666;
+    background-color: #2d2d2d;
+}
+
+
+
+/* Индикатор при наведении */
+QDialog QRadioButton::indicator:hover {
+    border: 1px solid #888888;
+    background-color: #3d3d3d;
+}
+
+/* Выбранное состояние */
+QDialog QRadioButton::indicator:checked {
+    background-color: #b85c1a;
+    border: 1px solid #d46c24;
+}
+
+/* Выбранное + наведение */
+QDialog QRadioButton::indicator:checked:hover {
+    background-color: #d46c24;
+    border: 1px solid #e07c34;
+}
+
+/* Отключенное состояние */
+QDialog QRadioButton::indicator:disabled {
+    background-color: #3a3a3a;
+    border: 1px solid #4a4a4a;
+}
+
+/* Отключенный текст */
+QDialog QRadioButton:disabled {
+    color: #6f6f6f;
 }
 
 /* ===== ГЛОБАЛЬНЫЕ СТИЛИ ДЛЯ ВИДЖЕТОВ (ВНЕ TREE/TABLE) ===== */
