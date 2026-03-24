@@ -30,12 +30,11 @@ public:
     virtual bool execute() = 0;
     virtual std::string name()         const = 0;
     virtual common::RasterOperationType type() const = 0;
-    void setProgressCallback(std::function<void(int, int)> callback) { mProgressCallback = callback; }
 
 protected:
     /**
      * @brief Собрать аргументы команды
-     * @return вектор аргументов (первый аргумент "gdal" уже добавлен)
+     * @return вектор аргументов
      */
     virtual std::string buildArgs() const = 0;
 
@@ -55,10 +54,9 @@ protected:
         return true;
     }
 protected:
-    std::function<void(int, int)> mProgressCallback;
     common::RasterProcessingParams mParams;
 };
 
-} // namespace gdalwrapper
-} // namespace vrsa
+}
+}
 #endif // GDALRASTERPROCESSOR_H

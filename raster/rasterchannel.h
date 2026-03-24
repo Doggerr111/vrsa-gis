@@ -122,7 +122,6 @@ public:
     RasterChannel(GDALRasterBand* band);
     ~RasterChannel()
     {
-        qDebug()<<"oi oi";
     }
 private:
     void createStorage(GDALRasterBand* band);

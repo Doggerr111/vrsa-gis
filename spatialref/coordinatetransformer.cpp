@@ -54,11 +54,9 @@ OGRGeometry* vrsa::spatialref::CoordinateTransformer::transformGeometry(const OG
 {
     if (!m_transform || !geom) return nullptr;
 
-    // Клонируем геометрию, чтобы не менять оригинал
     OGRGeometry* clone = geom->clone();
     if (!clone) return nullptr;
 
-    // Трансформируем клон
     if (clone->transform(m_transform.get()) != OGRERR_NONE) {
         VRSA_LOG_GDAL_ERROR("PROJ", "Failed to transform geometry");
         delete clone;
