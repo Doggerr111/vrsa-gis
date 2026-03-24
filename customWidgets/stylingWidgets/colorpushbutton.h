@@ -10,6 +10,12 @@ namespace common {
 enum class StyleParametr: int;
 }
 }
+/**
+ * @brief Кнопка для выбора цвета с отображением текущего цвета
+ *
+ * При нажатии открывает QColorDialog. Цвет отображается как
+ * цветной прямоугольник на кнопке.
+ */
 class ColorPushButton : public QPushButton
 {
     using Symbol = vrsa::graphics::Symbol;
