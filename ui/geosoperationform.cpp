@@ -9,19 +9,32 @@ GeosOperationForm::GeosOperationForm(SpatialOperationType type, std::vector<std:
     ui->setupUi(this);
     setWindowTitle(vrsa::vector::spatialOperationTypeToQString(mType));
     for (const auto name: layerNames)
+    {
         ui->comboBoxFirstInputLayer->addItem(QString::fromStdString(name));
+        ui->comboBoxSecondInputLayer->addItem(QString::fromStdString(name));
+    }
     connect(ui->pushButtonOuputPathBtn, &FileDialogButton::clicked, this, &GeosOperationForm::onFileButtonClicked);
 
     switch (mType)
     {
     case SpatialOperationType::Buffer:
         ui->frameTolerance->hide();
+        ui->frameOverlayInput->hide();
         ui->frameDistanceMeters->show();
         break;
     case SpatialOperationType::Triangulation:
     case SpatialOperationType::VoronoiDiagramm:
-        ui->frameTolerance->show();
         ui->frameDistanceMeters->hide();
+        ui->frameOverlayInput->hide();
+        ui->frameTolerance->show();
+        break;
+    case SpatialOperationType::Intersection:
+    case SpatialOperationType::Union:
+    case SpatialOperationType::Difference:
+    case SpatialOperationType::SymDifference:
+        ui->frameTolerance->hide();
+        ui->frameDistanceMeters->hide();
+        ui->frameOverlayInput->show();
         break;
     default:
         break;
@@ -47,6 +60,14 @@ vrsa::common::SpatialOperationDTO GeosOperationForm::createDTO()
 
         double distance = ui->doubleSpinBoxDistanceMeters->value();
         dto.distance = distance;
+        return dto;
+    }
+    case vrsa::vector::SpatialOperationType::Intersection:
+    case vrsa::vector::SpatialOperationType::Union:
+    case vrsa::vector::SpatialOperationType::Difference:
+    case vrsa::vector::SpatialOperationType::SymDifference:
+    {
+        dto.secondInputLayerName = ui->comboBoxSecondInputLayer->currentText().toStdString();
         return dto;
     }
     default:

@@ -357,6 +357,26 @@ QPushButton:hover {
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonRuler">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/Tools/icon_ruler_black.png</normaloff>:/images/icons/Tools/icon_ruler_black.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>35</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -1180,7 +1200,7 @@ width: 80px;     /* ширина вкладки */
 </string>
                </property>
                <property name="currentIndex">
-                <number>0</number>
+                <number>2</number>
                </property>
                <property name="elideMode">
                 <enum>Qt::ElideRight</enum>
@@ -1334,6 +1354,11 @@ border-radius: 14px;
                   </widget>
                  </item>
                 </layout>
+               </widget>
+               <widget class="QWidget" name="tab_3">
+                <attribute name="title">
+                 <string>Page</string>
+                </attribute>
                </widget>
               </widget>
              </item>
@@ -1560,6 +1585,8 @@ background-color: rgb(68,68,68)
     <addaction name="actionVoronoiDiagram"/>
     <addaction name="actionIntersection"/>
     <addaction name="actionUnion"/>
+    <addaction name="actionDifference"/>
+    <addaction name="actionSymDifference"/>
     <addaction name="actionVectorReproject"/>
     <addaction name="actionAssignVectorProjection"/>
    </widget>
@@ -1568,14 +1595,13 @@ background-color: rgb(68,68,68)
      <string>Растр</string>
     </property>
     <addaction name="actionOpenRasterLayer"/>
-    <addaction name="actionXYZService"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
      <string>Анализ растров</string>
     </property>
-    <addaction name="actionCutRasterByVectorMask"/>
     <addaction name="actionRasterReproject"/>
+    <addaction name="actionCutRasterByVectorMask"/>
     <addaction name="actionRasterContours"/>
    </widget>
    <widget class="QMenu" name="menu_4">
@@ -1846,6 +1872,24 @@ background-color: rgb(68,68,68)
    </property>
    <property name="text">
     <string>Буферная зона</string>
+   </property>
+  </action>
+  <action name="actionDifference">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/spatialOperations/icon_diff_flat_black.png</normaloff>:/images/icons/spatialOperations/icon_diff_flat_black.png</iconset>
+   </property>
+   <property name="text">
+    <string>Разность</string>
+   </property>
+  </action>
+  <action name="actionSymDifference">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/images/icons/spatialOperations/icon_sym_diff_flat_black.png</normaloff>:/images/icons/spatialOperations/icon_sym_diff_flat_black.png</iconset>
+   </property>
+   <property name="text">
+    <string>Симметричная разность</string>
    </property>
   </action>
  </widget>
