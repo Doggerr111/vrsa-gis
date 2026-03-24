@@ -12,25 +12,23 @@ class MeasurementForm : public QDialog
     Q_OBJECT
 
 public:
-    explicit MeasurementForm(QWidget *parent = nullptr);
+    explicit MeasurementForm (QWidget *parent = nullptr);
+
     inline void setStartPoint(const QPointF& point)  { mStartPos = point; };
     inline void setEndPoint  (const QPointF& point)  { mEndPos   = point; };
+    void setDistance         (double distance);
     inline std::pair<QPointF, QPointF> getPoints() const { return {mStartPos, mEndPos}; }
-    void setDistance(double distance);
-    bool isGeodesicalMode() const;
-    bool isCartesianMode () const;
     std::string getEllipsoid() const;
+    bool isGeodesicalMode()    const;
+    bool isCartesianMode ()    const;
     ~MeasurementForm();
 signals:
     void ellipsoidChanged(const std::string& ellipsName);
     void modeChanged();
 private slots:
     void on_comboBox_currentIndexChanged(int index);
-
     void on_radioButtonCartesian_clicked();
-
     void on_radioButtonGeodesical_clicked();
-
     void on_pushButtonExit_clicked();
 
 private:
