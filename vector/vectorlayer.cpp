@@ -154,6 +154,18 @@ void vrsa::vector::VectorLayer::setVisible(bool visible)
     emit visibilityChanged(visible);
 }
 
+void vrsa::vector::VectorLayer::selectAllFeatures()
+{
+    for (const auto& feat : mFeatures)
+        if (feat) feat->setSelected(true);
+}
+
+void vrsa::vector::VectorLayer::deselectAllFeatures()
+{
+    for (const auto& feat : mFeatures)
+        if (feat) feat->setSelected(false);
+}
+
 void vrsa::vector::VectorLayer::setZValue(int zValue) noexcept
 {
     mZValue = zValue;

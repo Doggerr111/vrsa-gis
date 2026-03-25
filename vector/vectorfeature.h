@@ -38,7 +38,6 @@ public:
     VectorFeature(vrsa::gdalwrapper::OgrFeaturePtr feature, OGRLayer* layer = nullptr);
     VectorFeature(const VectorFeature&) = delete;
     VectorFeature& operator=(const VectorFeature&) = delete;
-
     VectorFeature(VectorFeature&& other) noexcept
            : QObject()
            , mFeature(std::move(other.mFeature))
@@ -47,21 +46,21 @@ public:
            , mFieldTypes(std::move(other.mFieldTypes))
            , mIsVisible(other.mIsVisible)
            , mIsSelected(other.mIsSelected)
-       {}
-
-       VectorFeature& operator=(VectorFeature&& other) noexcept
-       {
-           if (this != &other)
-           {
-               mFeature = std::move(other.mFeature);
-               mParentLayer = std::exchange(other.mParentLayer, nullptr);
-               mAttributes = std::move(other.mAttributes);
-               mFieldTypes = std::move(other.mFieldTypes);
-               mIsVisible = other.mIsVisible;
-               mIsSelected = other.mIsSelected;
-           }
-           return *this;
-       }
+       {} 
+    VectorFeature& operator=(VectorFeature&& other) noexcept
+    {
+        if (this != &other)
+        {
+            mFeature = std::move(other.mFeature);
+            mParentLayer = std::exchange(other.mParentLayer, nullptr);
+            mAttributes = std::move(other.mAttributes);
+            mFieldTypes = std::move(other.mFieldTypes);
+            mIsVisible = other.mIsVisible;
+            mIsSelected = other.mIsSelected;
+        }
+        return *this;
+    }
+    ~VectorFeature() { emit featureAboutToBeRemoved(); };
 
     /**
      * @english
@@ -340,6 +339,7 @@ signals:
     void styleChanged(graphics::VectorFeatureStyle* style);
     void ZValueChanged(int zValue);
     void symbolUpdated();
+    void featureAboutToBeRemoved();
 
 //public slots:
 

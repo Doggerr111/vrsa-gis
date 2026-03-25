@@ -146,6 +146,8 @@ public:
     void setStyle(std::unique_ptr<graphics::VectorFeatureStyle> style, common::GeometryType geomType);
     graphics::VectorFeatureStyle* getStyle() const noexcept;
     void setVisible(bool visible);
+    void selectAllFeatures();
+    void deselectAllFeatures();
     void setZValue(int zValue) noexcept;
     int getZValue() const noexcept {return mZValue; };
 
