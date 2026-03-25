@@ -168,6 +168,18 @@ void vrsa::graphics::MapScene::onVectorLayerFeatureRemoved(int64_t fid)
 
 }
 
+void vrsa::graphics::MapScene::onFeatureGraphicsItemRequestRemoval(FeatureGraphicsItem *item)
+{
+    if (item)
+        removeItem(item);
+
+    auto it = std::remove_if(mMapItems.begin(), mMapItems.end(), [item](const auto& f) {
+        return f && f.get() == item;
+    });
+    if (it != mMapItems.end())
+        mMapItems.erase(it, mMapItems.end());
+}
+
 //delete this
 void vrsa::graphics::MapScene::onNewFeatureGraphicsItemCreated(std::unique_ptr<FeatureGraphicsItem> &item)
 {
@@ -188,6 +200,8 @@ void vrsa::graphics::MapScene::onFeatureGraphicsItemCreated(FeatureGraphicsItem 
         return;
     }
     addItem(item);
+    connect(item, &FeatureGraphicsItem::requestRemoval,
+            this, &MapScene::onFeatureGraphicsItemRequestRemoval);
     item->setScale(mMapScale, mMapHolderScale);
     mMapItems.push_back(std::unique_ptr<FeatureGraphicsItem>(item));
     update(item->boundingRect());

@@ -40,9 +40,13 @@ public slots:
     //пока что слот используется именно при обработке сигнала с "резиновых" линий
     void onGeometryChanged(const geometry::Geometry& geometry);
     void onFeatureStyleChanged(VectorFeatureStyle*);
+    void onFeatureSelected(bool selected);
     void onVectorFeatureGeometryChanged();
     void onSymbolUpdated();
     void onLodSettingsChanged(bool enabled, common::LodAlgorithmType type);
+    void onFeatureAboutToBeRemoved();
+signals:
+    void requestRemoval(FeatureGraphicsItem*);
 
 private:
     Renderer mRenderer;

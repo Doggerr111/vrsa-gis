@@ -72,8 +72,9 @@ public slots:
     void onVectorLayerFeatureAdded(vector::VectorFeature*);
     void onVectorLayerFeatureRemoved(int64_t fid);
 
-    void onNewFeatureGraphicsItemCreated(std::unique_ptr<graphics::FeatureGraphicsItem>& item);
+    void onFeatureGraphicsItemRequestRemoval(FeatureGraphicsItem* item);
 
+    void onNewFeatureGraphicsItemCreated(std::unique_ptr<graphics::FeatureGraphicsItem>& item);
     void onFeatureGraphicsItemCreated(FeatureGraphicsItem* item); //from proj manager;
     void onRasterGraphicsItemCreated(RasterGraphicsItem *item); //from proj manager;
 
