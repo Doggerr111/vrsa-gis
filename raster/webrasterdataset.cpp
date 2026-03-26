@@ -110,3 +110,15 @@ QImage vrsa::raster::WebRasterDataset::readExtent(const QRectF &extent, int widt
                   width * 3, QImage::Format_RGB888).copy();
 
 }
+
+void vrsa::raster::WebRasterDataset::setZValue(int zValue)
+{
+    mZValue = zValue;
+    emit ZValueChanged(mZValue);
+}
+
+void vrsa::raster::WebRasterDataset::setVisible(bool visible)
+{
+    mIsVisible = visible;
+    emit visibilityChanged(visible);
+}

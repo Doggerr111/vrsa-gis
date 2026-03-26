@@ -17,8 +17,9 @@ namespace raster
  *
  * @see Dataset, RasterDataset
  */
-class WebRasterDataset : public gdalwrapper::Dataset
+class WebRasterDataset : public QObject, public gdalwrapper::Dataset
 {
+    Q_OBJECT
 public:
     WebRasterDataset(vrsa::gdalwrapper::GdalDatasetPtr dataset);
     ~WebRasterDataset();
@@ -30,9 +31,16 @@ public:
      * @return QImage с прочитанными данными или пустой QImage при ошибке
     */
     QImage readExtent(const QRectF& extent, int width, int height, QRectF& actualExtent);
+    void setZValue(int zValue);
+    void setVisible(bool visible);
+signals:
+    void ZValueChanged(int);
+    void visibilityChanged(bool);
 
 private:
     std::atomic<int> mActiveReads{0};
+    int mZValue;
+    double mIsVisible;
 //    QTransform getGeoTransform()
 //    {
 //        double geoTransform[6];

@@ -40,17 +40,17 @@ public:
     }
     QTransform getGeoTransform();
     QRectF getBoundingBox();
-    inline void setZValue(int zValue) noexcept
-    {
-        mZValue = zValue;
-    }
+    void setZValue(int zValue);
+    void setVisible(bool visible);
 signals:
     void ZValueChanged(int);
+    void visibilityChanged(bool);
 private:
     channels mRasterChannels;
     //double mGeoTransform;
     QTransform mGeoTransform;
     int mZValue;
+    bool mIsVisible;
 public:
     RasterDataset();
 };

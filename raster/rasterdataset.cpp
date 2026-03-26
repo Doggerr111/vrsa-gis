@@ -37,3 +37,15 @@ QRectF vrsa::raster::RasterDataset::getBoundingBox()
     double minY = geoTransform[3] + geoTransform[5] * mDs->GetRasterYSize();
     return QRectF(QPointF(minX, minY), QSizeF(maxX - minX, maxY - minY));
 }
+
+void vrsa::raster::RasterDataset::setZValue(int zValue)
+{
+    mZValue = zValue;
+    emit ZValueChanged(mZValue);
+}
+
+void vrsa::raster::RasterDataset::setVisible(bool visible)
+{
+    mIsVisible = visible;
+    emit visibilityChanged(mIsVisible);
+}
