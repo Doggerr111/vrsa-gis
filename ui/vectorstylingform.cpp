@@ -37,13 +37,51 @@ VectorStylingForm::VectorStylingForm(VectorLayer *layer, QWidget *parent)
     connect(this, &VectorStylingForm::itemRenderRequired, &mSymbolRenderer, &vrsa::graphics::SymbolRenderer::renderToItem);
     connect(this, &VectorStylingForm::symbolRenderRequired, &mSymbolRenderer, &vrsa::graphics::SymbolRenderer::renderToIcon);
     itemRenderRequired(mClonedSymbol.get());
+    setWindowTitle(tr("Настройка стилей"));
     //auto scene = new QGraphicsScene;
     ui->graphicsView->setScene(mScene);
     ui->graphicsView->setRenderHint(QPainter::Antialiasing, true);
-
+    //цвет выделения (фокуса)
+    QPalette pal = ui->treeWidget->palette();
+    pal.setColor(QPalette::Highlight, QColor(184, 92, 26));
+    pal.setColor(QPalette::HighlightedText, Qt::white);
+    ui->treeWidget->setPalette(pal);
     //vrsa::graphics::SymbolRenderer::renderSymbolToGraphicsItem(mClonedSymbol.get(), mItem.get());
     //ui->graphicsView->scene()->addItem(mItem.get());
+//    ui->stackedWidget->setStyleSheet(
+//                R"(
+//                    * {
+//                        font-size: 12px;
+//                    }
+//                    #stackedWidget QFrame{
+//                        border: 1px solid #4f4f4f;
+//                        background-color: #2a2a2a;
+//                        border-radius: 3px;
+//                        padding: 4px;
+//                    }
+//                    /* QFrame внутри stackedWidget  */
+//                    #stackedWidget QFrame > QFrame {
+//                        border: none;
+//                        background-color: #2a2a2a;
+//                        border-radius: 3px;
+//                        padding: 4px;
+//                    }
 
+//                    #stackedWidget QFrame > QFrame:hover {
+//                        border: 1px solid #6f6f6f;
+//                        background-color: #3a3a3a;
+//                    }
+
+//                    #stackedWidget QFrame >QLabel:hover {
+//                        border:none;
+//                        background-color: transparent;
+//                    }
+//                    #stackedWidget QFrame >QLabel {
+//                        border:none;
+//                        background-color: transparent;
+//                    }
+//                    )"
+//    );
 
     initialize();
     adjustSize();
@@ -356,7 +394,6 @@ QWidget *VectorStylingForm::createSimplePolygonPage(Symbol *symbol)
     pageLayout->addWidget(frame);
     pageLayout->addStretch();  // чтобы не растягивалось
     ui->stackedWidget->setCurrentWidget(page);
-    ui->stackedWidget->setStyleSheet("* { font-size: 12px; }");
     return page;
 
 }
