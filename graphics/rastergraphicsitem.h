@@ -21,6 +21,7 @@ public:
     gdalwrapper::Dataset* getDataset() const noexcept { return mBaseDs; };
 public slots:
     void onZValueChanged(int zValue);
+    void onVisibilityChanged(bool visible);
     void onVisibleExtentChanged(const QRectF& mapExtent, const QRect& widgetRect);
 protected:
     virtual void notifyExtentChanged(const QRectF& mapExtent, const QRect& widgetRect){};
