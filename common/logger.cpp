@@ -23,8 +23,8 @@ Logger& Logger::getInstance() {
     return instance;
 }
 
-Logger::Logger() {
-    // Включаем все категории по умолчанию
+Logger::Logger()
+{
     enabledCategories[LogCategory::CORE] = true;
     enabledCategories[LogCategory::GDAL] = true;
     enabledCategories[LogCategory::VECTOR] = true;
@@ -33,21 +33,23 @@ Logger::Logger() {
     enabledCategories[LogCategory::DATABASE] = true;
     enabledCategories[LogCategory::RENDERING] = true;
     enabledCategories[LogCategory::MEMORY] = true;
-
 }
 
-Logger::~Logger() {
-    if (logFile.is_open()) {
+Logger::~Logger()
+{
+    if (logFile.is_open())
         logFile.close();
-    }
+
 }
 
-void Logger::setLogLevel(LogLevel level) {
+void Logger::setLogLevel(LogLevel level)
+{
     std::lock_guard<std::mutex> lock(logMutex);
     currentLevel = level;
 }
 
-void Logger::setLogFile(const std::string& filename) {
+void Logger::setLogFile(const std::string& filename)
+{
     std::lock_guard<std::mutex> lock(logMutex);
 
     if (logFile.is_open()) {
@@ -62,12 +64,14 @@ void Logger::setLogFile(const std::string& filename) {
     }
 }
 
-void Logger::enableConsoleOutput(bool enable) {
+void Logger::enableConsoleOutput(bool enable)
+{
     std::lock_guard<std::mutex> lock(logMutex);
     consoleEnabled = enable;
 }
 
-void Logger::enableCategory(const std::string& category, bool enable) {
+void Logger::enableCategory(const std::string& category, bool enable)
+{
     std::lock_guard<std::mutex> lock(logMutex);
     enabledCategories[category] = enable;
 }
@@ -100,18 +104,20 @@ void Logger::clearWidgets()
 }
 
 // Основные методы логирования
-void Logger::log(LogLevel level, const std::string& category, const std::string& message) {
+void Logger::log(LogLevel level, const std::string& category, const std::string& message)
+{
     log(level, category, message, "", 0, "");
 }
 
 void Logger::log(LogLevel level, const std::string& category, const std::string& message,
-                 const char* file, int line, const char* function) {
+                 const char* file, int line, const char* function)
+{
     if (!shouldLog(level, category))
         return;
 
 
     std::string formatted_message = formatMessage(level, category, message, file, line, function);
-
+    std::string formatted_for_widgets = formatMessageForWidgets(level, category, message);
     std::lock_guard<std::mutex> lock(logMutex);
 
     if (consoleEnabled) {
@@ -122,7 +128,7 @@ void Logger::log(LogLevel level, const std::string& category, const std::string&
         writeToFile(formatted_message);
     }
 
-    writeToWidgets(formatted_message, level, category);
+    writeToWidgets(formatted_for_widgets, level, category);
 }
 
 // Удобные методы
@@ -201,8 +207,8 @@ void Logger::logMemoryUsage(const std::string& context) {
 #endif
 }
 
-// Приватные методы
-std::string Logger::getCurrentTime() const {
+std::string Logger::getCurrentTime() const
+{
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -214,7 +220,8 @@ std::string Logger::getCurrentTime() const {
     return ss.str();
 }
 
-std::string Logger::levelToString(LogLevel level) const {
+std::string Logger::levelToString(LogLevel level) const
+{
     switch (level) {
     case LogLevel::TRACE:    return "TRACE";
     case LogLevel::DEBUG:    return "DEBUG";
@@ -228,15 +235,18 @@ std::string Logger::levelToString(LogLevel level) const {
 
 std::string Logger::formatMessage(LogLevel level, const std::string& category,
                                   const std::string& message, const char* file,
-                                  int line, const char* function) const {
+                                  int line, const char* function) const
+{
     std::stringstream ss;
     ss << "[" << getCurrentTime() << "] "
        << "[" << levelToString(level) << "] "
-       << "[" << category << "] "
-       << "[" << std::this_thread::get_id() << "] ";
+       << "[" << category << "] ";
+    if (logThreadEnabled)
+       ss << "[" << std::this_thread::get_id() << "] ";
 
-    if (file && strlen(file) > 0) {
-        // Берем только имя файла, не полный путь
+    if (file && strlen(file) > 0 && logFileEnabled)
+    {
+        //только имя файла, не полный путь
         const char* filename = strrchr(file, '/');
         if (!filename) filename = strrchr(file, '\\');
         if (filename) filename++;
@@ -249,6 +259,15 @@ std::string Logger::formatMessage(LogLevel level, const std::string& category,
     }
 
     ss << message;
+    return ss.str();
+}
+
+std::string Logger::formatMessageForWidgets(LogLevel level, const std::string &category, const std::string &message) const
+{
+    std::stringstream ss;
+    ss << "[" << getCurrentTime() << "] "
+       << "[" << levelToString(level) << "] " << message;
+   //    << "[" << category << "] " << message;
     return ss.str();
 }
 
@@ -295,30 +314,30 @@ QString Logger::formatHtml(const std::string &message, LogLevel level, const std
     return html;
 }
 
-bool Logger::shouldLog(LogLevel level, const std::string& category) const {
-    // Проверяем уровень
+bool Logger::shouldLog(LogLevel level, const std::string& category) const
+{
+
     if (level < currentLevel) {
         return false;
     }
 
-    // Проверяем категорию
     auto it = enabledCategories.find(category);
-    if (it != enabledCategories.end() && !it->second) {
+    if (it != enabledCategories.end() && !it->second)
         return false;
-    }
-
     return true;
 }
 
-void Logger::writeToFile(const std::string& message) {
-    if (logFile.is_open()) {
+void Logger::writeToFile(const std::string& message)
+{
+    if (logFile.is_open())
+    {
         logFile << message << std::endl;
-        logFile.flush(); // Гарантируем запись
+        logFile.flush();
     }
 }
 
 void Logger::writeToConsole(const std::string& message) {
-    // Цвета для разных уровней (только для поддерживающих терминалов)
+
     static const bool use_colors =
         #ifdef _WIN32
             false; // Упрощаем для Windows
@@ -359,24 +378,22 @@ void Logger::writeToWidgets(const std::string &formatted, LogLevel level, const 
 
     //в виджет категории
     auto it = mCategoryWidgets.find(category);
-    if (it != mCategoryWidgets.end() && it->second) {
+    if (it != mCategoryWidgets.end() && it->second)
         writeToWidget(it->second, html);
-    }
 
-    // Если нет ни одного виджета, сохраняем в буфер
-    if (!mMainWidget && mCategoryWidgets.empty()) {
+    //если нет ни одного виджета, сохраняем в буфер
+    if (!mMainWidget && mCategoryWidgets.empty())
+    {
         mPendingMessages.append(html);
         // Ограничиваем размер буфера
         while (mPendingMessages.size() > 1000)
             mPendingMessages.removeFirst();
-
     }
 }
 
 void Logger::writeToWidget(QTextEdit *widget, const QString &html)
 {
     if (!widget) return;
-
     //вызов в GUI потоке
     QMetaObject::invokeMethod(widget, [widget, html]()
     {
