@@ -20,7 +20,8 @@
    <string>Dialog</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QFrame {border:none};</string>
+   <string notr="true">QFrame {border:none}
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <property name="spacing">
@@ -85,6 +86,19 @@
          </property>
          <item>
           <widget class="QFrame" name="frameFirstInputLayer">
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+    background-color: transparent;
+}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -129,6 +143,19 @@
          </item>
          <item>
           <widget class="QFrame" name="frameOverlayInput">
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+    background-color: transparent;
+}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -173,6 +200,19 @@
          </item>
          <item>
           <widget class="QFrame" name="frameDistanceMeters">
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+    background-color: transparent;
+}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -205,6 +245,19 @@
          </item>
          <item>
           <widget class="QFrame" name="frameTolerance">
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+    background-color: transparent;
+}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -282,6 +335,19 @@
          </item>
          <item>
           <widget class="QFrame" name="frameOutputPath">
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+    background-color: transparent;
+}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
