@@ -348,7 +348,8 @@ vrsa::gdalwrapper::Dataset *vrsa::services::ProjectManager::readDataset(const st
 }
 
 vrsa::gdalwrapper::Dataset *vrsa::services::ProjectManager::readTMSDataset(const std::string &xml,
-                                                                           bool xyz, unsigned int flags)
+                                                                           bool xyz, const std::string& name,
+                                                                           unsigned int flags)
 {
     vrsa::gdalwrapper::GDALReader reader;
     std::unique_ptr<vrsa::gdalwrapper::Dataset> datasetUPtr;
@@ -368,6 +369,7 @@ vrsa::gdalwrapper::Dataset *vrsa::services::ProjectManager::readTMSDataset(const
     auto rawDs = datasetUPtr.get();
     xyz ? rawDs->setDatasetSourceType(common::DatasetSource::XYZ)
         : rawDs->setDatasetSourceType(common::DatasetSource::TMS);
+    rawDs->setName(name);
     AddDataset(std::move(datasetUPtr));
     return rawDs;
 }
@@ -389,7 +391,7 @@ void vrsa::services::ProjectManager::createPostGISConnection(const QString& conn
 void vrsa::services::ProjectManager::createXYZConnection(const QString &connectionName, const std::string &xmlString)
 {
     if (xmlString.empty()) return;
-    auto XYZds = readTMSDataset(xmlString, true, GDAL_OF_RASTER | GDAL_OF_READONLY);
+    auto XYZds = readTMSDataset(xmlString, true, connectionName.toStdString(), GDAL_OF_RASTER | GDAL_OF_READONLY);
     XYZds ? VRSA_INFO("MAP SERVICES", "Successfuly connected to XYZ service. Connection name:" + connectionName.toStdString()
                      + " Connection string:" + xmlString)
          : VRSA_ERROR("MAP SERVICES", "Failed to connect to XYZ service. Connection name:" + connectionName.toStdString()
