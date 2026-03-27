@@ -73,6 +73,7 @@ void vrsa::graphics::MapScene::deselectCurrentMapTool()
         mCurrentMapTool->deactivate();
         mCurrentMapTool.reset();
         mCurrentMapTool = nullptr;
+        setPanningEnable(true);
         removeTemporaryItems();
     }
 
