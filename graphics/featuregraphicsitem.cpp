@@ -26,6 +26,7 @@ vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(Feature *feature)
         QObject::connect(feature, &vector::VectorFeature::symbolUpdated, this, &FeatureGraphicsItem::onSymbolUpdated);
         QObject::connect(&settings, &common::ApplicationSettings::lodSettingsChanged,
                          this, &FeatureGraphicsItem::onLodSettingsChanged);
+        setZValue(mFeature->getZValue());
 
 
     }
