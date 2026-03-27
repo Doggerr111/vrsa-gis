@@ -122,5 +122,6 @@
         <file>images/icons/Tools/icon_mouse_black.png</file>
         <file>images/icons/Tools/glass.png</file>
         <file>images/icons/Tools/icon_zoom_out_bold_black.png</file>
+        <file>images/icons/SymbolStyling/icon_image_fill_black.png</file>
     </qresource>
 </RCC>
