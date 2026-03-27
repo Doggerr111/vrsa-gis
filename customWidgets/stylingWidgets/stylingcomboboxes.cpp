@@ -306,12 +306,13 @@ void PenCapComboBox::setStyle(Qt::PenCapStyle style)
 PointTypeComboBox::PointTypeComboBox(const Symbol *symbol, QWidget *parent)
     : QComboBox(parent)
 {
-    addItem(createIconForType(vrsa::common::PointSymbolType::Circle),  tr("Круг"));
-    addItem(createIconForType(vrsa::common::PointSymbolType::Square),  tr("Квадрат"));
-    addItem(createIconForType(vrsa::common::PointSymbolType::Triangle),tr("Треугольник"));
-    addItem(createIconForType(vrsa::common::PointSymbolType::Rhombus), tr("Ромб"));
-    addItem(createIconForType(vrsa::common::PointSymbolType::Cross),   tr("Крест"));
-    addItem(createIconForType(vrsa::common::PointSymbolType::Plus),    tr("Плюс"));
+    addItem(createIconForType(vrsa::common::PointSymbolType::Circle),      tr("Круг"));
+    addItem(createIconForType(vrsa::common::PointSymbolType::Square),      tr("Квадрат"));
+    addItem(createIconForType(vrsa::common::PointSymbolType::Triangle),    tr("Треугольник"));
+    addItem(createIconForType(vrsa::common::PointSymbolType::Rhombus),     tr("Ромб"));
+    addItem(createIconForType(vrsa::common::PointSymbolType::Cross),       tr("Крест"));
+    addItem(createIconForType(vrsa::common::PointSymbolType::Plus),        tr("Плюс"));
+    addItem(createIconForType(vrsa::common::PointSymbolType::ImageMarker), tr("Изображение"));
     if (symbol)
     {
         if (symbol->type() == vrsa::common::SymbolType::SimplePointSymbol)
@@ -341,6 +342,9 @@ void PointTypeComboBox::setPointType(PointType type)
     case vrsa::common::PointSymbolType::Plus:
         setCurrentIndex(5);
         break;
+    case vrsa::common::PointSymbolType::ImageMarker:
+        setCurrentIndex(6);
+        break;
     }
 }
 
@@ -360,6 +364,8 @@ PointTypeComboBox::PointType PointTypeComboBox::getPointType() const
         return vrsa::common::PointSymbolType::Cross;
     case 5:
         return vrsa::common::PointSymbolType::Plus;
+    case 6:
+        return vrsa::common::PointSymbolType::ImageMarker;
     default:
         return vrsa::common::PointSymbolType::Circle;
     }
@@ -367,6 +373,18 @@ PointTypeComboBox::PointType PointTypeComboBox::getPointType() const
 
 QIcon PointTypeComboBox::createIconForType(PointType type) const
 {
+
+    if (type == vrsa::common::PointSymbolType::ImageMarker)
+    {
+        QPixmap pixmap(":/images/icons/SymbolStyling/icon_image_fill_black.png");
+        if (pixmap.isNull())
+        {
+            pixmap = QPixmap(24, 24);
+            pixmap.fill(Qt::gray);
+        }
+        return QIcon(pixmap);
+    }
+
     QPixmap pixmap(24, 24);
     pixmap.fill(Qt::transparent);
 
@@ -430,6 +448,8 @@ QIcon PointTypeComboBox::createIconForType(PointType type) const
                          centerX + halfSize, centerY);
         break;
     }
+//    case vrsa::common::PointSymbolType::ImageMarker:
+//        pixmap = QPixmap(":/images/icons/SymbolStyling/icon_image_fill_black.png");
     default:
         break;
     }

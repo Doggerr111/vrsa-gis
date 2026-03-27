@@ -13,6 +13,7 @@
 #include <QLabel>
 #include "vector/vectorlayer.h"
 #include "graphics/vectorfeaturestyle.h"
+#include <QFileDialog>
 #ifdef VRSA_ENABLE_TEST_UTILS
 #include "test_utils/testsymbolfactory.h"
 #endif
@@ -980,6 +981,23 @@ void VectorStylingForm::on_PointTypeCBoxIndexChanged(int indx)
         return;
     auto simplePointS = static_cast<vrsa::graphics::SimplePointSymbol*>(symbol);
     simplePointS->pointType = cboxSender->getPointType();
+    if (simplePointS->pointType == vrsa::common::PointSymbolType::ImageMarker)
+    {
+        QString fileName = QFileDialog::getOpenFileName(this,
+                                                        "Выберите изображение для маркера",
+                                                        "",
+                                                        "Images (*.png *.jpg *.jpeg *.bmp *.svg)");
+
+        if (!fileName.isEmpty())
+        {
+            simplePointS->imageMarker = QImage(fileName).mirrored(false, true);
+            qDebug() << "Selected image:" << fileName;
+        }
+        else
+        {
+            qDebug()<< "Empty path";
+        }
+    }
 
     auto treeItem = findItemByData(QVariant::fromValue(symbol), vrsa::common::SymbolPtrRole);
     QIcon itemIcon = QIcon();
