@@ -68,7 +68,7 @@ QFrame {
      <number>0</number>
     </property>
     <item>
-     <widget class="QFrame" name="header_frame">
+     <widget class="QFrame" name="header_tool_bar_frame">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -167,46 +167,48 @@ QPushButton:hover {
           <property name="bottomMargin">
            <number>0</number>
           </property>
-          <item alignment="Qt::AlignVCenter">
-           <widget class="QPushButton" name="pushButton_addFeature">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>50</width>
-              <height>50</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>50</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton {
-border:none;
-}
-QPushButton:checked { 
-background-color: gray;
-border: 1px solid
-}
-
-QPushButton:hover {
-	border: 1px solid;
-    border-color: #333; /* Цвет рамки при наведении */
-}</string>
-            </property>
+          <item>
+           <widget class="QPushButton" name="pushButtonZoomIn">
             <property name="text">
              <string/>
             </property>
             <property name="icon">
              <iconset resource="../icons.qrc">
-              <normaloff>:/images/icons/Tools/digitize.png</normaloff>:/images/icons/Tools/digitize.png</iconset>
+              <normaloff>:/images/icons/Tools/glass.png</normaloff>:/images/icons/Tools/glass.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>35</width>
+              <height>35</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonZoomOut">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/Tools/icon_zoom_out_bold_black.png</normaloff>:/images/icons/Tools/icon_zoom_out_bold_black.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>35</width>
+              <height>35</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonPanning">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/Tools/icon_mouse_black.png</normaloff>:/images/icons/Tools/icon_mouse_black.png</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -216,9 +218,6 @@ QPushButton:hover {
             </property>
             <property name="checkable">
              <bool>true</bool>
-            </property>
-            <property name="autoRepeatDelay">
-             <number>300</number>
             </property>
            </widget>
           </item>
@@ -232,8 +231,8 @@ QPushButton:hover {
             </property>
             <property name="minimumSize">
              <size>
-              <width>50</width>
-              <height>50</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
@@ -243,18 +242,7 @@ QPushButton:hover {
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton {
-border:none;
-}
-QPushButton:checked { 
-background-color: gray;
-border: 1px solid
-}
-
-QPushButton:hover {
-	border: 1px solid;
-    border-color: #333; /* Цвет рамки при наведении */
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string/>
@@ -281,23 +269,12 @@ QPushButton:hover {
            <widget class="QPushButton" name="pushButtonRectSelection">
             <property name="minimumSize">
              <size>
-              <width>50</width>
-              <height>50</height>
+              <width>0</width>
+              <height>0</height>
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton {
-border:none;
-}
-QPushButton:checked { 
-background-color: gray;
-border: 1px solid
-}
-
-QPushButton:hover {
-	border: 1px solid;
-    border-color: #333; /* Цвет рамки при наведении */
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string/>
@@ -318,26 +295,82 @@ QPushButton:hover {
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButtonGeometryEdit">
+           <widget class="QPushButton" name="pushButtonRuler">
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/Tools/icon_ruler_black.png</normaloff>:/images/icons/Tools/icon_ruler_black.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>35</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_addFeature">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
-              <width>50</width>
-              <height>50</height>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton {
-border:none;
-}
-QPushButton:checked { 
-background-color: gray;
-border: 1px solid
-}
-
-QPushButton:hover {
-	border: 1px solid;
-    border-color: #333; /* Цвет рамки при наведении */
-}</string>
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/Tools/icon_pen_black.png</normaloff>:/images/icons/Tools/icon_pen_black.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>35</width>
+              <height>35</height>
+             </size>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="autoRepeatDelay">
+             <number>300</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonGeometryEdit">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
             </property>
             <property name="text">
              <string/>
@@ -357,30 +390,10 @@ QPushButton:hover {
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QPushButton" name="pushButtonRuler">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="icon">
-             <iconset resource="../icons.qrc">
-              <normaloff>:/images/icons/Tools/icon_ruler_black.png</normaloff>:/images/icons/Tools/icon_ruler_black.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>35</width>
-              <height>35</height>
-             </size>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
-       <item alignment="Qt::AlignLeft">
+       <item>
         <widget class="QFrame" name="frameMainToolBar">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -415,58 +428,96 @@ QPushButton:hover {
           <enum>QFrame::Raised</enum>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_8">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>9</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>9</number>
+          </property>
           <item>
-           <widget class="QPushButton" name="pushButtonShowAttributeTable">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <property name="minimumSize">
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>50</width>
-              <height>50</height>
+              <width>40</width>
+              <height>20</height>
              </size>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>50</height>
-             </size>
-            </property>
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">QPushButton {
-border:none;
-}
-QPushButton:pressed { 
-background-color: gray;
-border: 1px solid
-}
-
-QPushButton:hover {
-	border: 1px solid;
-    border-color: #333; /* Цвет рамки при наведении */
-}</string>
-            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonTriangulation">
             <property name="text">
              <string/>
             </property>
             <property name="icon">
              <iconset resource="../icons.qrc">
-              <normaloff>:/images/icons/metaData.png</normaloff>:/images/icons/metaData.png</iconset>
+              <normaloff>:/images/icons/triangulate.png</normaloff>:/images/icons/triangulate.png</iconset>
             </property>
             <property name="iconSize">
              <size>
-              <width>45</width>
-              <height>45</height>
+              <width>32</width>
+              <height>32</height>
              </size>
             </property>
-            <property name="autoRepeatDelay">
-             <number>300</number>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonVoronoi">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/voronoiDiagram.png</normaloff>:/images/icons/voronoiDiagram.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonIntersection">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/intersection.png</normaloff>:/images/icons/intersection.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonPostGis">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../icons.qrc">
+              <normaloff>:/images/icons/postgis.png</normaloff>:/images/icons/postgis.png</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>32</width>
+              <height>32</height>
+             </size>
             </property>
            </widget>
           </item>
@@ -550,6 +601,9 @@ background-color: rgb(68,68,68)
           <property name="topMargin">
            <number>0</number>
           </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QFrame" name="frame_2">
             <property name="sizePolicy">
@@ -585,14 +639,38 @@ background-color: rgb(68,68,68)
              </property>
              <item>
               <widget class="QTabWidget" name="leftTabWidget">
+               <property name="styleSheet">
+                <string notr="true">QTabWidget::pane QTabBar::tab {
+    font-size: 8pt;
+}
+QTabWidget::pane QTabBar::tab {
+width: 80px;     /* ширина вкладки */
+    height: 25px;    /* высота вкладки */
+    padding: 2px;  
+	text-align: left;
+
+}</string>
+               </property>
                <property name="currentIndex">
                 <number>0</number>
                </property>
                <widget class="QWidget" name="tab">
                 <attribute name="title">
-                 <string>Tab 1</string>
+                 <string>Легенда</string>
                 </attribute>
                 <layout class="QVBoxLayout" name="verticalLayout_11">
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
                  <item>
                   <widget class="QLabel" name="label">
                    <property name="sizePolicy">
@@ -601,8 +679,16 @@ background-color: rgb(68,68,68)
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="styleSheet">
+                    <string notr="true">QLabel {
+    border-bottom: 2px solid #4a4a4a;
+}</string>
+                   </property>
                    <property name="text">
                     <string>Слои проекта</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -613,6 +699,11 @@ background-color: rgb(68,68,68)
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>8</pointsize>
+                    </font>
                    </property>
                    <property name="text">
                     <string>Активный слой:</string>
@@ -656,6 +747,9 @@ QPushButton:hover {
                     </property>
                     <property name="topMargin">
                      <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>9</number>
                     </property>
                     <property name="bottomMargin">
                      <number>0</number>
@@ -738,7 +832,8 @@ gridline-color: #333333;
 outline: none;
 border: 2px solid #333333;
 border-style: solid;
-}</string>
+}
+</string>
                    </property>
                    <property name="sizeAdjustPolicy">
                     <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
@@ -766,24 +861,6 @@ border-style: solid;
                   </widget>
                  </item>
                 </layout>
-               </widget>
-               <widget class="QWidget" name="tab_2">
-                <attribute name="title">
-                 <string>Tab 2</string>
-                </attribute>
-                <widget class="QPushButton" name="pushButton_testVectorLayerUtils">
-                 <property name="geometry">
-                  <rect>
-                   <x>8</x>
-                   <y>40</y>
-                   <width>131</width>
-                   <height>25</height>
-                  </rect>
-                 </property>
-                 <property name="text">
-                  <string>сгенерировать</string>
-                 </property>
-                </widget>
                </widget>
               </widget>
              </item>
@@ -866,7 +943,7 @@ border-top: 0px solid black</string>
           <item>
            <widget class="QTabWidget" name="tabWidgetConsoleLog">
             <property name="currentIndex">
-             <number>0</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="tabLoggerCommon">
              <attribute name="title">
@@ -891,10 +968,22 @@ border-top: 0px solid black</string>
                  <enum>QFrame::Raised</enum>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_12">
-                 <item alignment="Qt::AlignTop">
+                 <property name="leftMargin">
+                  <number>2</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
                   <widget class="QToolButton" name="toolButtonClearCommonLogger">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Maximum">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -913,6 +1002,53 @@ border-top: 0px solid black</string>
                     </size>
                    </property>
                   </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButtonCopyCommonLogger">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Maximum">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/images/icons/dialogs/icon_copy_two_paper_black.png</normaloff>:/images/icons/dialogs/icon_copy_two_paper_black.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Maximum">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/images/icons/diskette.png</normaloff>:/images/icons/diskette.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="verticalSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                 </layout>
                </widget>
@@ -936,6 +1072,18 @@ border-top: 0px solid black</string>
                  <enum>QFrame::Raised</enum>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_13">
+                 <property name="leftMargin">
+                  <number>2</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
                  <item alignment="Qt::AlignTop">
                   <widget class="QToolButton" name="toolButtonClearCoreLogger">
                    <property name="sizePolicy">
@@ -981,6 +1129,18 @@ border-top: 0px solid black</string>
                  <enum>QFrame::Raised</enum>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_14">
+                 <property name="leftMargin">
+                  <number>2</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
                  <item alignment="Qt::AlignTop">
                   <widget class="QToolButton" name="toolButtonClearDataLogger">
                    <property name="sizePolicy">
@@ -1026,10 +1186,22 @@ border-top: 0px solid black</string>
                  <enum>QFrame::Raised</enum>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_15">
-                 <item alignment="Qt::AlignTop">
+                 <property name="leftMargin">
+                  <number>2</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
+                 <item>
                   <widget class="QToolButton" name="toolButtonClearGraphicsLogger">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Maximum">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -1048,6 +1220,41 @@ border-top: 0px solid black</string>
                     </size>
                    </property>
                   </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_3">
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/images/icons/dialogs/icon_copy_two_paper_black.png</normaloff>:/images/icons/dialogs/icon_copy_two_paper_black.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_2">
+                   <property name="text">
+                    <string>...</string>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../icons.qrc">
+                     <normaloff>:/images/icons/diskette.png</normaloff>:/images/icons/diskette.png</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="verticalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                 </layout>
                </widget>
@@ -1163,6 +1370,9 @@ background-color: rgb(68,68,68)
           <property name="rightMargin">
            <number>0</number>
           </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QFrame" name="frame_9">
             <property name="sizePolicy">
@@ -1178,6 +1388,18 @@ background-color: rgb(68,68,68)
              <enum>QFrame::Raised</enum>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_5">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QTabWidget" name="rightTabWidget">
                <property name="sizePolicy">
@@ -1200,7 +1422,7 @@ width: 80px;     /* ширина вкладки */
 </string>
                </property>
                <property name="currentIndex">
-                <number>2</number>
+                <number>1</number>
                </property>
                <property name="elideMode">
                 <enum>Qt::ElideRight</enum>
@@ -1213,9 +1435,21 @@ width: 80px;     /* ширина вкладки */
                  </sizepolicy>
                 </property>
                 <attribute name="title">
-                 <string>База данных</string>
+                 <string>PostGIS</string>
                 </attribute>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>0</number>
+                 </property>
                  <item>
                   <widget class="QFrame" name="frame_8">
                    <property name="sizePolicy">
@@ -1231,6 +1465,18 @@ width: 80px;     /* ширина вкладки */
                     <enum>QFrame::Raised</enum>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_8">
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
                     <item>
                      <widget class="QLabel" name="label_2">
                       <property name="sizePolicy">
@@ -1241,6 +1487,9 @@ width: 80px;     /* ширина вкладки */
                       </property>
                       <property name="text">
                        <string>Слои базы данных</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignCenter</set>
                       </property>
                      </widget>
                     </item>
@@ -1265,13 +1514,14 @@ width: 80px;     /* ширина вкладки */
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">
-QTreeWidget{
-border:3px solid black;
-border-radius: 14px;
-
-
-};</string>
+                       <string notr="true">QTreeWidget {
+background-color: #353535;
+color: #e0e0e0;
+gridline-color: #333333;
+outline: none;
+border: 2px solid #333333;
+border-style: solid;
+}</string>
                       </property>
                       <property name="verticalScrollBarPolicy">
                        <enum>Qt::ScrollBarAsNeeded</enum>
@@ -1317,7 +1567,7 @@ border-radius: 14px;
                  </sizepolicy>
                 </property>
                 <attribute name="title">
-                 <string>Инструменты выделения</string>
+                 <string>Объекты</string>
                 </attribute>
                 <layout class="QVBoxLayout" name="verticalLayout_9">
                  <item>
@@ -1342,6 +1592,33 @@ border-radius: 14px;
                         <horstretch>0</horstretch>
                         <verstretch>0</verstretch>
                        </sizepolicy>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">QTreeWidget {
+background-color: #353535;
+color: #e0e0e0;
+gridline-color: #333333;
+outline: none;
+border: 2px solid #333333;
+border-style: solid;
+}
+
+</string>
+                      </property>
+                      <property name="showDropIndicator" stdset="0">
+                       <bool>true</bool>
+                      </property>
+                      <property name="dragDropOverwriteMode">
+                       <bool>false</bool>
+                      </property>
+                      <property name="rootIsDecorated">
+                       <bool>true</bool>
+                      </property>
+                      <property name="headerHidden">
+                       <bool>true</bool>
+                      </property>
+                      <property name="columnCount">
+                       <number>1</number>
                       </property>
                       <column>
                        <property name="text">
@@ -1431,11 +1708,67 @@ background-color: rgb(68,68,68)
        </item>
        <item>
         <widget class="QToolButton" name="toolButtonLOD">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
          <property name="toolTip">
           <string>Включить LOD</string>
          </property>
          <property name="toolTipDuration">
           <number>-1</number>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QToolButton {
+background-color: #5f5f5f;
+color: #ffffff;
+border: none;
+border-radius: 3px;
+padding: 5px;
+min-width: 20px;
+min-height: 20px;
+}
+
+QToolButton:hover {
+background-color: #b85c1a;
+}
+
+QToolButton:pressed {
+background-color: #8a3e0c;
+}
+
+QToolButton:checked {
+background-color: #b85c1a;  /* выделенная/закрепленная кнопка */
+}
+
+QToolButton:checked:hover {
+background-color: #d46c24;
+}
+
+QToolButton:disabled {
+background-color: #3f3f3f;
+color: #6f6f6f;
+}
+
+QToolButton::menu-indicator {
+image: none;  /* убрать индикатор меню если не нужен */
+subcontrol-origin: padding;
+subcontrol-position: bottom right;
+}</string>
          </property>
          <property name="text">
           <string>...</string>
@@ -1619,6 +1952,18 @@ background-color: rgb(68,68,68)
     <addaction name="action_TMS"/>
     <addaction name="actionConnectToXYZ"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>Вид</string>
+    </property>
+    <widget class="QMenu" name="menuPanels">
+     <property name="title">
+      <string>Панели</string>
+     </property>
+     <addaction name="actionShowToolBar"/>
+    </widget>
+    <addaction name="menuPanels"/>
+   </widget>
    <addaction name="menuf"/>
    <addaction name="menuf_2"/>
    <addaction name="menu"/>
@@ -1627,6 +1972,7 @@ background-color: rgb(68,68,68)
    <addaction name="menuDatabase"/>
    <addaction name="menu_4"/>
    <addaction name="menu_5"/>
+   <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="enabled">
@@ -1890,6 +2236,50 @@ background-color: rgb(68,68,68)
    </property>
    <property name="text">
     <string>Симметричная разность</string>
+   </property>
+  </action>
+  <action name="actionShowConsole">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Консоль</string>
+   </property>
+  </action>
+  <action name="actionShowRightTabWidget">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Правая панель</string>
+   </property>
+  </action>
+  <action name="actionShowLeftTabWidget">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Левая панель</string>
+   </property>
+  </action>
+  <action name="actionShowToolBar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Панель инструментов</string>
    </property>
   </action>
  </widget>
