@@ -24,17 +24,22 @@ void vrsa::graphics::BasePointDrawingPolicy::paint(const DrawingContext &context
     if (!mCache.isScaleValid(context.sceneScale))
         updateScaleDependentParams(context.sceneScale);
     context.painter->setPen(mCache.penScaled);
-    if (mSymbol->pen().widthF() > 0.5)
-    {
+    if (mSymbol->pen().widthF() > 1)
         context.painter->setRenderHint(QPainter::Antialiasing, false);
-    }
     context.painter->translate(mCache.offsetXScaled , mCache.offsetYScaled);
     QBrush brush = mSymbol->brush();
     brush.setTransform(context.painter->worldTransform().inverted()); //обязательно для корректного применения стилей кисти
     context.painter->setBrush(brush);
     context.painter->setOpacity(mSymbol->opacity);
     context.painter->rotate(mSymbol->rotation);
-    context.painter->drawPath(mCache.path);
+    if (mSymbol->pointType != common::PointSymbolType::ImageMarker)
+        context.painter->drawPath(mCache.path);
+    else
+    {
+        context.painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
+        context.painter->setRenderHint(QPainter::Antialiasing, true);
+        context.painter->drawImage(mCache.path.boundingRect(), mSymbol->imageMarker, mSymbol->imageMarker.rect());
+    }
     context.painter->restore();
 }
 void vrsa::graphics::BasePointDrawingPolicy::updateStrokePath() const
