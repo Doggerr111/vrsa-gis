@@ -31,6 +31,8 @@ public:
     void zoomToRect(const QRectF& rect);
     /** @brief Центрирует видимую область по point */
     void zoomToPoint(const QPointF& point);
+    void zoomIn();
+    void zoomOut();
     /** @brief Возвращает текущий картографический масштаб */
     int getMapScaleDenominator() const noexcept { return mCurrentScale; };
     /** @brief Возвращает scaleFactor виджета (View->transform()->m11()) */

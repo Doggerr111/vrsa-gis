@@ -26,7 +26,7 @@ MapHolder::MapHolder(QWidget *parent)
 {
     setOptimizationFlags (QGraphicsView::DontSavePainterState | QGraphicsView::DontAdjustForAntialiasing);
     setRenderHint(QPainter::Antialiasing, true);
-    setRenderHint(QPainter::SmoothPixmapTransform, false);
+    setRenderHint(QPainter::SmoothPixmapTransform, true);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setCacheMode(QGraphicsView::CacheNone);
@@ -44,6 +44,43 @@ void MapHolder::zoomToPoint(const QPointF &point)
     centerOn(point);
     emit zoomed();
     emit extentChanged(getExtent(), viewport()->rect());
+}
+
+void MapHolder::zoomIn()
+{
+    qreal factor = mZoomInFactor;
+    double futureScale = mCurrentScale / factor;
+    static const double MIN_SCALE = 100.0;      // 1:100 - максимальный зум
+    static const double MAX_SCALE = 1000000000.0; //минимальный зум
+    if (futureScale < MIN_SCALE) return;
+    else if (futureScale > MAX_SCALE) return;
+    if (qFuzzyCompare(mCurrentScale, futureScale)) return;
+    if (futureScale >= MIN_SCALE && futureScale <= MAX_SCALE)
+    {
+        scale(factor, factor);
+        emit zoomed();
+        viewport()->update();
+        emit extentChanged(getExtent(), viewport()->rect());
+    }
+
+}
+
+void MapHolder::zoomOut()
+{
+    qreal factor = mZoomOutFactor;
+    double futureScale = mCurrentScale / factor;
+    static const double MIN_SCALE = 100.0;      // 1:100 - максимальный зум
+    static const double MAX_SCALE = 1000000000.0; //минимальный зум
+    if (futureScale < MIN_SCALE) return;
+    else if (futureScale > MAX_SCALE) return;
+    if (qFuzzyCompare(mCurrentScale, futureScale)) return;
+    if (futureScale >= MIN_SCALE && futureScale <= MAX_SCALE)
+    {
+        scale(factor, factor);
+        emit zoomed();
+        viewport()->update();
+        emit extentChanged(getExtent(), viewport()->rect());
+    }
 }
 
 double MapHolder::getMapHolderScale() const
