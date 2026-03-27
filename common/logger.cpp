@@ -287,6 +287,16 @@ QString Logger::formatHtml(const std::string &message, LogLevel level, const std
         {"MEMORY", "#A9A9A9"}     // серый
     };
 
+    static const QMap<LogLevel, QString> levelColors = {
+        {LogLevel::TRACE, "#808080"},      // фиолетовый
+        {LogLevel::DEBUG, "#569CD6"},      // синий
+        {LogLevel::ERROR, "#F14C4C"},    // зеленый
+        {LogLevel::INFO, "#6A9955"},    // оранжевый
+        {LogLevel::WARNING, "#DCDCAA"},        // розовый
+        {LogLevel::CRITICAL, "#FF6B6B"}        // бирюзовый
+    };
+
+
     // Цвета для уровней
     QString levelColor;
     switch(level) {
@@ -299,6 +309,9 @@ QString Logger::formatHtml(const std::string &message, LogLevel level, const std
         break;
     case LogLevel::DEBUG:
         levelColor = "#888888";  // серый
+        break;
+    case LogLevel::INFO:
+        levelColor ="#6FCF97";
         break;
     default:
         levelColor = "#FFFFFF";  // белый
