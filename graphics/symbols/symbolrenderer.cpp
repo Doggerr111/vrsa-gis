@@ -164,7 +164,13 @@ void vrsa::graphics::SymbolRenderer::setPainter(const Symbol *symbol, QPainter *
         painter->setOpacity(pointS->opacity);
         painter->rotate(pointS->rotation);
         painter->translate(pointS->xOffset, pointS->yOffset);
-        painter->drawPath(path);
+        if (pointS->pointType != common::PointSymbolType::ImageMarker)
+            painter->drawPath(path);
+        else
+        {
+            painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
+            painter->drawImage(path.boundingRect(), pointS->imageMarker, pointS->imageMarker.rect());
+        }
         painter->restore();
         break;
     }
@@ -295,6 +301,7 @@ QPainterPath vrsa::graphics::SymbolRenderer::createTestGeometryForIcon(const Sym
             break;
         }
         case common::PointSymbolType::Square:
+        case common::PointSymbolType::ImageMarker:
         {
             double size = pointS->getPointSize()/2;
             //path.addEllipse(QPointF(0,0), size/2, size/2);
