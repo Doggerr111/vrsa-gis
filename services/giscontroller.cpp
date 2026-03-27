@@ -81,8 +81,6 @@ vrsa::services::GISController::GISController(QObject *parent)
 
 void vrsa::services::GISController::setupViewAndIntitizlizeScene()
 {
-
-    //auto view = mComps.mapView;
     mMapScene = new vrsa::graphics::MapScene();
     if (!mMapScene) return;
     mMapScene->setMapHolderScale(mComps.mapView->getMapHolderScale());
@@ -97,8 +95,7 @@ void vrsa::services::GISController::setupViewAndIntitizlizeScene()
     connect(mMapScene, &vrsa::graphics::MapScene::mouseMoved, this, &GISController::onMouseCoordinatesChanged);
     connect(this, &GISController::scaleChanged, mMapScene, &graphics::MapScene::onMapScaleChanged);
     connect(this, &GISController::scaleChanged, mComps.mapView, &MapHolder::onMapScaleChanged);
-
-    //связываем сигналы с фабрик (синглтон), для создания графических объектов и их автоматического добавления на сцену
+    //связываем сигналы с фабрик (синглтоны), для создания графических объектов и их автоматического добавления на сцену
     connect(&graphics::FeatureGraphicsItemFactory::instance(), &graphics::FeatureGraphicsItemFactory::featureGraphicsItemCreated,
             mMapScene, &graphics::MapScene::onFeatureGraphicsItemCreated);
     connect(&graphics::RasterGraphicsItemFactory::instance(), &graphics::RasterGraphicsItemFactory::rasterGraphicsItemCreated,
@@ -120,15 +117,27 @@ void vrsa::services::GISController::setup()
             qOverload<const QIcon&>(&GISController::onActiveLayerChanged));
     connect(this, qOverload<const QString&>(&GISController::activeLayerChanged), this,
             qOverload<const QString&>(&GISController::onActiveLayerChanged));
+
+    connect(mComps.singleSelectionBtn, &QPushButton::clicked, this,
+            &GISController::handleToolClick);
     connect(mComps.singleSelectionBtn, &QPushButton::clicked, this,
             &GISController::onSingleSelectionToolClicked);
     connect(mComps.rectSeletionBtn, &QPushButton::clicked, this,
+            &GISController::handleToolClick);
+    connect(mComps.rectSeletionBtn, &QPushButton::clicked, this,
             &GISController::onRectSelectionToolClicked);
     connect(mComps.geometryEditBtn, &QPushButton::clicked, this,
+            &GISController::handleToolClick);
+    connect(mComps.geometryEditBtn, &QPushButton::clicked, this,
             &GISController::onGeometryEditToolClicked);
+    connect(mComps.addFeatureBtn, &QPushButton::clicked, this, &GISController::handleToolClick);
     connect(mComps.addFeatureBtn, &QPushButton::clicked, this, &GISController::onDigitizingToolClicked);
-    connect(mComps.rulerBtn, &QPushButton::clicked, this, &GISController::onRulerToolClicked);
-
+    connect(mComps.rulerBtn,      &QPushButton::clicked, this, &GISController::handleToolClick);
+    connect(mComps.rulerBtn,      &QPushButton::clicked, this, &GISController::onRulerToolClicked);
+    connect(mComps.panBtn,        &QPushButton::clicked, this, &GISController::onPanToolClicked);
+    connect(mComps.panBtn,        &QPushButton::clicked, this, &GISController::handleToolClick);
+    connect(mComps.zoomInBtn,     &QPushButton::clicked, this, &GISController::onZoomInToolClicked);
+    connect(mComps.zoomOutBtn,    &QPushButton::clicked, this, &GISController::onZoomOutToolClicked);
 
     mComps.lodBtn->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(mComps.lodBtn, &QToolButton::clicked, this, [](bool enabled){
@@ -177,16 +186,16 @@ void vrsa::services::GISController::setup()
     connect(mComps.actionCreateIsolines, &QAction::triggered,
             this, &GISController::onCreateIsolinesActionTriggered);
 
-
     //сервисы
     connect(mComps.actionWMSConnection, &QAction::triggered,
             this, &GISController::onWMSConnectionTriggered);
     connect(mComps.actionXYZConnection, &QAction::triggered,
             this, &GISController::onXYZConnectionTriggered);
-
     //бд
     connect(mComps.actionPostGisConnection, &QAction::triggered,
             this, &GISController::onPostGisConnectionActionTriggered);
+
+    //loadDemoHighScaleMap();
 }
 
 void vrsa::services::GISController::setupLegendTreeWidgets()
@@ -206,21 +215,12 @@ void vrsa::services::GISController::setupLegendTreeWidgets()
     connect(treeWidget, &TreeWidget::itemDropped,
             this, &services::GISController::onItemDropped);
 
-
     auto treeWidgetPG = mComps.postGisTree;
     treeWidgetPG->setContextMenuPolicy(Qt::CustomContextMenu);
     treeWidgetPG->setItemsExpandable(false);
     treeWidgetPG->expandAll();
     connect(treeWidgetPG, &TreeWidget::customContextMenuRequested,
             this, &services::GISController::showContextMenuPG);
-    //    connect(treeWidgetPG, &TreeWidget::itemChanged,
-    //            this, &services::GISController::onLayerTreeDataChanged);
-    //    connect(treeWidgetPG, &TreeWidget::itemDoubleClicked,
-    //            this, &services::GISController::onLayerTreeItemDoubleClicked);
-    //    connect(treeWidgetPG, &TreeWidget::itemDragRequested,
-    //            this, &services::GISController::onItemDragRequested);
-    //    connect(treeWidgetPG, &TreeWidget::itemDropped,
-    //            this, &services::GISController::onItemDropped);
 }
 
 void vrsa::services::GISController::recalculateScale()
@@ -234,6 +234,117 @@ void vrsa::services::GISController::recalculateScale()
         mCurrentScale = static_cast<int>(rawScale);
         emit scaleChanged(mCurrentScale, mComps.mapView->transform().m11());
         mComps.scaleEdit->setText(QString::number(mCurrentScale));
+    }
+}
+
+void vrsa::services::GISController::loadDemoHighScaleMap()
+{
+//    // Для полигонов (amenity)
+//    std::vector<std::string> polygonLayers = {
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/amenity/natural.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/amenity/buildings.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/amenity/industrial.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/amenity/playground.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/amenity/school_poly.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/amenity/construction.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/amenity/residential_full.shp"
+//    };
+
+//    // Для точек (points)
+//    std::vector<std::string> pointLayers = {
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/points/bar.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/points/bank.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/points/clinic.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/points/fast_food.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/points/restaurant.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/points/bus_stations.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/points/supermarkets.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/points/school_points.shp"
+//    };
+
+//    std::vector<std::string> roadPaths = {
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/roads/highway_path.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/roads/highway_track.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/roads/highway_footway.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/roads/highway_primary.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/roads/highway_service.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/roads/highway_tertiary.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/roads/highway_secondary.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/roads/highway_service_poly.shp"
+//    };
+
+//    std::vector<std::string> waterPaths = {
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/water/rivers.shp",
+//        "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/water/water_poly.shp"
+//    };
+
+    const std::string BASE_PATH = "/home/doger/Documents/vrsa/demo/highscale_map_pseudomerc/";
+
+
+
+    // 2. Точки (points)
+    std::vector<std::string> pointLayers = {
+        BASE_PATH + "points/bar.shp",
+        BASE_PATH + "points/bank.shp",
+        BASE_PATH + "points/clinic.shp",
+        BASE_PATH + "points/fast_food.shp",
+        BASE_PATH + "points/restaurant.shp",
+        BASE_PATH + "points/bus_stations.shp",
+        BASE_PATH + "points/supermarkets.shp",
+        BASE_PATH + "points/school_points.shp"
+    };
+
+    std::cout << "\nЗагрузка точечных слоев..." << std::endl;
+    for (const auto& path : pointLayers) {
+        emit datasetReadingRequested(path);
+    }
+
+
+    // 3. Дороги (roads)
+    std::vector<std::string> roadLayers = {
+        BASE_PATH + "roads/highway_path.shp",
+        BASE_PATH + "roads/highway_track.shp",
+        BASE_PATH + "roads/highway_footway.shp",
+        BASE_PATH + "roads/highway_primary.shp",
+        BASE_PATH + "roads/highway_service.shp",
+        BASE_PATH + "roads/highway_tertiary.shp",
+        BASE_PATH + "roads/highway_secondary.shp",
+        BASE_PATH + "roads/highway_service_poly.shp"
+    };
+
+    std::cout << "\nЗагрузка дорожных слоев..." << std::endl;
+    for (const auto& path : roadLayers) {
+        emit datasetReadingRequested(path);
+
+    }
+
+    // 4. Вода (water)
+    std::vector<std::string> waterLayers = {
+        BASE_PATH + "water/rivers.shp",
+        BASE_PATH + "water/water_poly.shp"
+    };
+
+    std::cout << "\nЗагрузка водных слоев..." << std::endl;
+    for (const auto& path : waterLayers) {
+        emit datasetReadingRequested(path);
+
+    }
+
+    // 1. Полигоны (amenity)
+    std::vector<std::string> polygonLayers = {
+        BASE_PATH + "amenity/natural.shp",
+        BASE_PATH + "amenity/buildings.shp",
+        BASE_PATH + "amenity/industrial.shp",
+        BASE_PATH + "amenity/playground.shp",
+        BASE_PATH + "amenity/school_poly.shp",
+        BASE_PATH + "amenity/construction.shp",
+        BASE_PATH + "amenity/residential_full.shp"
+    };
+
+    std::cout << "Загрузка полигональных слоев..." << std::endl;
+    for (const auto& path : polygonLayers) {
+        emit datasetReadingRequested(path);
+
     }
 }
 
@@ -263,7 +374,7 @@ void vrsa::services::GISController::setupViewComponents(const ViewComponents &co
         VRSA_ERROR("CORE", "Error while setting up view components:" + errorMsg);
         return;
     }
-    VRSA_INFO("CORE", "View components successfully configured");
+    VRSA_INFO("UI", "View components successfully configured");
     setup();
 }
 
@@ -276,7 +387,7 @@ void vrsa::services::GISController::onDatasetAdded(gdalwrapper::Dataset *dS)
     std::string source = dS->getSource();
     auto* dSItem = new QTreeWidgetItem();
     dSItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/dataset.png"));
-    dSItem->setText(DATA_COLUMN, QString::fromStdString(source));
+    dSItem->setText(DATA_COLUMN, getFileNameByDatasetSource(source));
     dSItem->setToolTip(DATA_COLUMN, QString::fromStdString(source));
     dSItem->setData(DATA_COLUMN, common::DatasetPathRole, QString::fromStdString(source));
     dSItem->setCheckState(DATA_COLUMN,Qt::Checked);
@@ -324,27 +435,20 @@ void vrsa::services::GISController::onDatasetAdded(gdalwrapper::Dataset *dS)
         {
         case common::DatasetSource::File:
         {
-            //TODO ПЕРЕНЕСТИ В PROJECT MANAGER!
             auto rDs = static_cast<vrsa::raster::RasterDataset*>(dS);
-            //mMapScene->addRasterDataset(rDs); //ВОТ ЭТО ПЕРЕНЕСТИ И ЧЕРЕЗ ФАБРИКУ ВСЕ 1!!
             dSItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_RasterDataset));
             dSItem->setData(DATA_COLUMN, common::DatasetTypeRole, QVariant::fromValue(common::DatasetType::Raster));
             for (int i=0; i<rDs->channelsCount(); ++i)
             {
                 auto& layer = rDs->getChannel(i);
-                //mMapScene->addLayer(layer);
                 auto* layerItem = new QTreeWidgetItem(dSItem);
-
-                layerItem->setCheckState(DATA_COLUMN,Qt::Checked);
-
+                //layerItem->setCheckState(DATA_COLUMN,Qt::Checked);
                 layerItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_RasterLayer));
                 layerItem->setData(DATA_COLUMN, common::DatasetPathRole, QString::fromStdString(source));
                 layerItem->setData(DATA_COLUMN, common::LayerIDRole, i);
-
                 QString displayName = tr("Band №");
                 layerItem->setText(DATA_COLUMN, displayName + QString::number(i+1));
                 layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/rasterTreeItem.png"));
-
             }
             break;
         }
@@ -352,6 +456,7 @@ void vrsa::services::GISController::onDatasetAdded(gdalwrapper::Dataset *dS)
         case common::DatasetSource::TMS:
         {
             auto rDs = static_cast<vrsa::raster::WebRasterDataset*>(dS);
+            dSItem->setText(DATA_COLUMN, QString::fromStdString(dS->getName()));
             dSItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_RasterDataset));
             dSItem->setData(DATA_COLUMN, common::DatasetTypeRole, QVariant::fromValue(common::DatasetType::Raster));
             break;
@@ -485,101 +590,10 @@ void vrsa::services::GISController::onVectorLayerAdded(vector::VectorLayer *laye
 }
 
 
-
-
-//    switch (dS->GetDatasetType())
-//    {
-//    case common::DatasetType::Vector:
-//    {
-//        auto vDs = static_cast<vrsa::vector::VectorDataset*>(dS);
-//        dSItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_VectorDataset));
-//        dSItem->setData(DATA_COLUMN, common::DatasetTypeRole, QVariant::fromValue(common::DatasetType::Vector));
-//        for (int i = 0; i < vDs->layersCount(); ++i)
-//        {
-//            auto layer = vDs->getLayer(i);
-//            if (!layer)
-//                continue;
-//            auto* layerItem = new QTreeWidgetItem(dSItem);
-//            layerItem->setCheckState(DATA_COLUMN,Qt::Checked);
-//            layerItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_VectorLayer));
-//            layerItem->setData(DATA_COLUMN, common::DatasetPathRole, QString::fromStdString(source));
-//            layerItem->setData(DATA_COLUMN, common::LayerIDRole, i);
-//            layerItem->setData(DATA_COLUMN, common::LayerTypeRole, QVariant::fromValue(layer->getGeomType()));
-
-//            const char* layerName = layer->getName();
-//            const char* displayName = "unknown";
-//            if (layerName && layerName[0] != '\0')
-//                displayName = layerName;
-//            layerItem->setText(DATA_COLUMN, QString::fromUtf8(displayName));
-
-//            if (auto layerStyle = layer->getStyle())
-//            {
-//                QIcon icon = QIcon();
-//                emit updateLegendIconsRequired(layerStyle->getSymbol(), icon);
-//                layerItem->setIcon(DATA_COLUMN, icon);
-//            }
-//            else
-//                layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/unknown.png"));
-//        }
-//        break;
-//    }
-
-//    case common::DatasetType::Raster:
-//    {
-//        auto rDs = static_cast<vrsa::raster::RasterDataset*>(dS);
-//        mMapScene->addRasterDataset(rDs);
-//        dSItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_RasterDataset));
-//        dSItem->setData(DATA_COLUMN, common::DatasetTypeRole, QVariant::fromValue(common::DatasetType::Raster));
-//        for (int i=0; i<rDs->channelsCount(); ++i)
-//        {
-//            auto& layer = rDs->getChannel(i);
-//            //mMapScene->addLayer(layer);
-//            auto* layerItem = new QTreeWidgetItem(dSItem);
-
-//            layerItem->setCheckState(DATA_COLUMN,Qt::Checked);
-
-//            layerItem->setData(DATA_COLUMN, common::ItemTypeRole, QVariant::fromValue(common::TreeItemType::ItemType_RasterLayer));
-//            layerItem->setData(DATA_COLUMN, common::DatasetPathRole, QString::fromStdString(source));
-//            layerItem->setData(DATA_COLUMN, common::LayerIDRole, i);
-
-//            QString displayName = tr("Band №");
-//            layerItem->setText(DATA_COLUMN, displayName + QString::number(i+1));
-//            layerItem->setIcon(DATA_COLUMN, QIcon(":/images/icons/rasterTreeItem.png"));
-
-//        }
-//        break;
-//    }
-//    default:
-//        VRSA_WARNING("CORE", "Данный тип датасета пока не поддерживается");
-//    }
-//    mComps.mainLegendTree->addTopLevelItem(dSItem);
-//    mComps.mainLegendTree->expandAll();
-//    syncZOrderWithTree();
-
-
-
-void vrsa::services::GISController::ApplyCRS(std::string name)
-{  
-    //    if (auto wktDesc = vrsa::georef::SpatialReferenceLibrary::getInstance().GetWKTByName(name))
-    //        mProjCrs = vrsa::gdalwrapper::SpatialReference(*wktDesc, common::CRSDesctiptionFormat::WKT);
-    //    else if (auto projDesc = vrsa::georef::SpatialReferenceLibrary::getInstance().GetProjByName(name))
-    //        mProjCrs = vrsa::gdalwrapper::SpatialReference(*projDesc, common::CRSDesctiptionFormat::Proj);
-    //    else if (auto epsgCode = vrsa::georef::SpatialReferenceLibrary::getInstance().GetEPSGByName(name))
-    //        mProjCrs = vrsa::gdalwrapper::SpatialReference(std::to_string(*epsgCode), common::CRSDesctiptionFormat::EPSG);
-    //    else
-    //    {
-    //        VRSA_ERROR("CORE", "Can't apply CRS:" + name);
-    //        return;
-    //    }
-    //    emit projectCRSChanged(mProjCrs);
-    //    //mMapCalculator->setCRS(mProjCrs);
-}
-
 bool vrsa::services::GISController::isCurrentCRSGeographic() const
 {
     return mProjCrs.isGeographic();
 }
-
 
 
 void vrsa::services::GISController::syncZOrderWithTree() const
@@ -601,9 +615,25 @@ void vrsa::services::GISController::syncZOrderWithTree() const
         case common::ItemType_RasterDataset:
         {
             QString path = topLevelItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
-            auto rasterDataset = static_cast<raster::RasterDataset*>(pM->getDatasetBySource(path.toStdString()));
-            rasterDataset->setZValue(baseZ--);
-            break;
+            auto ds = pM->getDatasetBySource(path.toStdString());
+            switch (ds->getDatasetSourceType())
+            {
+            case common::DatasetSource::File:
+            {
+                auto rasterDataset = static_cast<raster::RasterDataset*>(ds);
+                rasterDataset->setZValue(baseZ--);
+                break;
+            }
+            case common::DatasetSource::XYZ:
+            case common::DatasetSource::TMS:
+            {
+                auto webRasterDataset = static_cast<raster::WebRasterDataset*>(ds);
+                webRasterDataset->setZValue(baseZ--);
+                break;
+            }
+            default:
+                break;
+            }
         }
         default:
             break;
@@ -611,7 +641,7 @@ void vrsa::services::GISController::syncZOrderWithTree() const
     }
 }
 
-QIcon vrsa::services::GISController::getIconForDigitizingToolBtn(common::GeometryType type)
+QIcon vrsa::services::GISController::getIconForDigitizingToolBtn(const common::GeometryType type)
 {
     switch (type)
     {
@@ -629,7 +659,7 @@ QIcon vrsa::services::GISController::getIconForDigitizingToolBtn(common::Geometr
     }
 }
 
-QIcon vrsa::services::GISController::getIconForGeometryType(common::GeometryType type)
+QIcon vrsa::services::GISController::getIconForGeometryType(const common::GeometryType type)
 {
     switch (type)
     {
@@ -648,6 +678,11 @@ QIcon vrsa::services::GISController::getIconForGeometryType(common::GeometryType
     default:
         return QIcon(":/images/icons/unknown.png");
     }
+}
+
+QString vrsa::services::GISController::getFileNameByDatasetSource(const std::string &path)
+{
+    return QFileInfo(QString::fromStdString(path)).fileName();
 }
 
 void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
@@ -718,7 +753,7 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
             QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
             auto selectedLayer = mProjectManager->getLayer(path.toStdString(), layerID);
-            AttributeTableForm form(nullptr, selectedLayer);
+            AttributeTableForm form(selectedLayer);
             //VectorDatasetForm form;
             form.exec();
         });
@@ -727,13 +762,6 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
             QString path = clickedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
             int layerID = clickedItem->data(DATA_COLUMN, common::LayerIDRole).toInt();
             auto selectedLayer = mProjectManager->getLayer(path.toStdString(), layerID);
-            //            auto layerGeometryType = selectedLayer->getGeomType();
-            //            auto style = selectedLayer->getStyle();
-            //            if (!style)
-            //                return;
-            //            auto symbol = style->getSymbol();
-            //            if (!symbol)
-            //                return;
             VectorStylingForm form(selectedLayer);
             form.exec();
             QIcon icon = QIcon();
@@ -750,14 +778,6 @@ void vrsa::services::GISController::showContextMenu(const QPoint &itemPos)
     }
     menu.show();
     menu.exec(mComps.mainLegendTree->mapToGlobal(itemPos));
-
-    //    if (clickedItem->parent()) {
-    //        qDebug() << "Parent found:" << clickedItem->parent()->text(0);
-    //        QTreeWidgetItem *parentItem = clickedItem->parent();
-    //        QString parentPath = parentItem->toolTip(0);
-    //        qDebug() << "Путь родителя:" << parentPath;
-    //    }
-
 }
 
 void vrsa::services::GISController::showContextMenuPG(const QPoint &point)
@@ -824,6 +844,27 @@ void vrsa::services::GISController::showContextMenuLOD(const QPoint &point)
     menu.exec(mComps.lodBtn->mapToGlobal(point));
 }
 
+void vrsa::services::GISController::handleToolClick(bool checked)
+{
+    QPushButton* btn = qobject_cast<QPushButton*>(sender());
+    if (!btn) return;
+
+    if (checked)
+    {
+        // Снимаем выделение со всех остальных
+        if (btn != mComps.addFeatureBtn) mComps.addFeatureBtn->setChecked(false);
+        if (btn != mComps.singleSelectionBtn) mComps.singleSelectionBtn->setChecked(false);
+        if (btn != mComps.rectSeletionBtn) mComps.rectSeletionBtn->setChecked(false);
+        if (btn != mComps.geometryEditBtn) mComps.geometryEditBtn->setChecked(false);
+        if (btn != mComps.rulerBtn) mComps.rulerBtn->setChecked(false);
+        if (btn != mComps.panBtn) mComps.panBtn->setChecked(false);
+    }
+    else
+    {
+        removeMapTool();
+    }
+}
+
 void vrsa::services::GISController::onLayerTreeDataChanged(QTreeWidgetItem *selectedItem, int column)
 {
     auto& pM = mProjectManager;
@@ -844,7 +885,23 @@ void vrsa::services::GISController::onLayerTreeDataChanged(QTreeWidgetItem *sele
         break;
     }
     case common::ItemType_RasterDataset:
+    {
+        QString path = selectedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
+
+        auto ds = pM->getDatasetBySource(path.toStdString());
+        if (ds->getDatasetSourceType() == common::DatasetSource::File)
+        {
+            auto fds = static_cast<raster::RasterDataset*>(ds);
+            fds->setVisible(selectedItem->checkState(column));
+        }
+        else if (ds->getDatasetSourceType() == common::DatasetSource::XYZ)
+        {
+            auto fds = static_cast<raster::WebRasterDataset*>(ds);
+            fds->setVisible(selectedItem->checkState(column));
+
+        }
         break;
+    }
     case common::ItemType_VectorLayer:
     {
         QString path = selectedItem->data(DATA_COLUMN, common::DatasetPathRole).toString();
@@ -880,9 +937,7 @@ void vrsa::services::GISController::onLayerTreeItemDoubleClicked(QTreeWidgetItem
         auto selectedLayer = pM->getLayer(path.toStdString(), id);
         if (selectedLayer)
         {
-
             pM->setActiveVectorLayer(selectedLayer);
-            qDebug()<< "Active vector layer changed:" << pM->getActiveVectorLayer();
             emit activeLayerChanged(getIconForDigitizingToolBtn(selectedLayer->getGeomType()));
             emit activeLayerChanged(selectedLayer->getName());
             emit activeLayerChanged(selectedLayer);
@@ -905,7 +960,6 @@ void vrsa::services::GISController::onItemDragRequested(QDragMoveEvent *event, b
 
 void vrsa::services::GISController::onItemDropped(QDropEvent* event, bool *accepted)
 {
-
     QTreeWidgetItem* source = mComps.mainLegendTree->currentItem();
     QTreeWidgetItem* target = mComps.mainLegendTree->itemAt(event->pos());
     if (!source || source == target)
@@ -1043,8 +1097,8 @@ void vrsa::services::GISController::startDigitizing() //onpbAddFeature
     auto activeLayer = pM->getActiveVectorLayer();
     if (!activeLayer)
     {
-        //emit activeLayerChanged(getIconForDigitizingToolBtn(common::GeometryType::Unknown));//for digitizing tool button
-        VRSA_DEBUG("CORE", "Please choose active layer before digitizing");
+        VRSA_WARNING("CORE", "Please choose active layer before digitizing");
+        mComps.addFeatureBtn->setChecked(false);
         return;
     }
     switch (activeLayer->getGeomType())
@@ -1062,15 +1116,13 @@ void vrsa::services::GISController::startDigitizing() //onpbAddFeature
         VRSA_DEBUG("CORE", "Digitizing for active layer geometry type currently not supported");
     }
 
-
-
 }
 
 
 
 void vrsa::services::GISController::addMapTool(common::MapToolType type, vector::VectorLayer* layer)
 {
-    mMapScene->deselectCurrentMapTool();
+    removeMapTool();
     auto tool = tools::MapToolFactory::createForScene(mMapScene, type, layer);
     if (tool)
     {
@@ -1089,23 +1141,20 @@ void vrsa::services::GISController::removeMapTool()
 
 void vrsa::services::GISController::onSingleSelectionToolClicked(bool checked)
 {
-    qDebug()<<"single";
-    addMapTool(common::MapToolType::SingleSelectionTool);
+    if (checked)
+        addMapTool(common::MapToolType::SingleSelectionTool);
 }
 
 void vrsa::services::GISController::onRectSelectionToolClicked(bool checked)
 {
-    qDebug()<<"rect";
-    addMapTool(common::MapToolType::RectSelectionTool);
+    if (checked)
+        addMapTool(common::MapToolType::RectSelectionTool);
 }
 
 void vrsa::services::GISController::onGeometryEditToolClicked(bool checked)
 {
-    qDebug()<<"geom edit";
-    //    if (checked)
-    addMapTool(common::MapToolType::EditGeometryTool);
-    //    else
-    //        mMapScene->deselectCurrentMapTool();
+    if (checked)
+        addMapTool(common::MapToolType::EditGeometryTool);
 }
 
 void vrsa::services::GISController::onDigitizingToolClicked(bool checked)
@@ -1118,8 +1167,23 @@ void vrsa::services::GISController::onDigitizingToolClicked(bool checked)
 
 void vrsa::services::GISController::onRulerToolClicked(bool checked)
 {
-    qDebug()<<"ruler tool";
-    addMapTool(common::MapToolType::RulerTool);
+    if (checked)
+        addMapTool(common::MapToolType::RulerTool);
+}
+
+void vrsa::services::GISController::onPanToolClicked(bool checked)
+{
+    removeMapTool();
+}
+
+void vrsa::services::GISController::onZoomInToolClicked(bool checked)
+{
+    mComps.mapView->zoomIn();
+}
+
+void vrsa::services::GISController::onZoomOutToolClicked(bool checked)
+{
+    mComps.mapView->zoomOut();
 }
 
 void vrsa::services::GISController::onCRSComboBoxIndexChanged(int index)
@@ -1127,15 +1191,14 @@ void vrsa::services::GISController::onCRSComboBoxIndexChanged(int index)
     auto crs = spatialref::SpatialReferenceDatabase::instance().createFromIndex(index);
     if (crs.isValid())
     {
-        //auto crsInfo = spatialref::SpatialReferenceDatabase::instance().getCRSInfoByEPSG(std::stoi(crs.getAuthorityCode()));
-        VRSA_DEBUG("CORE", "Project CRS changed to:" + mComps.crsCombo->currentText().toStdString());
+        VRSA_INFO("CORE", "Project CRS changed to:" + mComps.crsCombo->currentText().toStdString());
         mProjCrs = crs;
         mMapCalculator->setCRS(mProjCrs);
         emit projectCRSChanged(mProjCrs);
         recalculateScale();
         return;
     }
-    VRSA_DEBUG("CORE", "Invalid CRS set");
+    VRSA_ERROR("CORE", "Invalid CRS set");
 }
 
 void vrsa::services::GISController::onToolEvent(tools::MapTool::ToolEventType type, const QVariant &data)
@@ -1185,6 +1248,7 @@ void vrsa::services::GISController::onToolEvent(tools::MapTool::ToolEventType ty
             //удаляется при закрытии
             connect(mComps.measurementForm,  &QObject::destroyed, this, [this]() {
                 mComps.measurementForm = nullptr;
+                mComps.rulerBtn->setChecked(false);
                 removeMapTool();
             });
             mComps.measurementForm->setStartPoint(startPoint);
@@ -1223,11 +1287,9 @@ void vrsa::services::GISController::handleFeatureSelected(graphics::FeatureGraph
     root->setText(DATA_COLUMN, layer->getName());
     QString tooltipText = QString("<b>Слой:</b> %1<br><b>FID:</b> %2")
             .arg(layer->getName())
-            .arg(QString::number(feature->getFID())); // предположим, у layer есть такой метод
+            .arg(QString::number(feature->getFID()));
 
-    // Устанавливаем ToolTip для первого столбца [citation:1][citation:3]
     root->setToolTip(DATA_COLUMN, tooltipText);
-
     mComps.statusBar->showMessage("Веторный объект слоя: "+QString::fromStdString(layer->getNameAsString())
                                   +" | FID:"+ QString::number(feature->getFID()), 5000);
 
@@ -1254,10 +1316,7 @@ void vrsa::services::GISController::handleMultipleFeaturesSelected(const std::ve
 //=============================СЛОТЫ ОБРАБОТЧИКИ СИГНАЛОВ СО СЦЕНЫ===============================
 //===============================================================================================
 //===============================================================================================
-//void vrsa::services::GISController::onMapHolderScaleChanged(int mapScale, double widgetScale)
-//{
-//    mComps.scaleEdit->setText(QString::number(mapScale));
-//}
+
 
 void vrsa::services::GISController::onMouseCoordinatesChanged(const QPointF& p)
 {
@@ -1280,9 +1339,9 @@ void vrsa::services::GISController::onMouseCoordinatesChanged(const QPointF& p)
 void vrsa::services::GISController::onActiveLayerChanged(const QIcon &icon)
 {
     mComps.addFeatureBtn->setIcon(icon);
-    mComps.mapToolsGrp->setExclusive(false);
+   // mComps.mapToolsGrp->setExclusive(false);
     mComps.addFeatureBtn->setChecked(false);
-    mComps.mapToolsGrp->setExclusive(true);
+   // mComps.mapToolsGrp->setExclusive(true);
     removeMapTool();
     mComps.addFeatureBtn->setAttribute(Qt::WA_UnderMouse, false);
 }
@@ -1301,7 +1360,8 @@ void vrsa::services::GISController::onActiveLayerChanged(const QString &name)
 
 void vrsa::services::GISController::onOpenLayerActionTriggered()
 {
-    std::string fileName=QFileDialog::getOpenFileName(nullptr,"Chose Vector Layer","Vector Files").toStdString();
+    std::string fileName=QFileDialog::getOpenFileName(nullptr,"Chose Vector Layer","/home/doger/Documents/vrsa/demo",
+                                                      "Vector formats (*.shp *.geojson *.gpkg)").toStdString();
     emit datasetReadingRequested(fileName); //сигнал для project manager
 }
 
@@ -1492,7 +1552,8 @@ void vrsa::services::GISController::onReprojectVectorActionTriggered()
 
 void vrsa::services::GISController::onOpenRasterLayerActionTriggered()
 {
-    std::string fileName=QFileDialog::getOpenFileName(nullptr,"Chose Raster Layer","Raster Files").toStdString();
+    std::string fileName=QFileDialog::getOpenFileName(nullptr,"Chose Raster Layer","/home/doger/Documents/vrsa/demo/layer_creation_demo",
+                                                      "Raster formats (*.tif *.tiff *.geotiff)").toStdString();
     emit datasetReadingRequested(fileName);
 }
 
@@ -1559,26 +1620,6 @@ void vrsa::services::GISController::onCreateIsolinesActionTriggered()
 void vrsa::services::GISController::onWMSConnectionTriggered()
 {
 
-    //     std::string osmConfig = R"(<GDAL_WMS>
-    //    <Service name="TMS">
-    //        <ServerUrl>https://tile.openstreetmap.org/${z}/${x}/${y}.png</ServerUrl>
-    //    </Service>
-    //    <DataWindow>
-    //        <UpperLeftX>-20037508.34</UpperLeftX>
-    //        <UpperLeftY>20037508.34</UpperLeftY>
-    //        <LowerRightX>20037508.34</LowerRightX>
-    //        <LowerRightY>-20037508.34</LowerRightY>
-    //        <TileLevel>18</TileLevel>
-    //        <TileCountX>1</TileCountX>
-    //        <TileCountY>1</TileCountY>
-    //        <YOrigin>top</YOrigin>
-    //    </DataWindow>
-    //    <Projection>EPSG:3857</Projection>
-    //    <BlockSizeX>256</BlockSizeX>
-    //    <BlockSizeY>256</BlockSizeY>
-    //    <BandsCount>3</BandsCount>
-    //    <Cache/>
-    //</GDAL_WMS>)";
 }
 
 void vrsa::services::GISController::onXYZConnectionTriggered()
@@ -1621,7 +1662,6 @@ void vrsa::services::GISController::onVectorLayerCreationAccepted(const common::
         return;
     }
     vectorLayerCreationRequested(layerDef);
-
 }
 
 
