@@ -61,7 +61,8 @@ enum class PointSymbolType {
     Triangle,
     Rhombus,
     Cross,
-    Plus
+    Plus,
+    ImageMarker
 
 };
 
@@ -340,8 +341,8 @@ inline constexpr int MAX_Z_VALUE = 50; //максимальное z value для
 //коэффициенты для выделения
 inline constexpr double SELECTION_SIZE_FACTOR = 1.1;      // увеличение на 10%
 inline constexpr double SELECTION_WIDTH_FACTOR = 1.2;     // толщина обводки на 20%
-inline constexpr double SELECTION_OPACITY = 1.0;          // полная непрозрачность
-inline const QColor SELECTION_COLOR = Qt::red;            // цвет выделения
+inline constexpr double SELECTION_OPACITY = 0.7;          // полная непрозрачность
+inline const QColor SELECTION_COLOR = QColor(255, 140, 50);// цвет выделения
 inline constexpr Qt::BrushStyle SELECTION_BRUSH_STYLE = Qt::Dense4Pattern; //тип заливки
 
 //параметры для маркеров резиновых линий
