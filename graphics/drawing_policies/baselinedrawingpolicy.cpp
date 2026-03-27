@@ -26,8 +26,8 @@ void vrsa::graphics::BaseLineDrawingPolicy::paint(const DrawingContext &context)
     context.painter->setPen(mCache.penScaled);
     context.painter->translate(mCache.offsetXScaled , mCache.offsetYScaled);
     context.painter->setOpacity(mSymbol->opacity);
-    if (mSymbol->pen().widthF() > 1)
-        context.painter->setRenderHint(QPainter::Antialiasing, false);
+//    if (mSymbol->pen().widthF() > 1)
+//        context.painter->setRenderHint(QPainter::Antialiasing, false);
     context.painter->drawPath(mCache.path);
     context.painter->restore();
 }
