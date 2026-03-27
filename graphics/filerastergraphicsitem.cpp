@@ -9,6 +9,7 @@ vrsa::graphics::FileRasterGraphicsItem::FileRasterGraphicsItem(raster::RasterDat
     {
         mItem->setTransform(dS->getGeoTransform());
         QObject::connect(dS, &raster::RasterDataset::ZValueChanged, this, &RasterGraphicsItem::onZValueChanged);
+        QObject::connect(dS, &raster::RasterDataset::visibilityChanged, this, &RasterGraphicsItem::onVisibilityChanged);
     }
 }
 

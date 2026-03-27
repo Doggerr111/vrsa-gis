@@ -9,7 +9,7 @@ MeasurementForm::MeasurementForm(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowModality(Qt::NonModal);
-    setWindowTitle("Измерение расстояний");
+    setWindowTitle(tr("Измерение расстояний"));
     setAttribute(Qt::WidgetAttribute::WA_DeleteOnClose);
     ui->frameEllipsoid->hide();
     adjustSize();

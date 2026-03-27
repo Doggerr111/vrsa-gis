@@ -8,6 +8,7 @@
 #include "services/projectmanager.h"
 #include "graphics/symbols/symbolrenderer.h"
 #include "spatialref/spatialreference.h"
+#include "calculations/mapcalculations.h"
 
 class QLabel;
 class QPushButton;
@@ -60,7 +61,9 @@ struct ViewComponents
     QPushButton* rectSeletionBtn = nullptr;
     QPushButton* geometryEditBtn = nullptr;
     QPushButton* rulerBtn = nullptr;
-    QButtonGroup* mapToolsGrp = nullptr;
+    QPushButton* panBtn = nullptr;
+    QPushButton* zoomInBtn = nullptr;
+    QPushButton* zoomOutBtn = nullptr;
     // common
     QLineEdit* coordEdit = nullptr;
     QLineEdit* scaleEdit = nullptr;
@@ -117,7 +120,9 @@ struct ViewComponents
         if (!rectSeletionBtn) {  errorMsg = "rectSeletionBtn is null"; return false; }
         if (!geometryEditBtn) {  errorMsg = "geometryEditBtn is null"; return false; }
         if (!rulerBtn) { errorMsg = "rulerBtn is null"; return false; }
-        if (!mapToolsGrp) {  errorMsg = "mapToolsGrp is null"; return false; }
+        if (!panBtn) { errorMsg = "panBtn is null"; return false; }
+        if (!zoomInBtn) { errorMsg = "zoomInBtn is null"; return false; }
+        if (!zoomOutBtn) { errorMsg = "zoomOutBtn is null"; return false; }
         if (!coordEdit) {  errorMsg = "coordEdit is null"; return false; }
         if (!scaleEdit) {  errorMsg = "scaleEdit is null"; return false; }
         if (!crsCombo) {  errorMsg = "crsCombo is null"; return false; }
@@ -153,12 +158,14 @@ struct ViewComponents
     }
 };
 
+/**
+ * @brief Главный контроллер приложения, управляющий взаимодействием между модулями
+ */
 class GISController : public QObject
 {
     Q_OBJECT
 public:
     explicit GISController(QObject *parent = nullptr);
-    void ApplyCRS(std::string name);
     bool isCurrentCRSGeographic() const;
     inline graphics::MapScene* getScene() const noexcept { return mMapScene; };
     void setupViewComponents(const ViewComponents& comp);
@@ -167,6 +174,7 @@ private:
     ViewComponents mComps;
     graphics::MapScene* mMapScene;
     spatialref::SpatialReference mProjCrs;
+    int mCurrentScale = 1;
     //vrsa::gdalwrapper::SpatialReference mProjCrs;
     const int DATA_COLUMN = 0; //для treewidget
 
@@ -174,10 +182,12 @@ private:
     std::unique_ptr<graphics::SymbolRenderer> mRenderer;
     std::unique_ptr<vector::VectorLayerCreator> mVectorCreator;
     std::unique_ptr<services::ProjectManager> mProjectManager;
+    std::unique_ptr<calculations::MapCalculator> mMapCalculator;
 
 private:
-    QIcon getIconForDigitizingToolBtn(common::GeometryType type); //например для изменения иконки оцифровки в ui
-    QIcon getIconForGeometryType(common::GeometryType type);
+    QIcon getIconForDigitizingToolBtn(const common::GeometryType type); //для изменения иконки оцифровки в maptoolbar
+    QIcon getIconForGeometryType(const common::GeometryType type);
+    QString getFileNameByDatasetSource(const std::string& path);
     void addMapTool(common::MapToolType type, vector::VectorLayer *layer = nullptr);
     void prepareRasterProcessingParams(vrsa::common::RasterProcessingParams &params);
     void removeMapTool();
@@ -186,8 +196,17 @@ private:
     void setup();
     void setupViewAndIntitizlizeScene();
     void setupLegendTreeWidgets();
+    void recalculateScale();
+
+    //delete later
+    void loadDemoHighScaleMap();
 
 private slots:
+    //слоты для обработки сигналов с mapholder
+    void onMapHolderZoomed();
+    void onMapHolderResized();
+    void onMapHolderExtentChanged(const QRectF& extent, const QRect& widgetRect);
+
     //слоты для работы с основной легендой
     void onLayerTreeDataChanged      (QTreeWidgetItem*, int);
     void onLayerTreeItemDoubleClicked(QTreeWidgetItem*, int);
@@ -199,11 +218,15 @@ private slots:
     //обработка правого клика на tool btn LOD
     void showContextMenuLOD(const QPoint& point);
     //обработка кликов с кнопок инструменты карты
+    void handleToolClick             (bool checked);
     void onSingleSelectionToolClicked(bool checked);
     void onRectSelectionToolClicked  (bool checked);
     void onGeometryEditToolClicked   (bool checked);
     void onDigitizingToolClicked     (bool checked);
     void onRulerToolClicked          (bool checked);
+    void onPanToolClicked            (bool checked);
+    void onZoomInToolClicked         (bool checked);
+    void onZoomOutToolClicked        (bool checked);
     //crs cbox
     void onCRSComboBoxIndexChanged   (int index);
 
@@ -213,7 +236,7 @@ private slots:
     void handleFeatureSelected         (graphics::FeatureGraphicsItem* item, bool shouldClearTree);
     void handleMultipleFeaturesSelected(const std::vector<graphics::FeatureGraphicsItem *> &items);
 
-    void onMapHolderScaleChanged  (int mapScale, double widgetScale);
+    //void onMapHolderScaleChanged  (int mapScale, double widgetScale);
     void onMouseCoordinatesChanged(const QPointF &p);
 
     //для обновления ui
@@ -268,6 +291,8 @@ signals:
 
     void vectorLayerCreationRequested(const common::LayerDefinition &layerDef);
     void datasetReadingRequested     (const std::string& src);
+    //map scale | map holder scale factor
+    void scaleChanged(double, double);
 
 };
 }

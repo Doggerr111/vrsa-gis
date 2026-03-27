@@ -164,7 +164,13 @@ void vrsa::graphics::SymbolRenderer::setPainter(const Symbol *symbol, QPainter *
         painter->setOpacity(pointS->opacity);
         painter->rotate(pointS->rotation);
         painter->translate(pointS->xOffset, pointS->yOffset);
-        painter->drawPath(path);
+        if (pointS->pointType != common::PointSymbolType::ImageMarker)
+            painter->drawPath(path);
+        else
+        {
+            painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
+            painter->drawImage(path.boundingRect(), pointS->imageMarker, pointS->imageMarker.rect());
+        }
         painter->restore();
         break;
     }
@@ -295,6 +301,7 @@ QPainterPath vrsa::graphics::SymbolRenderer::createTestGeometryForIcon(const Sym
             break;
         }
         case common::PointSymbolType::Square:
+        case common::PointSymbolType::ImageMarker:
         {
             double size = pointS->getPointSize()/2;
             //path.addEllipse(QPointF(0,0), size/2, size/2);
@@ -330,6 +337,26 @@ QPainterPath vrsa::graphics::SymbolRenderer::createTestGeometryForIcon(const Sym
             path.lineTo(p3);
             path.lineTo(p4);
             path.closeSubpath();
+            break;
+        }
+        case common::PointSymbolType::Cross:
+        {
+            double size = pointS->getPointSize()/2;
+            double halfSize = size / 2;
+            path.moveTo(-halfSize, -halfSize);
+            path.lineTo(halfSize, halfSize);
+            path.moveTo(halfSize, -halfSize);
+            path.lineTo(-halfSize, halfSize);
+            break;
+        }
+        case common::PointSymbolType::Plus:
+        {
+            double size = pointS->getPointSize()/2;
+            double halfSize = size / 2;
+            path.moveTo(0, -halfSize);
+            path.lineTo(0, halfSize);
+            path.moveTo(-halfSize, 0);
+            path.lineTo(halfSize, 0);
             break;
         }
         }
@@ -407,7 +434,26 @@ void vrsa::graphics::SymbolRenderer::fillTestGeometryForItem(const Symbol *symbo
             path->closeSubpath();
             break;
         }
-
+        case common::PointSymbolType::Cross:
+        {
+            double size = pointS->getPointSize();
+            double halfSize = size / 2;
+            path->moveTo(-halfSize, -halfSize);
+            path->lineTo(halfSize, halfSize);
+            path->moveTo(halfSize, -halfSize);
+            path->lineTo(-halfSize, halfSize);
+            break;
+        }
+        case common::PointSymbolType::Plus:
+        {
+            double size = pointS->getPointSize();
+            double halfSize = size / 2;
+            path->moveTo(0, -halfSize);
+            path->lineTo(0, halfSize);
+            path->moveTo(-halfSize, 0);
+            path->lineTo(halfSize, 0);
+            break;
+        }
         }
         break;
     }

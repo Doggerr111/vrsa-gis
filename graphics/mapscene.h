@@ -66,14 +66,15 @@ signals:
     void panningRequested(bool enable);
     void visibleExtentChanged(const QRectF& extent, const QRect& widgetRect);
 public slots:
-    void onMapHolderScaleChanged(int mapScale, double widgetScale);
+    void onMapScaleChanged(int mapScale, double widgetScale);
     void onMapHolderExtentChanged(const QRectF& extent, const QRect& widgetRect);
 
     void onVectorLayerFeatureAdded(vector::VectorFeature*);
     void onVectorLayerFeatureRemoved(int64_t fid);
 
-    void onNewFeatureGraphicsItemCreated(std::unique_ptr<graphics::FeatureGraphicsItem>& item);
+    void onFeatureGraphicsItemRequestRemoval(FeatureGraphicsItem* item);
 
+    void onNewFeatureGraphicsItemCreated(std::unique_ptr<graphics::FeatureGraphicsItem>& item);
     void onFeatureGraphicsItemCreated(FeatureGraphicsItem* item); //from proj manager;
     void onRasterGraphicsItemCreated(RasterGraphicsItem *item); //from proj manager;
 

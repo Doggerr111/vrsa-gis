@@ -7,22 +7,80 @@
 #include <QTimer>
 MapHolder::MapHolder(QWidget *parent)
     : QGraphicsView{parent},
-      mMapCalculator{}
+      mIsDraging{false},
+      mIsZooming{false},
+      mZoomDelta{0.0},
+      mZoomOffset{},
+      mZoomPixmap{},
+      mZoomStartScale{1.0},
+      mZoomMousePos{},
+      mClickPos{},
+      mLastPos{},
+      mDragPixmap{},
+      mDragImage{},
+      mZoomInFactor{1.2},
+      mZoomOutFactor{0.8},
+      mCurrentScale{1},
+      mPanningEnabled{true},
+      mZoomTimer{std::make_unique<QTimer>()}
 {
-    mMapCalculator.SetDpi(QGuiApplication::primaryScreen()->logicalDotsPerInch());
     setOptimizationFlags (QGraphicsView::DontSavePainterState | QGraphicsView::DontAdjustForAntialiasing);
     setRenderHint(QPainter::Antialiasing, true);
-    setRenderHint(QPainter::SmoothPixmapTransform, false);
+    setRenderHint(QPainter::SmoothPixmapTransform, true);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setCacheMode(QGraphicsView::CacheNone);
-    mZoomTimer = new QTimer(this);
     mZoomTimer->setSingleShot(true);
+    scale(1,-1);
 }
 
-void MapHolder::zoomToRect(QRectF targetRect)
+void MapHolder::zoomToRect(const QRectF &rect)
 {
-    Q_UNUSED(targetRect);
+    zoomToPoint(rect.center());
+}
+
+void MapHolder::zoomToPoint(const QPointF &point)
+{
+    centerOn(point);
+    emit zoomed();
+    emit extentChanged(getExtent(), viewport()->rect());
+}
+
+void MapHolder::zoomIn()
+{
+    qreal factor = mZoomInFactor;
+    double futureScale = mCurrentScale / factor;
+    static const double MIN_SCALE = 100.0;      // 1:100 - максимальный зум
+    static const double MAX_SCALE = 1000000000.0; //минимальный зум
+    if (futureScale < MIN_SCALE) return;
+    else if (futureScale > MAX_SCALE) return;
+    if (qFuzzyCompare(mCurrentScale, futureScale)) return;
+    if (futureScale >= MIN_SCALE && futureScale <= MAX_SCALE)
+    {
+        scale(factor, factor);
+        emit zoomed();
+        viewport()->update();
+        emit extentChanged(getExtent(), viewport()->rect());
+    }
+
+}
+
+void MapHolder::zoomOut()
+{
+    qreal factor = mZoomOutFactor;
+    double futureScale = mCurrentScale / factor;
+    static const double MIN_SCALE = 100.0;      // 1:100 - максимальный зум
+    static const double MAX_SCALE = 1000000000.0; //минимальный зум
+    if (futureScale < MIN_SCALE) return;
+    else if (futureScale > MAX_SCALE) return;
+    if (qFuzzyCompare(mCurrentScale, futureScale)) return;
+    if (futureScale >= MIN_SCALE && futureScale <= MAX_SCALE)
+    {
+        scale(factor, factor);
+        emit zoomed();
+        viewport()->update();
+        emit extentChanged(getExtent(), viewport()->rect());
+    }
 }
 
 double MapHolder::getMapHolderScale() const
@@ -30,7 +88,7 @@ double MapHolder::getMapHolderScale() const
     return transform().m11();
 }
 
-QRectF MapHolder::getExtent()
+QRectF MapHolder::getExtent() const
 {
     if (!viewport()) return QRectF();
     QPolygonF scenePoly = mapToScene(viewport()->rect());
@@ -39,38 +97,19 @@ QRectF MapHolder::getExtent()
     double maxX = sceneRect.right();
     double minY = sceneRect.bottom();  // юг
     double maxY = sceneRect.top();     // север
-    qDebug() << QRectF(minX, minY, maxX - minX, maxY - minY);
     return QRectF(minX, minY, maxX - minX, maxY - minY);
 }
 
-void MapHolder::setMapCalculator(vrsa::calculations::MapCalculator &calc)
+QRectF MapHolder::getSceneRect() const
 {
-    mMapCalculator=calc;
-}
-
-
-void MapHolder::onCrsChanged(vrsa::spatialref::SpatialReference &crs)
-{
-    mMapCalculator.setCRS(crs);
-    recalculateScale();
-}
-
-void MapHolder::recalculateScale()
-{
-    const QRectF visibleRect = mapToScene(viewport()->rect()).boundingRect();
-    mCurrentScale = static_cast<int>(mMapCalculator.calculate(visibleRect, width()));
-    //VRSA_DEBUG("MapHolder", "Calculated scale:" + std::to_string(mCurrentScale));
-    emit scaleChanged(mCurrentScale, transform().m11());
+    return mapToScene(viewport()->rect()).boundingRect();
 }
 
 void MapHolder::resizeEvent(QResizeEvent *event)
 {
-    //emit MapHolderResized();
     QGraphicsView::resizeEvent(event);
-    recalculateScale();
-    //qDebug()<<getExtent() << viewport()->rect();
     emit extentChanged(getExtent(), viewport()->rect());
-
+    emit resized();
 }
 
 void MapHolder::wheelEvent(QWheelEvent *event)
@@ -80,21 +119,13 @@ void MapHolder::wheelEvent(QWheelEvent *event)
     qreal factor = (event->angleDelta().y() > 0) ? mZoomInFactor : mZoomOutFactor;
     //предварительно рассчитываем будущий масштаб
     double futureScale = mCurrentScale / factor;
-    //mCurrentScale = futureScale;
     static const double MIN_SCALE = 100.0;      // 1:100 - максимальный зум
     static const double MAX_SCALE = 1000000000.0; //минимальный зум
-    //корректируем futureScale, если он выходит за границы
-    if (futureScale < MIN_SCALE)
-    {
-        return;
-    }
-    else if (futureScale > MAX_SCALE)
-    {
-        return;
-    }
+    if (futureScale < MIN_SCALE) return;
+    else if (futureScale > MAX_SCALE) return;
+    //применяем зум только если масштаб реально изменился
+    if (qFuzzyCompare(mCurrentScale, futureScale)) return;
 
-    // Применяем зум только если масштаб реально изменился
-    if (!qFuzzyCompare(mCurrentScale, futureScale))
     if (futureScale >= MIN_SCALE && futureScale <= MAX_SCALE)
     {
         if (!mIsZooming)
@@ -107,11 +138,11 @@ void MapHolder::wheelEvent(QWheelEvent *event)
         scale(factor, factor);
         mZoomDelta += event->angleDelta().y();
         handleZoom(event);  //обновляем снапшот
-        recalculateScale();
+        emit zoomed();
         if (mZoomTimer)
         {
             mZoomTimer->disconnect();  // отключаем старый
-            connect(mZoomTimer, &QTimer::timeout, this, &MapHolder::finishZoom, Qt::UniqueConnection);
+            connect(mZoomTimer.get(), &QTimer::timeout, this, &MapHolder::finishZoom, Qt::UniqueConnection);
             mZoomTimer->stop();
             mZoomTimer->start(300);
         }
@@ -128,7 +159,7 @@ void MapHolder::startZoomSnapshot(const QPointF &mousePos)
     mZoomMousePos = mousePos;
     mZoomStartScale = transform().m11();  // текущий масштаб
     mZoomOffset = QPointF(0, 0); //левый верхний угол в координатах вьюпорта
-    //для скорости
+    //для более быстрой отрисовки
     setRenderHint(QPainter::Antialiasing, false);
     setRenderHint(QPainter::SmoothPixmapTransform, false);
     //рендерим снапшот
@@ -148,15 +179,16 @@ void MapHolder::handleZoom(QWheelEvent *event)
     // обновляем снепшот
     QSize newSize = mZoomPixmap.size() * zoomFactor;
     //защита от слишком большого или слишком маленького размера
-    if (newSize.width() > 5000 || newSize.height() > 5000) {
+    if (newSize.width() > 5000 || newSize.height() > 5000)
+    {
         finishZoom();
         return;
     }
-    if (newSize.width() < 10 || newSize.height() < 10) {
+    if (newSize.width() < 10 || newSize.height() < 10)
+    {
         finishZoom();
         return;
     }
-
     mZoomOffset = (mZoomOffset - mZoomMousePos) * zoomFactor + mZoomMousePos;
     mZoomPixmap = mZoomPixmap.scaled( mZoomPixmap.size() * zoomFactor,
                        Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -170,11 +202,12 @@ void MapHolder::finishZoom()
     mIsZooming = false;
     mZoomPixmap = QPixmap();
     mZoomDelta = 0;
-    recalculateScale();
+    emit zoomed();
     viewport()->update();
 }
 
-void MapHolder::mousePressEvent(QMouseEvent* event) {
+void MapHolder::mousePressEvent(QMouseEvent* event)
+{
     //чтобы знать можно ли перемещать или нет
     emit mousePressed(event);
     if (event->button() == Qt::LeftButton || event->button() == Qt::MiddleButton)
@@ -188,19 +221,18 @@ void MapHolder::mousePressEvent(QMouseEvent* event) {
         mIsDraging = true;
         mClickPos = event->pos();
         mLastPos = event->pos();
-        // Отключаем улучшения
+        //для более быстрой отрисовки
         setRenderHint(QPainter::Antialiasing, false);
         setRenderHint(QPainter::SmoothPixmapTransform, false);
-        // Замер времени начала
+        //замер времени отрисовки
         QElapsedTimer timer;
         timer.start();
-        // Рендерим в QImage (быстрее!)
+        //рендер в QImage
         mDragImage = QImage(viewport()->size(), QImage::Format_ARGB32_Premultiplied);
         mDragImage.fill(Qt::transparent);
         QPainter painter(&mDragImage);
         render(&painter);
         painter.end();
-        //замер времени окончания
         qint64 elapsed = timer.elapsed();
         qDebug() << "Время рендера drag-изображения:" << elapsed << "мс";
         //конвертируем в QPixmap для отрисовки
@@ -239,7 +271,6 @@ void MapHolder::mouseReleaseEvent(QMouseEvent* event)
     }
     if (mIsZooming)
     {
-        qDebug()<<"zooming stopped";
         mIsZooming = false;
         mZoomPixmap = QPixmap();
         QGraphicsView::mouseReleaseEvent(event);
@@ -252,7 +283,7 @@ void MapHolder::paintEvent(QPaintEvent* event)
 {
     if (mIsZooming && !mZoomPixmap.isNull())
     {
-        // Рисуем снапшот
+        //рисуем снапшот
         QPainter painter(viewport());
         QPoint offset((viewport()->width() - mZoomPixmap.width()) / 2,
                       (viewport()->height() - mZoomPixmap.height()) / 2);
@@ -263,7 +294,6 @@ void MapHolder::paintEvent(QPaintEvent* event)
     if (mIsDraging && !mDragPixmap.isNull())
     {
         QPainter painter(viewport());
-        //painter.fillRect(viewport()->rect(), Qt::lightGray);
         QPoint offset = mLastPos - mClickPos;
         painter.drawPixmap(offset, mDragPixmap);
         return;

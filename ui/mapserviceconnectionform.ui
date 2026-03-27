@@ -6,14 +6,29 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
-    <height>212</height>
+    <width>427</width>
+    <height>214</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QFrame" name="frame">
      <property name="frameShape">
@@ -23,8 +38,30 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>9</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QFrame" name="frameConnectionName">
+        <property name="styleSheet">
+         <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+    background-color: transparent;
+}</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -54,6 +91,19 @@
       </item>
       <item>
        <widget class="QFrame" name="frameURLstring">
+        <property name="styleSheet">
+         <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+    background-color: transparent;
+}</string>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -88,6 +138,15 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QFrame{
+    border-top: 1px solid #6f6f6f;
+    border-right: none;
+    border-bottom: none;
+    border-left: none;
+
+}</string>
         </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>

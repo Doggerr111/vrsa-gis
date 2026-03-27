@@ -18,10 +18,17 @@ vrsa::graphics::FeatureGraphicsItem::FeatureGraphicsItem(Feature *feature)
         QObject::connect(feature, &vector::VectorFeature::styleChanged, this, &FeatureGraphicsItem::onFeatureStyleChanged);
         QObject::connect(feature, &vector::VectorFeature::geometryChanged, this,
                          &FeatureGraphicsItem::onVectorFeatureGeometryChanged);
+        QObject::connect(feature, &vector::VectorFeature::selectionChanged, this,
+                         &FeatureGraphicsItem::onFeatureSelected);
+        QObject::connect(feature, &vector::VectorFeature::featureAboutToBeRemoved, this,
+                         &FeatureGraphicsItem::onFeatureAboutToBeRemoved);
         QObject::connect(feature, &vector::VectorFeature::ZValueChanged, this, &FeatureGraphicsItem::onZValueChanged);
         QObject::connect(feature, &vector::VectorFeature::symbolUpdated, this, &FeatureGraphicsItem::onSymbolUpdated);
         QObject::connect(&settings, &common::ApplicationSettings::lodSettingsChanged,
                          this, &FeatureGraphicsItem::onLodSettingsChanged);
+        setZValue(mFeature->getZValue());
+
+
     }
 }
 
@@ -104,6 +111,11 @@ void vrsa::graphics::FeatureGraphicsItem::onFeatureStyleChanged(VectorFeatureSty
 
 }
 
+void vrsa::graphics::FeatureGraphicsItem::onFeatureSelected(bool selected)
+{
+    setSelected(selected);
+}
+
 void vrsa::graphics::FeatureGraphicsItem::onVectorFeatureGeometryChanged()
 {
     qDebug()<<"vector feature geometry changed!";
@@ -125,4 +137,9 @@ void vrsa::graphics::FeatureGraphicsItem::onLodSettingsChanged(bool enabled, com
     mIsLodEnabled = enabled;
     mLodAlgo = type;
     mRenderer->update();
+}
+
+void vrsa::graphics::FeatureGraphicsItem::onFeatureAboutToBeRemoved()
+{
+    emit requestRemoval(this);
 }

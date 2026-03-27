@@ -18,10 +18,10 @@ int main(int argc, char *argv[])
         QString styleSheet = QString::fromUtf8(file.readAll());
         a.setStyleSheet(styleSheet);
         file.close();
-        VRSA_INFO("UI", "Таблица стилей успешно загружена");
+        VRSA_INFO("UI", "Style sheet loaded successfully");
     }
     else
-        VRSA_ERROR("UI", "Таблица стилей не загружена. Путь:" + QFileInfo(file).absoluteFilePath().toStdString());
+        VRSA_ERROR("UI", "Style sheet not loaded. Path:" + QFileInfo(file).absoluteFilePath().toStdString());
     vrsa::common::ApplicationSettings::instance();
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();

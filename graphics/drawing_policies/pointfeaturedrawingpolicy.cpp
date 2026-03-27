@@ -42,6 +42,7 @@ void vrsa::graphics::PointFeatureDrawingPolicy::createPath() const
 
     }
     case common::PointSymbolType::Square:
+    case common::PointSymbolType::ImageMarker:
     {
         mCache.path.addRect(x - halfPointSize, y - halfPointSize,
                             mCache.pointSize, mCache.pointSize);

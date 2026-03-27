@@ -114,6 +114,7 @@ private:
     std::unique_ptr<gdalwrapper::Dataset> readPostGISDataset(const std::string& connectionString);
     gdalwrapper::Dataset* readDataset(const std::string& src, unsigned int flags = GDAL_OF_ALL | GDAL_OF_UPDATE);
     gdalwrapper::Dataset* readTMSDataset(const std::string& xml, bool xyz = false,
+                                         const std::string& connectoonName = "Unknown",
                                          unsigned int flags = GDAL_OF_RASTER | GDAL_OF_READONLY);
 private:
     std::vector<DatasetPtr> mDatasets;

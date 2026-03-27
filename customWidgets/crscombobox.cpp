@@ -1,6 +1,7 @@
 #include "crscombobox.h"
 #include <QDebug>
 #include "spatialref/spatialrefdatabase.h"
+
 CRSComboBox::CRSComboBox(QWidget* parent)
     : QComboBox(parent)
 {

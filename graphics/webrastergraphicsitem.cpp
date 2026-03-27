@@ -4,7 +4,14 @@
 #include <QtConcurrent/QtConcurrent>
 vrsa::graphics::WebRasterGraphicsItem::WebRasterGraphicsItem(raster::WebRasterDataset *webDs)
     : RasterGraphicsItem(webDs),
-      mDataset{webDs}{}
+      mDataset{webDs}
+{
+    if (mDataset)
+    {
+        QObject::connect(mDataset, &raster::WebRasterDataset::ZValueChanged, this, &RasterGraphicsItem::onZValueChanged);
+        QObject::connect(mDataset, &raster::WebRasterDataset::visibilityChanged, this, &RasterGraphicsItem::onVisibilityChanged);
+    }
+}
 
 vrsa::graphics::WebRasterGraphicsItem::~WebRasterGraphicsItem()
 {

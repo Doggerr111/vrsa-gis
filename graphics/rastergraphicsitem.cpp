@@ -1,5 +1,6 @@
 #include "rastergraphicsitem.h"
 #include "gdal/dataset.h"
+
 vrsa::graphics::RasterGraphicsItem::RasterGraphicsItem(gdalwrapper::Dataset *dS)
     : mItem{std::make_unique<QGraphicsPixmapItem>()},
       mBaseDs{dS}
@@ -21,7 +22,13 @@ void vrsa::graphics::RasterGraphicsItem::setTransform(const QTransform &transfor
 
 void vrsa::graphics::RasterGraphicsItem::onZValueChanged(int zValue)
 {
+    mItem->setZValue(zValue);
+    VRSA_DEBUG("RASTER", "ZVALUE UPDATED" + std::to_string(zValue));
+}
 
+void vrsa::graphics::RasterGraphicsItem::onVisibilityChanged(bool visible)
+{
+    mItem->setVisible(visible);
 }
 
 void vrsa::graphics::RasterGraphicsItem::onVisibleExtentChanged(const QRectF &mapExtent, const QRect &widgetRect)

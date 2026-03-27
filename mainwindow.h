@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include "services/giscontroller.h"
-#include <QFileDialog>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -19,7 +18,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 private:
-    void initialize();
+    void setup();
+    void setupWidgets();
+    void setupStyle();
+    void setupActions();
     void setupLogger();
     vrsa::services::ViewComponents createViewComponents();
 
@@ -28,8 +30,10 @@ private slots:
     void on_crsComboBox_currentIndexChanged(int index);
     void on_pushButton_addFeature_clicked();
     void on_pushButtonSingleSelection_clicked(bool checked);
-    void on_pushButton_testVectorLayerUtils_clicked();
-
+    void on_actionShowConsole_toggled(bool arg1);
+    void on_actionShowRightTabWidget_toggled(bool arg1);
+    void on_actionShowLeftTabWidget_toggled(bool arg1);
+    void on_actionShowToolBar_toggled(bool arg1);
 
 private:
     Ui::MainWindow *ui;

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>545</width>
+    <width>544</width>
     <height>537</height>
    </rect>
   </property>
@@ -26,6 +26,18 @@
       <enum>QFrame::Raised</enum>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QFrame" name="frame_2">
         <property name="frameShape">
@@ -35,11 +47,35 @@
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>3</number>
+         </property>
          <property name="leftMargin">
-          <number>9</number>
+          <number>3</number>
+         </property>
+         <property name="topMargin">
+          <number>3</number>
+         </property>
+         <property name="rightMargin">
+          <number>3</number>
+         </property>
+         <property name="bottomMargin">
+          <number>3</number>
          </property>
          <item>
           <widget class="QFrame" name="frame_7">
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+	}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -75,6 +111,18 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+	}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -102,8 +150,8 @@
               </property>
               <property name="maximumSize">
                <size>
-                <width>25</width>
-                <height>25</height>
+                <width>60</width>
+                <height>60</height>
                </size>
               </property>
               <property name="text">
@@ -116,6 +164,18 @@
          </item>
          <item>
           <widget class="QFrame" name="frameGeometry">
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+	}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -161,6 +221,18 @@
          </item>
          <item>
           <widget class="QFrame" name="frame_4">
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+	}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -185,7 +257,7 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>4</width>
+                <width>10</width>
                 <height>20</height>
                </size>
               </property>
@@ -224,6 +296,29 @@
              <height>100</height>
             </size>
            </property>
+           <property name="styleSheet">
+            <string notr="true">/* QFrame без QLabel */
+QFrame:hover {
+    border: 1px solid #4f4f4f;
+    background-color: #2a2a2a;
+}
+
+/* Возвращаем QLabel как было */
+QLabel:hover {
+    border: none;
+	
+}
+
+QTextEdit:hover {
+background-color: #4f4f4f;
+color: #ffffff;
+border: 1px solid #656565;
+border-radius: 3px;
+padding: 3px;
+outline: none;
+
+}</string>
+           </property>
            <property name="frameShape">
             <enum>QFrame::StyledPanel</enum>
            </property>
@@ -257,7 +352,7 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>24</width>
+                <width>30</width>
                 <height>20</height>
                </size>
               </property>
@@ -281,6 +376,9 @@
       </item>
       <item>
        <widget class="QFrame" name="frame_3">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
         </property>
@@ -288,6 +386,21 @@
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
           <widget class="QFrame" name="frame_8">
            <property name="frameShape">
@@ -297,6 +410,21 @@
             <enum>QFrame::Raised</enum>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>3</number>
+            </property>
+            <property name="topMargin">
+             <number>3</number>
+            </property>
+            <property name="rightMargin">
+             <number>3</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
              <widget class="QTableWidget" name="tableWidgetAttributes"/>
             </item>
@@ -415,6 +543,21 @@
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_9">
+         <property name="spacing">
+          <number>3</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
          <item alignment="Qt::AlignRight">
           <widget class="QPushButton" name="pushButtonCancel">
            <property name="text">

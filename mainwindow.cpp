@@ -1,18 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
-#include "vectorstylingform.h"
 #include <QButtonGroup>
 #include <QSplitter>
-#include "vectorlayercreationform.h"
-#include "test_utils/vectorlayertest.h"
-
-#include <geos/geom/GeometryFactory.h>
-#include <geos/geom/Point.h>
-#include <geos/geom/LineString.h>
-#include <geos/geom/PrecisionModel.h>
-#include <geos/io/WKTReader.h>
-#include <geos/io/WKTWriter.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -20,12 +10,8 @@ MainWindow::MainWindow(QWidget *parent)
       mGisController{std::make_unique<vrsa::services::GISController>()}
 {
     ui->setupUi(this);
-    if (!mGisController)
-        return;
-    setWindowTitle("VRSA");
-    initialize();
+    setup();
     mGisController->setupViewComponents(createViewComponents());
-    setupLogger();
     showMaximized();
 }
 
@@ -34,15 +20,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::initialize()
+void MainWindow::setup()
+{
+    setupWidgets();
+    setupActions();
+    setupLogger();
+    setupStyle();
+}
+
+void MainWindow::setupWidgets()
 {
     mMapToolExclusiveGroup = new QButtonGroup(this);
-    mMapToolExclusiveGroup->setExclusive(true);
-    mMapToolExclusiveGroup->addButton(ui->pushButton_addFeature);
-    mMapToolExclusiveGroup->addButton(ui->pushButtonSingleSelection);
-    mMapToolExclusiveGroup->addButton(ui->pushButtonRectSelection);
-    mMapToolExclusiveGroup->addButton(ui->pushButtonGeometryEdit);
-    mMapToolExclusiveGroup->addButton(ui->pushButtonRuler);
     ui->rightTabWidget->tabBar()->setExpanding(false);
 
     QHBoxLayout* layoutOld = qobject_cast<QHBoxLayout*>(ui->central_frame->layout());
@@ -75,7 +63,32 @@ void MainWindow::initialize()
     splitter->setChildrenCollapsible(false);
     splitter->setHandleWidth(1);
     layout->addWidget(splitter);
+
 }
+
+void MainWindow::setupStyle()
+{
+    setWindowTitle("VRSA");
+    //цвет выделения (фокуса)
+    QPalette pal = ui->LayerTree->palette();
+    pal.setColor(QPalette::Highlight, QColor(184, 92, 26));
+    pal.setColor(QPalette::HighlightedText, Qt::white);
+    ui->LayerTree->setPalette(pal);
+    ui->DBLayerTree->setPalette(pal);
+    ui->treeWidgetSelection->setPalette(pal);
+}
+
+void MainWindow::setupActions()
+{
+    ui->menuPanels->addAction(ui->actionShowConsole);
+    ui->menuPanels->addAction(ui->actionShowLeftTabWidget);
+    ui->menuPanels->addAction(ui->actionShowRightTabWidget);
+    connect(ui->pushButtonPostGis, &QPushButton::clicked, ui->actionConnectToPostGIS, &QAction::trigger);
+    connect(ui->pushButtonIntersection, &QPushButton::clicked, ui->actionIntersection, &QAction::trigger);
+    connect(ui->pushButtonVoronoi, &QPushButton::clicked, ui->actionVoronoiDiagram, &QAction::trigger);
+    connect(ui->pushButtonTriangulation, &QPushButton::clicked, ui->actionGeosTriangulation, &QAction::trigger);
+}
+
 
 void MainWindow::setupLogger()
 {
@@ -96,7 +109,9 @@ vrsa::services::ViewComponents MainWindow::createViewComponents()
     comps.rectSeletionBtn = ui->pushButtonRectSelection;
     comps.geometryEditBtn = ui->pushButtonGeometryEdit;
     comps.rulerBtn = ui->pushButtonRuler;
-    comps.mapToolsGrp = mMapToolExclusiveGroup;
+    comps.panBtn = ui->pushButtonPanning;
+    comps.zoomInBtn = ui->pushButtonZoomIn;
+    comps.zoomOutBtn = ui->pushButtonZoomOut;
 
     comps.coordEdit = ui->lineEditCoordinates;
     comps.scaleEdit = ui->lineEditScale;
@@ -142,6 +157,29 @@ vrsa::services::ViewComponents MainWindow::createViewComponents()
 }
 
 
+void MainWindow::on_actionShowConsole_toggled(bool arg1)
+{
+    ui->tabWidgetConsoleLog->setVisible(arg1);
+}
+
+
+void MainWindow::on_actionShowRightTabWidget_toggled(bool arg1)
+{
+    ui->right_menu_frame->setVisible(arg1);
+}
+
+
+void MainWindow::on_actionShowLeftTabWidget_toggled(bool arg1)
+{
+    ui->left_menu_frame->setVisible(arg1);
+}
+
+
+void MainWindow::on_actionShowToolBar_toggled(bool arg1)
+{
+    ui->header_tool_bar_frame->setVisible(arg1);
+}
+
 
 void MainWindow::on_actionLoad_vector_layer_triggered()
 { 
@@ -164,8 +202,4 @@ void MainWindow::on_pushButtonSingleSelection_clicked(bool checked)
 }
 
 
-void MainWindow::on_pushButton_testVectorLayerUtils_clicked()
-{
-
-}
 

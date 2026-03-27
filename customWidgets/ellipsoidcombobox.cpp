@@ -1,5 +1,6 @@
 #include "ellipsoidcombobox.h"
 #include "spatialref/spatialrefdatabase.h"
+
 EllipsoidComboBox::EllipsoidComboBox(QWidget *parent)
     : QComboBox(parent)
 {

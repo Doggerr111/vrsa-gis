@@ -7,6 +7,7 @@
 #include "vector/vectordataset.h"
 #include <unordered_set>
 
+
 vrsa::graphics::MapScene::MapScene(QObject *parent)
     : QGraphicsScene{parent},
       mMapScale{0.0},
@@ -72,6 +73,7 @@ void vrsa::graphics::MapScene::deselectCurrentMapTool()
         mCurrentMapTool->deactivate();
         mCurrentMapTool.reset();
         mCurrentMapTool = nullptr;
+        setPanningEnable(true);
         removeTemporaryItems();
     }
 
@@ -134,7 +136,7 @@ void vrsa::graphics::MapScene::keyPressEvent(QKeyEvent *event)
 
 }
 
-void vrsa::graphics::MapScene::onMapHolderScaleChanged(int mapScale, double widgetScale)
+void vrsa::graphics::MapScene::onMapScaleChanged(int mapScale, double widgetScale)
 {
     //qDebug()<<"new scale:" << mapScale;
     mMapScale = mapScale;
@@ -167,6 +169,18 @@ void vrsa::graphics::MapScene::onVectorLayerFeatureRemoved(int64_t fid)
 
 }
 
+void vrsa::graphics::MapScene::onFeatureGraphicsItemRequestRemoval(FeatureGraphicsItem *item)
+{
+    if (item)
+        removeItem(item);
+
+    auto it = std::remove_if(mMapItems.begin(), mMapItems.end(), [item](const auto& f) {
+        return f && f.get() == item;
+    });
+    if (it != mMapItems.end())
+        mMapItems.erase(it, mMapItems.end());
+}
+
 //delete this
 void vrsa::graphics::MapScene::onNewFeatureGraphicsItemCreated(std::unique_ptr<FeatureGraphicsItem> &item)
 {
@@ -175,7 +189,7 @@ void vrsa::graphics::MapScene::onNewFeatureGraphicsItemCreated(std::unique_ptr<F
     mMapItems.push_back(std::move(item));
     //item->update();
     update(item->boundingRect());
-    qDebug()<<mMapItems.size();
+    //qDebug()<<mMapItems.size();
 }
 
 //from factory::featureGraphicsItemCreated
@@ -187,6 +201,8 @@ void vrsa::graphics::MapScene::onFeatureGraphicsItemCreated(FeatureGraphicsItem 
         return;
     }
     addItem(item);
+    connect(item, &FeatureGraphicsItem::requestRemoval,
+            this, &MapScene::onFeatureGraphicsItemRequestRemoval);
     item->setScale(mMapScale, mMapHolderScale);
     mMapItems.push_back(std::unique_ptr<FeatureGraphicsItem>(item));
     update(item->boundingRect());

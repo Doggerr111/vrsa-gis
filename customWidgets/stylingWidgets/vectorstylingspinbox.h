@@ -1,14 +1,19 @@
 #ifndef VECTORSTYLINGCOMBOBOX_H
 #define VECTORSTYLINGCOMBOBOX_H
 #include <QSpinBox>
-#include "common/GisDefines.h"
 
 namespace vrsa{
+namespace common{
+enum class StyleParametr: int;
+}
 namespace graphics{
 class Symbol;
 }
 }
 
+/**
+ * @brief Специализированный спин-бокс для настройки стилей векторных объектов
+ */
 class VectorStylingSpinBox: public QDoubleSpinBox
 {
     Q_OBJECT
@@ -18,7 +23,17 @@ public:
     explicit VectorStylingSpinBox(Symbol* s, StyleParam param, QWidget *parent = nullptr);
 
 private:
-    void setSpinBox();
+    void updateFromSymbol  ();
+    void setRangeForParam  ();
+    void setStepForParam   ();
+    void setValueFromSymbol();
+
+    double getPointSize() const;
+    double getPenWidth () const;
+    double getXOffset  () const;
+    double getYOffset  () const;
+    double getRotation () const;
+    double getOpacity  () const;
     StyleParam mParam;
     Symbol* mSymbol;
 

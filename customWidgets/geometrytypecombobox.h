@@ -1,15 +1,21 @@
 #ifndef GEOMETRYTYPECOMBOBOX_H
 #define GEOMETRYTYPECOMBOBOX_H
-
 #include <QComboBox>
 
-namespace vrsa
-{
-namespace common
-{
+namespace vrsa {
+namespace common {
 enum class GeometryType:int;
 }
 }
+
+/**
+ * @brief Комбобокс для выбора типа геометрии с фильтрацией
+ *
+ * @note Фильтры можно комбинировать: Simple | Multi — покажет простые и мульти-типы
+ *
+ * @see FilterFlag
+ * @see vrsa::common::GeometryType
+ */
 class GeometryTypeComboBox : public QComboBox
 {
 public:
@@ -21,24 +27,24 @@ public:
         Collection  = 0x04,  // коллекции (geometryCollection)
         All         = 0xFF   // все типы
     };
-    //Q_PROPERTY(FilterFlags geometryTypes READ geometryTypes WRITE setGeometryTypes)
     Q_DECLARE_FLAGS(FilterFlags, FilterFlag)
     Q_FLAG(FilterFlags)
 
+private:
     struct TypeItem
     {
         vrsa::common::GeometryType type;
         QString name;
         QString icon;
     };
+
 public:
     GeometryTypeComboBox(QWidget* parent = nullptr, FilterFlags flags = Simple);
-    //FilterFlags geometryTypes() const noexcept { return mFlags; }
     void setGeometryTypes(FilterFlags flags);
+
 private:
     void populateItems(FilterFlags flags);
-private:
-    //FilterFlag mFlags;
+
 };
 
 #endif // GEOMETRYTYPECOMBOBOX_H

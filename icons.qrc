@@ -109,5 +109,19 @@
         <file>images/icons/spatialOperations/icon_diff_flat_black.png</file>
         <file>images/icons/spatialOperations/icon_sym_diff_flat_black.png</file>
         <file>images/icons/Tools/icon_ruler_black.png</file>
+        <file>images/icons/vrsa_logo.png</file>
+        <file>images/icons/dialogs/icon_invert_selection_black.png</file>
+        <file>images/icons/dialogs/icon_remove_selection_black.png</file>
+        <file>images/icons/dialogs/icon_selection_black.png</file>
+        <file>images/icons/dialogs/icon_selection_list_black.png</file>
+        <file>images/icons/dialogs/icon_copy_two_paper_black.png</file>
+        <file>images/icons/Tools/icon_pen_black.png</file>
+        <file>images/icons/Tools/icon_pen_filled_black.png</file>
+        <file>images/icons/Tools/icon_hand_pan_small_black.png</file>
+        <file>images/icons/Tools/drag.png</file>
+        <file>images/icons/Tools/icon_mouse_black.png</file>
+        <file>images/icons/Tools/glass.png</file>
+        <file>images/icons/Tools/icon_zoom_out_bold_black.png</file>
+        <file>images/icons/SymbolStyling/icon_image_fill_black.png</file>
     </qresource>
 </RCC>

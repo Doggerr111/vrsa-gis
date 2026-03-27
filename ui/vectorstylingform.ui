@@ -25,6 +25,30 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QComboBox {
+    min-width: 150px;
+    max-width: 180px;
+}
+QDoubleSpinBox {
+    min-width: 150px;
+    max-width: 180px;
+}
+QPushButton {
+background-color: #5f5f5f;
+color: #ffffff;
+border: none;
+border-radius: 3px;
+padding: 0px 0px;
+margin: 0px;
+min-width: 25px;
+min-height: 30px;
+
+}
+
+        
+</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item alignment="Qt::AlignTop">
     <widget class="QFrame" name="frame">
@@ -270,6 +294,42 @@
          </property>
          <item alignment="Qt::AlignBottom">
           <widget class="QStackedWidget" name="stackedWidget">
+           <property name="styleSheet">
+            <string notr="true">* {
+                        font-size: 12px;
+                    }
+                    #stackedWidget QFrame{
+                        border: 1px solid #4f4f4f;
+                        background-color: #2a2a2a;
+                        border-radius: 3px;
+                        padding: 4px;
+                    }
+                    /* QFrame внутри stackedWidget  */
+                    #stackedWidget QFrame &gt; QFrame {
+                        border: none;
+                        background-color: #2a2a2a;
+                        border-radius: 3px;
+                        padding: 4px;
+                    }
+
+                    #stackedWidget QFrame &gt; QFrame:hover {
+                        border: 1px solid #6f6f6f;
+                        background-color: #3a3a3a;
+                    }
+
+                    #stackedWidget QFrame &gt;QLabel:hover {
+                        border:none;
+                        background-color: transparent;
+                    }
+                    #stackedWidget QFrame &gt;QLabel {
+                        border:none;
+                        background-color: transparent;
+                    }
+#stackedWidget QLayout {
+    margin: 0px;
+    padding: 0px;
+}</string>
+           </property>
            <widget class="QWidget" name="pagePointStyle">
             <layout class="QVBoxLayout" name="verticalLayout_4">
              <property name="spacing">
@@ -289,6 +349,9 @@
              </property>
              <item>
               <widget class="QFrame" name="frame_15">
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
                <property name="frameShape">
                 <enum>QFrame::StyledPanel</enum>
                </property>

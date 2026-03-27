@@ -1,8 +1,11 @@
 #ifndef LIPFRAME_H
 #define LIPFRAME_H
-
 #include <QFrame>
 #include <QMouseEvent>
+
+/**
+ * @brief Кастомный фрейм с возможностью растягивания мышью
+ */
 class Frame : public QFrame
 {
 public:

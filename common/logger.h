@@ -26,7 +26,8 @@ namespace common {
  * @brief Уровни логирования для ГИС приложения
  * @endrussian
  */
-enum class LogLevel {
+enum class LogLevel
+{
     TRACE,      ///< Детальная отладочная информация
     DEBUG,      ///< Отладочная информация
     INFO,       ///< Общая информация о работе
@@ -43,7 +44,8 @@ enum class LogLevel {
  * @brief Категории логирования для различных компонентов ГИС
  * @endrussian
  */
-namespace LogCategory {
+namespace LogCategory
+{
     constexpr const char* CORE      = "CORE";
     constexpr const char* MEMORY    = "MEMORY";
 
@@ -79,6 +81,8 @@ public:
     void setLogFile(const std::string& filename);
     void enableConsoleOutput(bool enable);
     void enableCategory(const std::string& category, bool enable);
+    void enableThreadLogging(bool enable) { logThreadEnabled = enable; };
+    void enableFileLogging(bool enable) { logFileEnabled = enable; };
 
     void setLogWidget(QTextEdit* widget);                          // главный виджет
     void setCategoryWidget(const std::string& category, QTextEdit* widget);  // по категориям
@@ -121,6 +125,8 @@ private:
     std::string formatMessage(LogLevel level, const std::string& category,
                              const std::string& message, const char* file,
                              int line, const char* function) const;
+    std::string formatMessageForWidgets(LogLevel level, const std::string& category,
+                             const std::string& message) const;
     QString formatHtml(const std::string& message, LogLevel level, const std::string& category);
     bool shouldLog(LogLevel level, const std::string& category) const;
     void writeToFile(const std::string& message);
@@ -133,6 +139,9 @@ private:
     std::string logFilename = "log";
     LogLevel currentLevel = LogLevel::INFO;
     bool consoleEnabled = true;
+
+    bool logThreadEnabled = true;
+    bool logFileEnabled = true;
     std::mutex logMutex;
 
     std::unordered_map<std::string, bool> enabledCategories;
