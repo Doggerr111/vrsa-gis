@@ -1,4 +1,11 @@
 # VRSA — Vector Raster Spatial Analysis
+![C++](https://img.shields.io/badge/C++-17-blue.svg)
+![Qt](https://img.shields.io/badge/Qt-5-green.svg)
+![GDAL](https://img.shields.io/badge/GDAL-3.x-lightblue.svg)
+![GEOS](https://img.shields.io/badge/GEOS-3.12-blue.svg)
+![PostGIS](https://img.shields.io/badge/PostGIS-3.x-green.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Commits](https://img.shields.io/github/commit-activity/m/Doggerr111/vrsa-gis)
 
 **Геоинформационная система для работы с векторными и растровыми данными**
 
