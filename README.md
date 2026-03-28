@@ -1,5 +1,3 @@
-<img src="docs/logo/vrsa_logo.png" width="70" align="left" style="margin-right: 15 px; margin-top: 30 px;">
-
 # VRSA — Vector Raster Spatial Analysis
 
 **Геоинформационная система для работы с векторными и растровыми данными**
