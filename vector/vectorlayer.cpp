@@ -132,6 +132,13 @@ bool vrsa::vector::VectorLayer::deleteFeature(int64_t fid)
         mFeatures.erase(it, mFeatures.end());
         emit featureRemoved(fid);
     }
+    for (const auto& feat: mFeatures)
+    {
+        auto OGRFeat = feat->getOGRFeature();
+        if (!OGRFeat) continue;
+        if (auto featFid = OGRFeat->GetFID() > fid)
+            OGRFeat->SetFID(featFid-1);
+    }
     mOGRLayer->SyncToDisk();
     return true;
 }
