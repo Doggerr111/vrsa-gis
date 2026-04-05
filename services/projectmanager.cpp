@@ -83,6 +83,15 @@ void vrsa::services::ProjectManager::removeDataset(gdalwrapper::Dataset *dS)
     {
         if (it->get() == dS)
         {
+            if (dS->GetDatasetType() == common::DatasetType::Vector)
+            {
+                auto vDs = static_cast<vector::VectorDataset*>(dS);
+                for (const auto& layer: vDs->getLayers())
+                {
+                    if (layer.get() == mActiveVectorLayer)
+                        mActiveVectorLayer=nullptr;
+                }
+            }
             emit datasetAboutToBeRemoved(it->get());
             it = mDatasets.erase(it);
         }
