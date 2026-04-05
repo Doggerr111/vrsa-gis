@@ -58,6 +58,22 @@ vrsa::gdalwrapper::GdalDatasetPtr vrsa::gdalwrapper::GDALWriter::createLayer(con
         OGRFieldDefn fieldDefn(field.first.c_str(), field.second);
         poLayer->CreateField(&fieldDefn);
     }
+
+    // HACK: Для Shapefile первая фича может не сохранить геометрию.
+    // добавляем и удаляем фиктивную фичу, чтобы принудительно инициализировать
+    // внутренние структуры GDAL перед добавлением реальных данных.
+    // без этого геометрия первой фичи может потеряться....
+    OGRFeature* dummy = OGRFeature::CreateFeature(poLayer->GetLayerDefn());
+    OGRPoint dummyPoint(0, 0);
+    dummy->SetGeometry(&dummyPoint);
+    if (poLayer->CreateFeature(dummy) == OGRERR_NONE)
+        if (poLayer->DeleteFeature(dummy->GetFID()))
+            qDebug()<<"Deleting dummy feature";
+    OGRFeature::DestroyFeature(dummy);
+    //poLayer->SyncToDisk();
+
+    poLayer->SyncToDisk();
+    poDS->FlushCache();
     return poDS;
 
 
