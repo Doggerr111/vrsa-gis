@@ -7,20 +7,28 @@
 #include <QMutex>
 #include <QFuture>
 #include "common/GisDefines.h"
+#include "common/logger.h"
+
 namespace vrsa
 {
 namespace calculations
 {
-
-
-class UnitConversion {
+/**
+ * @russian
+ *@brief   Класс для конвертации единиц измерений
+ *@details Предоставляет статические функций для конвертаций пикселей в милиметры, дюймы и т.д.
+ * @endrussian
+ */
+class UnitConversion
+{
 public:
     static double mmToPixels(double mm, double dpi = 96.0)
     {
         auto* screen = QGuiApplication::primaryScreen();
-        if (!screen) {
-            qDebug() << "No primary screen available, using default DPI";
-            return mm * (dpi / 25.40);  // fallback
+        if (!screen)
+        {
+            VRSA_WARNING("CORE", "No primary screen available, using default DPI");
+            return mm * (dpi / 25.40);
         }
 
         static const double dots_per_millimeter = screen->physicalDotsPerInch() / 25.40;
@@ -30,10 +38,12 @@ public:
     {
         switch (uni)
         {
-            case common::StyleUnit::Millimeters:
+        case common::StyleUnit::Millimeters:
         {
             return mmToPixels(value);
         }
+        default:
+            return value;
         }
     }
     static double pixelsToMm(double pixels, double dpi = 96.0);
