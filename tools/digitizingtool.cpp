@@ -66,11 +66,23 @@ void vrsa::tools::DigitizeHelper::DigitizeHelper::onGeometryCreated(vrsa::geomet
         return;
     }
 
+    qDebug()<< "layer geom" << mActiveLayer->getGeomType();
     auto feature = vrsa::vector::VectorFeature::createFeature(mActiveLayer);
+    qDebug()<<feature.get();
+    qDebug()<<feature->getOGRGeometry();
+    qDebug()<<feature->getOGRGeometryType();
     if (!feature)
         return;
     if (!feature->setGeometry(geometry))
+    {
+        qDebug()<<feature->getOGRGeometry();
+        qDebug()<<feature->getOGRGeometryType();
+        VRSA_LOG_GDAL_ERROR("VECTOR", "Can't set geometry");
         return;
+    }
+    qDebug()<<"=====after setting up geom=========";
+    qDebug()<<feature->getOGRGeometry();
+    qDebug()<<feature->getOGRGeometryType();
 
 
 //    connect(mActiveLayer, &vrsa::vector::VectorLayer::ZValueChanged, item.get(),
@@ -84,8 +96,7 @@ void vrsa::tools::DigitizeHelper::DigitizeHelper::onGeometryCreated(vrsa::geomet
 //        emit featureGraphicsItemCreated(item);
         return;
     }
-    else
-        return;
+
 }
 
 

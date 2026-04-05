@@ -99,7 +99,7 @@ bool vrsa::vector::VectorFeature::setGeometry(const geometry::Geometry &geometry
         VRSA_LOG_GDAL_ERROR("VECTOR", "Can't set new geometry to OGRFeature");
         return false;
     }
-    else if (!mParentLayer)
+    else if (!mParentLayer && mFeature->GetFID() != OGRNullFID)
     {
         VRSA_DEBUG("VECTOR", "Geometry was successfully setted to the feature, but parent layer wasn't found");
         return true;

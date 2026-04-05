@@ -246,6 +246,7 @@ void vrsa::vector::VectorLayerCreator::onLayerCreationRequested(const common::La
     auto dS = createGDALDataset(layerDef);
     if (!dS)
         return;
+
     auto source = getVectorDatasetPath(dS.get());
     if (!source.empty())
         emit vectorLayerReadingRequested(source);
