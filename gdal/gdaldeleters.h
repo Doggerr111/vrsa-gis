@@ -19,6 +19,7 @@ struct GdalDatasetDeleter {
     void operator()(GDALDataset* dataset) const {
         if (dataset) {
             VRSA_DEBUG("GDAL", "calling GdalDatasetDeleter");
+            dataset->FlushCache();
             GDALClose(dataset);
         }
     }
