@@ -6,6 +6,26 @@
 
 namespace vrsa{
 namespace common{
+/**
+ * @file GISExceptions.h
+ *
+ * @brief Иерархия классов исключений для ГИС системы
+ *
+ * Определяет иерархию исключений для обработки ошибок в ГИС системе.
+ * Базовым классом является GISException, унаследованный от std::exception.
+ * Все специфические исключения наследуются от него, образуя логические группы:
+ * - CoordinateException — ошибки координат
+ * - DataException — ошибки работы с данными
+ * - GeometryException — ошибки геометрии
+ * - AnalysisException — ошибки пространственного анализа * - GraphicsException — ошибки графики/отрисовки
+ */
+
+/**
+ * @brief Базовый класс для всех исключений ГИС системы
+ *
+ * Наследуется от std::exception и предоставляет хранение текстового сообщения
+ * об ошибке. Все специфические исключения наследуются от этого класса.
+ */
 
 class GISException : public std::exception {
 private:
@@ -21,13 +41,24 @@ public:
     }
 };
 
-
+/**
+ * @brief Базовый класс для исключений, связанных с координатами
+ *
+ * Добавляет префикс "Coordinate Error: " к сообщению об ошибке.
+ * Используется как основа для более специфичных координатных исключений.
+ */
 class CoordinateException : public GISException {
 public:
     explicit CoordinateException(const std::string& message)
         : GISException("Coordinate Error: " + message) {}
 };
 
+/**
+ * @brief Исключение: некорректные координаты
+ *
+ * Генерируется при попытке создать или обработать координаты с недопустимыми
+ * значениями (например, широта вне диапазона [-90, 90]).
+ */
 class InvalidCoordinateException : public CoordinateException {
 public:
     InvalidCoordinateException(double lat, double lon)
@@ -36,6 +67,13 @@ public:
                              std::to_string(lon)) {}
 };
 
+
+/**
+ * @brief Исключение: выход координат за допустимые границы
+ *
+ * Генерируется, когда координаты выходят за пределы заданной области
+ * (например, за границы тайла или кадра).
+ */
 class OutOfBoundsException : public CoordinateException {
 public:
     OutOfBoundsException(double lat, double lon, const std::string& bounds)
@@ -44,7 +82,12 @@ public:
                              std::to_string(lon) + ") beyond " + bounds) {}
 };
 
-// 3. Исключения для работы с данными
+/**
+ * @brief Базовый класс для исключений при работе с данными
+ *
+ * Добавляет префикс "Data Error: " к сообщению.
+ * Используется для ошибок доступа к данным, форматам, CRS и т.д.
+ */
 class DataException : public GISException {
 public:
     explicit DataException(const std::string& message)
@@ -84,7 +127,12 @@ public:
         : DataException("Unsupported GDAL data type:" + std::string(GDALGetDataTypeName(type))) {}
 };
 
-// 4. Исключения для пространственных операций
+/**
+ * @brief Базовый класс для исключений, связанных с геометрией
+ *
+ * Добавляет префикс "Geometry Error: " к сообщению.
+ * Используется для ошибок создания, модификации и анализа геометрий.
+ */
 class GeometryException : public GISException {
 public:
     explicit GeometryException(const std::string& message)
@@ -104,7 +152,13 @@ public:
                            (reason.empty() ? "" : ": " + reason)) {}
 };
 
-// 5. Исключения для анализа
+/**
+ * @brief Базовый класс для исключений при пространственном анализе
+ *
+ * Добавляет префикс "Analysis Error: " к сообщению.
+ * Используется для ошибок в операциях буферизации, пересечения,
+ * объединения и других аналитических функциях.
+ */
 class AnalysisException : public GISException {
 public:
     explicit AnalysisException(const std::string& message)
@@ -126,7 +180,12 @@ public:
 };
 
 
-// 5. Исключения при работе с графикой
+/**
+ * @brief Базовый класс для исключений при отрисовке графики
+ *
+ * Добавляет префикс "Graphics Error: " к сообщению.
+ * Используется для ошибок рендеринга, работы с символами и слоями.
+ */
 class GraphicsException : public GISException {
 public:
     explicit GraphicsException(const std::string& message)
