@@ -7,45 +7,75 @@ namespace vrsa
 {
 namespace gdalwrapper
 {
-
+/**
+ * @brief Конвертер типов геометрии между внутренним представлением VRSA и OGR
+ *
+ * Предоставляет статические методы для преобразования типов геометрии,
+ * проверки валидности и конвертации типов полей.
+ * Класс не предназначен для создания экземпляров — все методы статические.
+ */
 class GeometryTypeConverter
 {
 public:
-    GeometryTypeConverter() = delete;
-    // Прямое преобразование через static_cast
-    static vrsa::common::GeometryType FromOGR(OGRwkbGeometryType ogrType) {
+    /**
+     * @brief Преобразует тип геометрии OGR во внутренний тип VRSA
+     * @param ogrType Тип геометрии OGR (wkbPoint, wkbPolygon и т.д.)
+     * @return Соответствующий внутренний тип GeometryType
+     *
+     * Выполняет сплющивание (flatten) Z/M/измерений и проверяет,
+     * находится ли тип в допустимом диапазоне. Если тип не распознан,
+     * возвращает GeometryType::Unknown.
+     */
+    static vrsa::common::GeometryType FromOGR(OGRwkbGeometryType ogrType)
+    {
         auto flatType = wkbFlatten(ogrType);
         if (flatType >= static_cast<int>(vrsa::common::GeometryType::Unknown) &&
-                flatType <= static_cast<int>(vrsa::common::GeometryType::Triangle)) {
+                flatType <= static_cast<int>(vrsa::common::GeometryType::Triangle))
             return static_cast<vrsa::common::GeometryType>(flatType);
-        }
         return vrsa::common::GeometryType::Unknown;
     }
-
+    /**
+    * @brief Преобразует внутренний тип геометрии VRSA в тип OGR
+    * @param type Внутренний тип GeometryType
+    * @return Соответствующий тип OGR (wkbPoint, wkbPolygon и т.д.)
+    *
+    * Является constexpr, вычисляется на этапе компиляции.
+    * Если тип выходит за допустимые пределы, возвращает wkbUnknown.
+    */
     static constexpr OGRwkbGeometryType ToOGR(vrsa::common::GeometryType type)
     {
-        if (type >= vrsa::common::GeometryType::Unknown && type <= vrsa::common::GeometryType::Triangle) {
+        if (type >= vrsa::common::GeometryType::Unknown && type <= vrsa::common::GeometryType::Triangle)
             return static_cast<OGRwkbGeometryType>(static_cast<int>(type));
-        }
         return wkbUnknown;
     }
 
-    static bool isSimpleGeometry(OGRwkbGeometryType type) {
+    /**
+     * @brief Проверяет, является ли тип геометрии OGR простым (не мультигеометрией)
+     * @param type Тип геометрии OGR
+     * @return true — простая геометрия (Point, LineString, Polygon, Triangle, CircularString)
+     */
+    static bool isSimpleGeometry(OGRwkbGeometryType type)
+    {
         type = wkbFlatten(type);
         return type == wkbPoint ||
-               type == wkbLineString ||
-               type == wkbPolygon ||
-               type == wkbTriangle ||
-               type == wkbCircularString;
+                type == wkbLineString ||
+                type == wkbPolygon ||
+                type == wkbTriangle ||
+                type == wkbCircularString;
     }
-
-    static bool isSimpleGeometry(common::GeometryType type) {
-            return type == common::GeometryType::Point ||
-                   type == common::GeometryType::LineString ||
-                   type == common::GeometryType::Polygon ||
-                   type == common::GeometryType::Triangle ||
-                   type == common::GeometryType::CircularString;
-        }
+    /**
+     * @brief Проверяет, является ли внутренний тип геометрии VRSA простым (не мультигеометрией)
+     * @param type Внутренний тип GeometryType
+     * @return true — простая геометрия (Point, LineString, Polygon, Triangle, CircularString)
+     */
+    static bool isSimpleGeometry(common::GeometryType type)
+    {
+        return type == common::GeometryType::Point ||
+                type == common::GeometryType::LineString ||
+                type == common::GeometryType::Polygon ||
+                type == common::GeometryType::Triangle ||
+                type == common::GeometryType::CircularString;
+    }
 
 
 
@@ -54,11 +84,11 @@ public:
         OGRwkbGeometryType flat = wkbFlatten(type);
         switch(flat)
         {
-            case wkbMultiPoint: return wkbPoint;
-            case wkbMultiLineString: return wkbLineString;
-            case wkbMultiPolygon: return wkbPolygon;
-            case wkbGeometryCollection: return wkbUnknown;
-            default: return flat;
+        case wkbMultiPoint: return wkbPoint;
+        case wkbMultiLineString: return wkbLineString;
+        case wkbMultiPolygon: return wkbPolygon;
+        case wkbGeometryCollection: return wkbUnknown;
+        default: return flat;
         }
     }
 
@@ -67,78 +97,61 @@ public:
 
         switch(type)
         {
-            case common::GeometryType::MultiPoint: return common::GeometryType::Point;
-            case common::GeometryType::MultiLineString: return common::GeometryType::LineString;
-            case common::GeometryType::MultiPolygon: return common::GeometryType::Polygon;
-            case common::GeometryType::GeometryCollection: return common::GeometryType::Unknown;
-            default: return common::GeometryType::Unknown;
+        case common::GeometryType::MultiPoint: return common::GeometryType::Point;
+        case common::GeometryType::MultiLineString: return common::GeometryType::LineString;
+        case common::GeometryType::MultiPolygon: return common::GeometryType::Polygon;
+        case common::GeometryType::GeometryCollection: return common::GeometryType::Unknown;
+        default: return common::GeometryType::Unknown;
         }
     }
 
-    static OGRFieldType convertToOGRFieldType(vrsa::common::FieldType type) {
-        switch(type) {
-            case vrsa::common::FieldType::Integer:
-                return OFTInteger;
-
-            case vrsa::common::FieldType::Integer64:
-                return OFTInteger64;
-
-            case vrsa::common::FieldType::Real:
-                return OFTReal;
-
-            case vrsa::common::FieldType::String:
-                return OFTString;
-
-            case vrsa::common::FieldType::Date:
-                return OFTDate;
-
-            case vrsa::common::FieldType::Time:
-                return OFTTime;
-
-            case vrsa::common::FieldType::DateTime:
-                return OFTDateTime;
-
-            case vrsa::common::FieldType::Binary:
-                return OFTBinary;
-
-            case vrsa::common::FieldType::Boolean:
-                // В OGR нет прямого булева типа, используем Integer (0/1)
-                return OFTInteger;
-
-            case vrsa::common::FieldType::Unknown:
-            default:
-                // По умолчанию используем строковый тип
-                return OFTString;
+    static OGRFieldType convertToOGRFieldType(vrsa::common::FieldType type)
+    {
+        switch(type)
+        {
+        case vrsa::common::FieldType::Integer:
+            return OFTInteger;
+        case vrsa::common::FieldType::Integer64:
+            return OFTInteger64;
+        case vrsa::common::FieldType::Real:
+            return OFTReal;
+        case vrsa::common::FieldType::String:
+            return OFTString;
+        case vrsa::common::FieldType::Date:
+            return OFTDate;
+        case vrsa::common::FieldType::Time:
+            return OFTTime;
+        case vrsa::common::FieldType::DateTime:
+            return OFTDateTime;
+        case vrsa::common::FieldType::Binary:
+            return OFTBinary;
+        case vrsa::common::FieldType::Boolean:
+            //в OGR нет прямого булева типа, используем Integer (0/1)
+            return OFTInteger;
+        case vrsa::common::FieldType::Unknown:
+        default:
+            //по умолчанию используем строковый тип
+            return OFTString;
         }
     }
 
-//    // Безопасные версии
-//    static std::optional<GeometryType> SafeFromOGR(OGRwkbGeometryType ogrType) {
-//        auto flatType = wkbFlatten(ogrType);
-//        if (flatType >= static_cast<int>(GeometryType::Unknown) &&
-//                flatType <= static_cast<int>(GeometryType::Triangle)) {
-//            return static_cast<GeometryType>(flatType);
-//        }
-//        return std::nullopt;
-//    }
 
-//    static std::optional<OGRwkbGeometryType> SafeToOGR(GeometryType type) {
-//        if (type >= GeometryType::Unknown && type <= GeometryType::Triangle) {
-//            return static_cast<OGRwkbGeometryType>(static_cast<int>(type));
-//        }
-//        return std::nullopt;
-//    }
-
-    // Проверки валидности
-    static bool IsValidOGRType(OGRwkbGeometryType ogrType) {
+    //проверки валидности
+    static bool IsValidOGRType(OGRwkbGeometryType ogrType)
+    {
         auto flatType = wkbFlatten(ogrType);
         return flatType >= static_cast<int>(vrsa::common::GeometryType::Unknown) &&
                 flatType <= static_cast<int>(vrsa::common::GeometryType::Triangle);
     }
 
-    static constexpr bool IsValidGeometryType(vrsa::common::GeometryType type) {
+    static constexpr bool IsValidGeometryType(vrsa::common::GeometryType type)
+    {
         return type >= vrsa::common::GeometryType::Unknown && type <= vrsa::common::GeometryType::Triangle;
     }
+private:
+    GeometryTypeConverter() = delete;
+    GeometryTypeConverter(const GeometryTypeConverter& other) = delete;
+    GeometryTypeConverter& operator=(const GeometryTypeConverter& other) = delete;
 };
 }
 }
