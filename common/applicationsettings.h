@@ -30,7 +30,6 @@ public:
     common::LodAlgorithmType getLodAlgorithm() const noexcept { return mLodAlgorithm; }
     void setLodAlgorithm(common::LodAlgorithmType algo) noexcept;
 
-
 private:
     bool mIsLodEnabled = true;
     common::LodAlgorithmType mLodAlgorithm = common::LodAlgorithmType::DouglasPeucker;

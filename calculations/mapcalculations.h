@@ -32,7 +32,7 @@ public:
     * mapExtent - видимая область графической сцены
     * canvasWidth - ширина виджета MapHolder в пикселях
     */
-    double calculate( const QRectF &mapExtent, double canvasWidth ) const;
+    double calculate(const QRectF &mapExtent, double canvasWidth) const;
    /**
     *  mapExtent видимая область графической сцены
     */
