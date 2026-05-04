@@ -16,12 +16,13 @@ public:
 
     // SpatialOperation interface
 public:
-    std::unique_ptr<geos::geom::Geometry> execute(const geos::geom::Geometry *geom1,
-                                                  const geos::geom::Geometry *geom2) override;
-    void executeOnLayer(VectorLayer *inputLayer) override;
-    bool requiresTwoInputs() const override { return false; };
-    QString name() const override { return ("Расчет триангуляции"); };
-    SpatialOperationType type() const override { return SpatialOperationType::Triangulation; };
+    QString name() const override { return tr("Триангуляция"); };
+    bool requiresTwoInputs() const noexcept override { return false; };
+    SpatialOperationType type() const noexcept override { return SpatialOperationType::Triangulation; };
+protected:
+    void processLayers(VectorLayer *firstLayer, VectorLayer *secondLayer) override;
+    std::unique_ptr<geos::geom::Geometry> executeGeos(const geos::geom::Geometry *geom1,
+                                                      const geos::geom::Geometry *geom2) override;
 };
 
 }

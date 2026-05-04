@@ -14,12 +14,13 @@ public:
 
     // SpatialOperation interface
 public:
-    std::unique_ptr<geos::geom::Geometry> execute(const geos::geom::Geometry *geom1,
-                                                  const geos::geom::Geometry *geom2) override;
-    void executeOnLayer(VectorLayer *inputLayer) override;
-    bool requiresTwoInputs() const override { return false; };
-    QString name() const override { return ("Расчет буферной зоны"); };
-    SpatialOperationType type() const override { return SpatialOperationType::Buffer; };
+    QString name() const override { return tr("Расчет буферной зоны"); };
+    bool requiresTwoInputs() const noexcept override { return false; };
+    SpatialOperationType type() const noexcept override { return SpatialOperationType::Buffer; };
+protected:
+    void processLayers(VectorLayer *firstLayer, VectorLayer *secondLayer) override;
+    std::unique_ptr<geos::geom::Geometry> executeGeos(const geos::geom::Geometry *geom1,
+                                                      const geos::geom::Geometry *geom2) override;
 };
 
 }
