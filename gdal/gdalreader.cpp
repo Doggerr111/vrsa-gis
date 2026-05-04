@@ -10,9 +10,7 @@
 #include "common/logger.h"
 #include "common/gisexceptions.h"
 
-
 vrsa::gdalwrapper::GDALReader::GDALReader() = default;
-
 
 std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readDataset
 (const std::string &source, unsigned int flags) const
@@ -47,17 +45,10 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readD
         VRSA_INFO("GDAL", "Mixed datasets are not supported");
         return nullptr;
     }
-
-
 }
 
 std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readTMSDataset(const std::string &source, unsigned int flags) const
 {
-
-//    CPLSetConfigOption("CPL_DEBUG", "ON");
-//    CPLSetConfigOption("CPL_LOG", "gdal_wms.log");
-    //создаем уникальный указатель с кастомным удалителем
-
     CPLSetConfigOption("GDAL_CACHEMAX", "64"); //64 мб
     auto dS = gdalwrapper::createDataset(source, flags);
     if (!dS)
@@ -69,14 +60,12 @@ std::unique_ptr<vrsa::gdalwrapper::Dataset> vrsa::gdalwrapper::GDALReader::readT
     auto vrsaDs = std::make_unique<raster::WebRasterDataset>(std::move(dS));
     vrsaDs->SetDatasetType(common::DatasetType::Raster);
     return vrsaDs;
-
 }
 
 std::vector<std::unique_ptr<vrsa::raster::RasterChannel>> vrsa::gdalwrapper::GDALReader::readChannels
                                                                         (GDALDataset* ds) const
 {
-    if (!ds)
-        return {};
+    if (!ds) return {};
     std::string source = ds->GetDescription();
     int channelCount = ds->GetRasterCount();
     VRSA_DEBUG("GDAL", "Reading raster channels count:" + std::to_string(channelCount) + " from: " + source);
@@ -100,11 +89,7 @@ std::vector<std::unique_ptr<vrsa::raster::RasterChannel>> vrsa::gdalwrapper::GDA
         channels.emplace_back(std::make_unique<raster::RasterChannel>(band));
 
     }
-
-
-
     return channels;
-
 }
 
 std::vector<std::unique_ptr<vrsa::vector::VectorLayer>> vrsa::gdalwrapper::GDALReader::readLayers(GDALDataset *ds) const
