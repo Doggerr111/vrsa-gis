@@ -1408,7 +1408,7 @@ void vrsa::services::GISController::onCreateBufferActionTriggered()
         auto layerName = dto.firstInputLayerName;
         auto layer = mProjectManager->getVectorLayerByName(layerName);
         auto operation = std::make_unique<vector::BufferOperation>(layer, dto, mVectorCreator.get());
-        operation->calculate();
+        operation->execute();
     });
     form.exec();
 }
@@ -1425,7 +1425,7 @@ void vrsa::services::GISController::onCreateTriangulationActionTriggered()
         auto layerName = dto.firstInputLayerName;
         auto layer = mProjectManager->getVectorLayerByName(layerName);
         auto operation = std::make_unique<vector::TriangulationOperation>(layer, dto, mVectorCreator.get());
-        operation->calculate();
+        operation->execute();
     });
     form.exec();
 }
@@ -1441,7 +1441,7 @@ void vrsa::services::GISController::onCreateVoronoiActionTriggered()
         auto layerName = dto.firstInputLayerName;
         auto layer = mProjectManager->getVectorLayerByName(layerName);
         auto operation = std::make_unique<vector::VoronoiOperation>(layer, dto, mVectorCreator.get());
-        operation->calculate();
+        operation->execute();
     });
     form.exec();
 }
@@ -1462,7 +1462,7 @@ void vrsa::services::GISController::onCreateIntersectionActionTriggered()
         auto overlayLayer = mProjectManager->getVectorLayerByName(overlayLayerName);
         auto operation = std::make_unique<vector::IntersectionOperation>(layer, overlayLayer,
                                                                          dto, mVectorCreator.get());
-        operation->calculate();
+        operation->execute();
     });
     form.exec();
 }
@@ -1481,7 +1481,7 @@ void vrsa::services::GISController::onCreateUnionActionTriggered()
         auto overlayLayer = mProjectManager->getVectorLayerByName(overlayLayerName);
         auto operation = std::make_unique<vector::UnionOperation>(layer, overlayLayer,
                                                                          dto, mVectorCreator.get());
-        operation->calculate();
+        operation->execute();
     });
     form.exec();
 }
@@ -1502,7 +1502,7 @@ void vrsa::services::GISController::onCreateDifferenceActionTriggered()
         auto overlayLayer = mProjectManager->getVectorLayerByName(overlayLayerName);
         auto operation = std::make_unique<vector::DifferenceOperation>(layer, overlayLayer,
                                                                          dto, mVectorCreator.get());
-        operation->calculate();
+        operation->execute();
     });
     form.exec();
 }
@@ -1523,7 +1523,7 @@ void vrsa::services::GISController::onCreateSymDifferenceActionTriggered()
         auto overlayLayer = mProjectManager->getVectorLayerByName(overlayLayerName);
         auto operation = std::make_unique<vector::SymDifferenceOperation>(layer, overlayLayer,
                                                                          dto, mVectorCreator.get());
-        operation->calculate();
+        operation->execute();
     });
     form.exec();
 }
