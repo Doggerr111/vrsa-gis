@@ -13,26 +13,16 @@ void vrsa::tools::SingleSelectionTool::mousePressEvent(QGraphicsSceneMouseEvent 
     if (!mMapScene)
         return;
     QGraphicsItem* clickedItem = mMapScene->itemAt(event->scenePos(), QTransform());
-
-    if (!clickedItem)
+    if (!clickedItem) return;
+    if (auto* featureItem = mMapScene->asFeatureItem(clickedItem))
     {
-        return;
+        selectVectorFeature(featureItem);
+        emit toolEvent(ToolEventType::FeatureSelected, QVariant::fromValue(featureItem));
     }
-        qDebug() << "Clicked item:" << clickedItem;
-
-        if (auto* featureItem = mMapScene->asFeatureItem(clickedItem))
-        {
-            //qDebug() <<  "Clicked FeatureGraphicsItem:" << static_cast<void*>(featureItem);
-            selectVectorFeature(featureItem);
-            emit toolEvent(ToolEventType::FeatureSelected, QVariant::fromValue(featureItem));
-            //featureItem->setSelected(true);
-        }
-        else if (auto* tempItem = mMapScene->asTemporaryItem(clickedItem))
-        {
-            qDebug() <<  "Clicked TemporaryGraphicsItem:" << static_cast<void*>(tempItem);
-        }
-
-
+    else if (auto* tempItem = mMapScene->asTemporaryItem(clickedItem))
+    {
+        qDebug() <<  "Clicked TemporaryGraphicsItem:" << static_cast<void*>(tempItem);
+    }
 }
 
 void vrsa::tools::SingleSelectionTool::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -77,6 +67,5 @@ void vrsa::tools::SingleSelectionTool::selectVectorFeature(graphics::FeatureGrap
 void vrsa::tools::SingleSelectionTool::deselectCurrentVectorFeature()
 {
     if (mCurrentSelectedFeatureItem)
-        //if (mCurrentSelectedFeatureItem->isSelected())
         mCurrentSelectedFeatureItem->setSelected(false);
 }
