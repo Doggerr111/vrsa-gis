@@ -5,20 +5,18 @@
 
 vrsa::vector::SymDifferenceOperation::SymDifferenceOperation(VectorLayer *inputLayer, VectorLayer *overlayLayer,
                                           const common::SpatialOperationDTO &dto, VectorLayerCreator *creator)
-    : SpatialOperation(dto, creator)
+    : SpatialOperation(dto, creator, inputLayer, overlayLayer)
 {
-    if (inputLayer && overlayLayer)
-    setInputLayer(inputLayer);
-    setSecondInputLayer(overlayLayer);
+
 }
 
-std::unique_ptr<geos::geom::Geometry> vrsa::vector::SymDifferenceOperation::execute(const geos::geom::Geometry *geom1,
+std::unique_ptr<geos::geom::Geometry> vrsa::vector::SymDifferenceOperation::executeGeos(const geos::geom::Geometry *geom1,
                                                                                    const geos::geom::Geometry *geom2)
 {
     return geom1->symDifference(geom2);
 }
 
-void vrsa::vector::SymDifferenceOperation::executeOnLayers(VectorLayer *firstLayer, VectorLayer *secondLayer)
+void vrsa::vector::SymDifferenceOperation::processLayers(VectorLayer *firstLayer, VectorLayer *secondLayer)
 {
     if (!firstLayer || !mSecondLayer) return;
     std::vector<gdalwrapper::OgrGeometryPtr> geom;
@@ -31,7 +29,7 @@ void vrsa::vector::SymDifferenceOperation::executeOnLayers(VectorLayer *firstLay
             auto geosFeatureGeom = geometry::GeometryConverter::createGEOSFromOGR(featureGeom);
             auto featureOverlayGeom = featureOverlay->getOGRGeometry();
             auto geosFeatureOverlayGeom = geometry::GeometryConverter::createGEOSFromOGR(featureOverlayGeom);
-            auto intersectionGeom = geometry::GeometryConverter::createOGRfromGeos(execute(geosFeatureGeom.get(),
+            auto intersectionGeom = geometry::GeometryConverter::createOGRfromGeos(executeGeos(geosFeatureGeom.get(),
                                                                         geosFeatureOverlayGeom.get()).get());
             if (intersectionGeom)
             {

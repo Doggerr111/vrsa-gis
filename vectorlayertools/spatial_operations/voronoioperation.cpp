@@ -8,12 +8,13 @@
 
 vrsa::vector::VoronoiOperation::VoronoiOperation(VectorLayer *inputLayer,
                                                  const common::SpatialOperationDTO &dto, VectorLayerCreator *creator)
-    : SpatialOperation(dto, creator)
+    : SpatialOperation(dto, creator, inputLayer)
 {
-    if (inputLayer) setInputLayer(inputLayer);
+
 }
 
-std::unique_ptr<geos::geom::Geometry> vrsa::vector::VoronoiOperation::execute(const geos::geom::Geometry *geom1, const geos::geom::Geometry *geom2)
+std::unique_ptr<geos::geom::Geometry> vrsa::vector::VoronoiOperation::executeGeos(const geos::geom::Geometry *geom1,
+                                                                                  const geos::geom::Geometry *geom2)
 {
     auto builder = geos::triangulate::VoronoiDiagramBuilder();
     builder.setSites(*geom1);
@@ -22,29 +23,29 @@ std::unique_ptr<geos::geom::Geometry> vrsa::vector::VoronoiOperation::execute(co
     return builder.getDiagram(*factory);
 }
 
-void vrsa::vector::VoronoiOperation::executeOnLayer(VectorLayer *inputLayer)
+void vrsa::vector::VoronoiOperation::processLayers(VectorLayer *firstLayer, VectorLayer *secondLayer)
 {
     std::vector<gdalwrapper::OgrGeometryPtr> geom;
-    if (!inputLayer) return;
+    if (!firstLayer) return;
     if (!mParams.isValid())
     {
         VRSA_ERROR("GEOS", "Invalid parameters");
         return;
     }
-    auto geosPoints = geometry::GeometryConverter::createGEOSPointCollectionFromVectorLayer(inputLayer);
+    auto geosPoints = geometry::GeometryConverter::createGEOSPointCollectionFromVectorLayer(firstLayer);
     if (!geosPoints)
     {
         VRSA_ERROR("GEOS", "Invalid unput layer geometry");
         return;
     }
-    auto triangulationGeos = execute(geosPoints.get(), nullptr);
+    auto triangulationGeos = executeGeos(geosPoints.get(), nullptr);
     if (!triangulationGeos)
     {
         VRSA_ERROR("GEOS", "Building of Voronoi diagram has failed");
     }
     //GEOMETRY COLLECTION (OF POLYGONS)
     auto triangulationOGR = geometry::GeometryConverter::createOGRfromGeos(triangulationGeos.get());
-    auto ds = mCreator->createGDALDatasetFromGeometryCollection(mParams.outputPath, std::move(triangulationOGR), inputLayer);
+    auto ds = mCreator->createGDALDatasetFromGeometryCollection(mParams.outputPath, std::move(triangulationOGR), firstLayer);
     ds.reset();
     mCreator->emitLayerReadingRequest(mParams.outputPath);
 }

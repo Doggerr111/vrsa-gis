@@ -22,6 +22,52 @@ enum class SpatialOperationType
     Difference,
     SymDifference
 };
+
+class SpatialOperation: public QObject
+{
+
+public:
+    SpatialOperation(const common::SpatialOperationDTO& dto, VectorLayerCreator *creator,
+                     VectorLayer *first   = nullptr, VectorLayer *second = nullptr)
+        : mParams{dto},
+          mCreator{creator},
+          mFirstLayer{first},
+          mSecondLayer{second} {};
+    virtual ~SpatialOperation() = default;
+
+    void execute()
+    {
+        if (validateInputs())
+            processLayers(mFirstLayer, mSecondLayer);
+    }
+
+    void setFirst (vector::VectorLayer* layer) noexcept { mFirstLayer = layer; }
+    void setSecond(vector::VectorLayer* layer) noexcept { mSecondLayer = layer;}
+
+    virtual QString name()              const = 0;
+    virtual bool requiresTwoInputs()    const noexcept = 0;
+    virtual SpatialOperationType type() const noexcept = 0;
+
+protected:
+    virtual std::unique_ptr<geos::geom::Geometry> executeGeos(const geos::geom::Geometry* geom1,
+                                                              const geos::geom::Geometry* geom2 = nullptr) = 0;
+    virtual void processLayers(VectorLayer* firstLayer, VectorLayer* secondLayer = nullptr) = 0;
+
+protected:
+    vector::VectorLayerCreator* mCreator;
+    common::SpatialOperationDTO mParams;
+    vector::VectorLayer* mFirstLayer  = nullptr;
+    vector::VectorLayer* mSecondLayer = nullptr;
+
+private:
+    bool validateInputs() const noexcept
+    {
+        if (!mFirstLayer) return false;
+        if (requiresTwoInputs() && !mSecondLayer) return false;
+        return true;
+    }
+};
+
 inline QString spatialOperationTypeToQString(SpatialOperationType type)
 {
     switch (type)
@@ -45,52 +91,6 @@ inline QString spatialOperationTypeToQString(SpatialOperationType type)
         return "Неизвестная операция";
     }
 }
-
-
-class SpatialOperation: public QObject
-{
-
-
-public:
-    virtual ~SpatialOperation() = default;
-    SpatialOperation(const common::SpatialOperationDTO& dto, VectorLayerCreator* creator);
-    // Общий интерфейс для всех операций
-    virtual std::unique_ptr<geos::geom::Geometry> execute(const geos::geom::Geometry* geom1,
-                                                          const geos::geom::Geometry* geom2 = nullptr) = 0;
-    virtual void executeOnLayer(VectorLayer* inputLayer){ return; };
-    virtual void executeOnLayers(VectorLayer* firstLayer, VectorLayer* secondLayer){ return; };
-    void calculate()
-    {
-        switch (type())
-        {
-        case SpatialOperationType::Buffer:
-        case SpatialOperationType::Triangulation:
-        case SpatialOperationType::VoronoiDiagramm:
-            executeOnLayer(mInputLayer);
-            break;
-        case SpatialOperationType::Intersection:
-        case SpatialOperationType::Union:
-        case SpatialOperationType::Difference:
-        case SpatialOperationType::SymDifference:
-            executeOnLayers(mInputLayer, mSecondLayer);
-            break;
-        default:
-            break;
-        }
-    }
-    void setInputLayer(vector::VectorLayer* layer) { mInputLayer = layer; }
-    void setSecondInputLayer(vector::VectorLayer* layer) { mSecondLayer = layer; }
-    virtual bool requiresTwoInputs() const { return false; }
-
-    virtual QString name() const = 0;
-    virtual SpatialOperationType type() const = 0;
-
-protected:
-    vector::VectorLayerCreator* mCreator;
-    vector::VectorLayer* mInputLayer;
-    vector::VectorLayer* mSecondLayer;
-    common::SpatialOperationDTO mParams;
-};
 
 }
 }

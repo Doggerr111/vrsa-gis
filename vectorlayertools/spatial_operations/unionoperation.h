@@ -15,12 +15,13 @@ public:
 
     // SpatialOperation interface
 public:
-    std::unique_ptr<geos::geom::Geometry> execute(const geos::geom::Geometry *geom1,
-                                                  const geos::geom::Geometry *geom2) override;
-    void executeOnLayers(VectorLayer *firstLayer, VectorLayer *secondLayer) override;
-    bool requiresTwoInputs() const override { return true; };
-    QString name() const override { return ("Расчет пересечений"); };
-    SpatialOperationType type() const override { return SpatialOperationType::Intersection; };
+    QString name() const override { return tr("Объединение"); };
+    bool requiresTwoInputs() const noexcept override { return true; };
+    SpatialOperationType type() const noexcept override { return SpatialOperationType::Union; };
+protected:
+    void processLayers(VectorLayer *firstLayer, VectorLayer *secondLayer) override;
+    std::unique_ptr<geos::geom::Geometry> executeGeos(const geos::geom::Geometry *geom1,
+                                                      const geos::geom::Geometry *geom2) override;
 };
 }
 }

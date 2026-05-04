@@ -15,6 +15,15 @@ namespace gdalwrapper {
 // Основные удалители для GDAL объектов
 // ============================================================================
 
+/**
+ * @english
+ * @brief Deleter for GDALDataset
+ * @endenglish
+ * @russian
+ * @brief Удалитель для GDALDataset
+ * @endrussian
+ */
+
 struct GdalDatasetDeleter {
     void operator()(GDALDataset* dataset) const {
         if (dataset) {

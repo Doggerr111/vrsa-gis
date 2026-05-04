@@ -107,7 +107,6 @@ signals:
 
     void datasetAboutToBeRemoved(gdalwrapper::Dataset* dS);
 private:
-    // Удаляем конструкторы копирования и присваивания
     ProjectManager(const ProjectManager&) = delete;
     ProjectManager& operator=(const ProjectManager&) = delete;
 

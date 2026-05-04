@@ -7,12 +7,12 @@
 #include <geos/triangulate/quadedge/QuadEdgeSubdivision.h>
 vrsa::vector::TriangulationOperation::TriangulationOperation
             (VectorLayer *inputLayer, const common::SpatialOperationDTO &dto, VectorLayerCreator *creator)
-     : SpatialOperation(dto, creator)
+     : SpatialOperation(dto, creator, inputLayer)
 {
-    if (inputLayer) setInputLayer(inputLayer);
+
 }
 
-std::unique_ptr<geos::geom::Geometry> vrsa::vector::TriangulationOperation::execute(const geos::geom::Geometry *geom1,
+std::unique_ptr<geos::geom::Geometry> vrsa::vector::TriangulationOperation::executeGeos(const geos::geom::Geometry *geom1,
                                                                                     const geos::geom::Geometry *geom2)
 {
     auto builder = geos::triangulate::DelaunayTriangulationBuilder();
@@ -22,7 +22,7 @@ std::unique_ptr<geos::geom::Geometry> vrsa::vector::TriangulationOperation::exec
     return builder.getTriangles(*factory);
 }
 
-void vrsa::vector::TriangulationOperation::executeOnLayer(VectorLayer *inputLayer)
+void vrsa::vector::TriangulationOperation::processLayers(VectorLayer *inputLayer, VectorLayer *secondLayer)
 {
     std::vector<gdalwrapper::OgrGeometryPtr> geom;
     if (!inputLayer) return;
@@ -39,7 +39,7 @@ void vrsa::vector::TriangulationOperation::executeOnLayer(VectorLayer *inputLaye
         VRSA_ERROR("GEOS", "Invalid unput layer geometry");
         return;
     }
-    auto triangulationGeos = execute(geosPoints.get(), nullptr);
+    auto triangulationGeos = executeGeos(geosPoints.get(), nullptr);
     //VRSA_DEBUG("GEOS", "TRIANGULATION GEOM:" + triangulationGeos->toString());
     if (!triangulationGeos)
     {
@@ -47,7 +47,6 @@ void vrsa::vector::TriangulationOperation::executeOnLayer(VectorLayer *inputLaye
     }
     //GEOMETRY COLLECTION (OF POLYGONS)
     auto triangulationOGR = geometry::GeometryConverter::createOGRfromGeos(triangulationGeos.get());
-    //qDebug()<<gdalwrapper::GeometryTypeConverter::FromOGR(triangulationOGR->getGeometryType());
     auto ds = mCreator->createGDALDatasetFromGeometryCollection(mParams.outputPath, std::move(triangulationOGR), inputLayer);
     ds.reset();
     mCreator->emitLayerReadingRequest(mParams.outputPath);
